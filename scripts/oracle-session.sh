@@ -15,15 +15,19 @@ fi
 tmux new-session -d -s "$SESSION" -n "chat" -c "$REPO"
 tmux send-keys -t "$SESSION:chat" "claude" Enter
 
-# Window 1: free shell
+# Window 1: memory gate — auto-read on open
+tmux new-window -t "$SESSION" -n "memory" -c "$REPO"
+tmux send-keys -t "$SESSION:memory" "bash $REPO/scripts/memory-read.sh" Enter
+
+# Window 2: free shell
 tmux new-window -t "$SESSION" -n "shell" -c "$REPO"
 
-# Window 2: brain / logs viewer
+# Window 3: brain / logs viewer
 tmux new-window -t "$SESSION" -n "brain" -c "$REPO/brain"
 tmux send-keys -t "$SESSION:brain" "ls -la" Enter
 
 # Return to chat window
 tmux select-window -t "$SESSION:chat"
 
-echo "Oracle session started. Windows: chat | shell | brain"
+echo "Oracle session started. Windows: chat | memory | shell | brain"
 tmux attach-session -t "$SESSION"

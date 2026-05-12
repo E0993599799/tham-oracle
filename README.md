@@ -12,10 +12,19 @@ oracle          # เปิด session ใหม่ หรือ attach ถ้�
 tham            # alias เดียวกัน
 oracle-kill     # ปิด session
 ```
-Session มี 3 windows:
-- `chat` — claude (Oracle main)
-- `shell` — free shell
-- `brain` — brain/ directory
+Session มี 4 windows:
+- `chat`   — claude (Oracle main)
+- `memory` — memory-read summary (โหลดอัตโนมัติตอนเปิด)
+- `shell`  — free shell
+- `brain`  — brain/ directory
+
+### Memory Workflow
+```bash
+mem-read          # ดู memory gate summary
+mem-write --type reflection --body "..."   # บันทึก lesson/decision ใหม่
+mem-close         # ปิด session อย่างถูกต้อง + commit + push
+```
+Types: `baseline` | `rule` | `decision` | `reflection` | `proof`
 
 ### วิธีที่ 2 — ตรงๆ
 ```bash

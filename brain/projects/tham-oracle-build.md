@@ -15,14 +15,15 @@ Last updated: 2026-05-12
 | 03 | Skills (60 อัน) | ✅ done |
 | 04 | Brain Structure (7 areas) | ✅ done |
 | 05 | Session Workflow | ✅ done |
+| 06 | Memory Write-back | ✅ done |
 
 ## Proof
 - Commit `09b627e` — brain structure
-- Scripts: `scripts/oracle-session.sh`, `scripts/oracle-kill.sh`
-- Aliases: `oracle`, `tham`, `oracle-kill` ใน `~/.bashrc`
+- Scripts: `oracle-session.sh`, `oracle-kill.sh`, `memory-read.sh`, `memory-write.sh`, `session-close.sh`
+- Aliases: `oracle`, `tham`, `oracle-kill`, `mem-read`, `mem-write`, `mem-close` ใน `~/.bashrc`
 
 ## Risks / Blockers
 - alias ต้อง `source ~/.bashrc` ก่อนใช้ในเซสชั่นปัจจุบัน
 
 ## Next Action
-- Step 06: ระบุจาก พี่เอก
+- Step 07: ระบุจาก พี่เอก
