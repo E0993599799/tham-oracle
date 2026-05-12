@@ -145,16 +145,23 @@ Installed in `skills/`. Each skill has a `SKILL.md` with purpose, rules, and out
 
 ## Brain Structure
 
-To be added in Step 4.
+Lives in `brain/`. Each area has a `README.md` explaining its purpose and file format.
 
-Initial brain areas:
-- identity/
-- memory/
-- projects/
-- skills/
-- decisions/
-- proofs/
-- reflections/
+| Area | Purpose |
+|---|---|
+| `identity/` | Who ธาม is — profile, personality, hard rules |
+| `memory/` | Persistent operational memory — active index + archive |
+| `projects/` | Active and archived project tracking |
+| `skills/` | Skill activation notes and usage priority |
+| `decisions/` | Architectural and operational decision log |
+| `proofs/` | Task completion evidence archive |
+| `reflections/` | Lessons learned, self-improvement notes |
+
+### Always-Active Brain Reads
+Before any major technical session:
+1. `brain/identity/profile.md` — confirm who I am and what rules apply
+2. `brain/memory/ACTIVE_INDEX.md` — check current baseline and risk flags
+3. `brain/decisions/log.md` — check if a relevant decision already exists
 
 ## Session End Rule
 
