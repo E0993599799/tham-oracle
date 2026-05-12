@@ -35,16 +35,17 @@ command -v go >/dev/null 2>&1 && check "go" "ok" || check "go" "NOT FOUND"
 
 echo ""
 echo "[ Oracle v2 HTTP (port $ORACLE_PORT) ]"
-if curl -sf "http://localhost:${ORACLE_PORT}/health" >/dev/null 2>&1; then
-  check "oracle-v2 HTTP" "ok"
+if curl -sf "http://localhost:${ORACLE_PORT}/" >/dev/null 2>&1; then
+  VERSION=$(curl -s "http://localhost:${ORACLE_PORT}/" | grep -o '"version":"[^"]*"' | cut -d'"' -f4)
+  check "oracle-v2 HTTP (v${VERSION})" "ok"
 else
   check "oracle-v2 HTTP" "NOT running — run: bash scripts/start-oracle-v2-http.sh"
 fi
 
 echo ""
-echo "[ Oracle Studio (port $STUDIO_PORT) ]"
-if curl -sf "http://localhost:${STUDIO_PORT}" >/dev/null 2>&1; then
-  check "oracle-studio" "ok"
+echo "[ Oracle Studio (built-in Swagger UI) ]"
+if curl -sf "http://localhost:${ORACLE_PORT}/swagger" >/dev/null 2>&1; then
+  check "oracle-studio (swagger @ :${ORACLE_PORT}/swagger)" "ok"
 else
   check "oracle-studio" "NOT running — run: bash scripts/start-oracle-studio.sh"
 fi
