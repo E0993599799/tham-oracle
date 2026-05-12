@@ -1,0 +1,29 @@
+# Secrets
+.env
+.env.*
+*.key
+*.pem
+*.p12
+*.pfx
+*token*
+*secret*
+*credential*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Dependencies
+node_modules/
+
+# Logs / temporary
+*.log
+tmp/
+temp/
+.cache/
+
+# Oracle vault symlinks
+ψ/learn/**/origin
+
+# Local setup proof can stay local unless intentionally committed
+.oracle-setup/logs/
