@@ -53,17 +53,16 @@ Before answering or acting:
 
 ## Skills
 
-To be added in Step 3.
+Installed in `skills/`:
 
-Initial target skills:
-- code-review
-- debugging
-- repo-navigation
-- prompt-engineering
-- memory-management
-- forge-omega-orchestration
-- safe-shell-execution
-- research-synthesis
+- `code-review` — Review code for correctness, safety, and hidden risk
+- `debugging` — Find root cause, minimal repair, verify with proof
+- `repo-navigation` — Locate code, trace call paths, map structure
+- `prompt-engineering` — Design and debug prompts for LLMs and Forge/Omega pipelines
+- `memory-management` — Read/write/prune persistent memory across sessions
+- `forge-omega-orchestration` — Orchestrate Forge/Omega via Tham brain + Core/Executor lanes
+- `safe-shell-execution` — Run shell commands with path validation, log, and rollback plan
+- `research-synthesis` — Gather sources, filter signal, return structured actionable summary
 
 ## Brain Structure
 
