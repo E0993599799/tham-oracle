@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "oracle-v2": {
+      "command": "bunx",
+      "args": ["--bun", "arra-oracle@github:Soul-Brews-Studio/arra-oracle#main"],
+      "env": {
+        "ORACLE_PORT": "47778"
+      }
+    }
+  }
+}

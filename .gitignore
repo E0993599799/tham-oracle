@@ -24,6 +24,10 @@ temp/
 
 # Oracle vault symlinks
 ψ/learn/**/origin
+ψ/**/data/
 
-# Local setup proof can stay local unless intentionally committed
+# maw config (contains federationToken — never commit)
+~/.config/maw/maw.config.json
+
+# Local setup logs (commit summary files manually if needed)
 .oracle-setup/logs/

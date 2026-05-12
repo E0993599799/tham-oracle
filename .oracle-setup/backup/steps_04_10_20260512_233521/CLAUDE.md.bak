@@ -145,7 +145,8 @@ Installed in `skills/`. Each skill has a `SKILL.md` with purpose, rules, and out
 
 ## Brain Structure
 
-### brain/ — Structured knowledge
+Lives in `brain/`. Each area has a `README.md` explaining its purpose and file format.
+
 | Area | Purpose |
 |---|---|
 | `identity/` | Who ธาม is — profile, personality, hard rules |
@@ -156,43 +157,11 @@ Installed in `skills/`. Each skill has a `SKILL.md` with purpose, rules, and out
 | `proofs/` | Task completion evidence archive |
 | `reflections/` | Lessons learned, self-improvement notes |
 
-### ψ/ — Session memory vault
-```
-ψ/ → inbox/ | memory/ (learnings, retrospectives, resonance) | learn/ | writing/ | lab/ | active/ | archive/ | outbox/
-```
-
 ### Always-Active Brain Reads
 Before any major technical session:
 1. `brain/identity/profile.md` — confirm who I am and what rules apply
 2. `brain/memory/ACTIVE_INDEX.md` — check current baseline and risk flags
-3. `ψ/memory/resonance/oracle.md` — core philosophy and standing orders
-
-## Session Lifecycle (Standing Orders)
-
-Every session follows this rhythm — no exceptions:
-
-```
-/recap → ทำงาน → /rrr → commit → push → จบ
-```
-
-| จังหวะ | Action | Script |
-|--------|--------|--------|
-| ต้น session | `/recap` — อ่าน retro + git + memory | `mem-read` |
-| ระหว่าง session | commit บ่อยๆ, `oracle_learn` เมื่อเรียนรู้ใหม่ | — |
-| จบ session | `/rrr` — เขียน retrospective + lessons | `scripts/new-rrr.sh` |
-| หลัง /rrr | `git add ψ/memory/ && git commit && git push` | `mem-close` |
-| คุยกับ Oracle อื่น | cc BoB ทุกครั้ง — ห้ามเงียบ | `/talk-to` หรือ `maw hey` |
-
-## Oracle-v2 Memory
-
-oracle-v2 MCP ติดตั้งแล้ว — ใช้ใน Claude Code session:
-- `oracle_learn` — บันทึก learning ใหม่ลง database
-- `oracle_search` — ค้นหา knowledge (hybrid FTS5 + vector)
-- `oracle_handoff` — สร้าง session handoff
-- ดูทั้งหมดใน `docs/oracle-v2-memory.md`
-
-HTTP server: `bash scripts/start-oracle-v2-http.sh` (port 47778)
-Dashboard: `bash scripts/start-oracle-studio.sh` (port 3000)
+3. `brain/decisions/log.md` — check if a relevant decision already exists
 
 ## Session End Rule
 
