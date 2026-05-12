@@ -1,15 +1,15 @@
 # Skill: Code Review
 
 ## Purpose
-Review code for correctness, safety, maintainability, and hidden risk.
+Review code for correctness, security, maintainability, and performance.
 
-## When to use
-Use when Human asks to inspect, improve, refactor, or validate code.
+## Checks
+- logic bugs
+- unsafe shell
+- secrets
+- path handling
+- error handling
+- concurrency/no-hang
+- tests/proof
+- readability
 
-## Behavior
-- Identify bugs first
-- Check edge cases
-- Check secrets and unsafe operations
-- Prefer small reversible changes
-- Give exact patch plan
-- Never claim success without proof

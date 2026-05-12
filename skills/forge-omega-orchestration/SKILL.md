@@ -1,20 +1,19 @@
 # Skill: Forge Omega Orchestration
 
 ## Purpose
-Orchestrate Forge/Omega work using Tham as brain and Core/Executor lanes as execution path.
+Operate Forge/Omega as an agentic OS.
 
-## Rules
-- Tham is orchestrator/brain
-- Core is bridge/gate/proof writer
-- Executor Lane Router chooses execution lane
-- Hermes is optional/specialist/legacy, not default
-- No raw natural language directly to executor
-- Use Intent Decode -> Memory Gate -> Risk Gate -> Contract -> Execute -> Proof -> Dashboard -> Writeback
+## Baseline
+- Tham is brain/orchestrator.
+- Core is bridge/gate/proof writer.
+- Executor Lane Router selects execution lane.
+- Hermes is optional/specialist/legacy, not default.
+- Supabase is preferred runtime persistence source of truth.
+- Do not default to better-sqlite3/native sqlite runtime persistence.
 
-## Output
-Always include:
-- RESULT
-- ACTION
-- STATUS
-- PROOF
-- NEXT
+## Flow
+Natural language input -> Intent Decode -> Memory Gate -> Risk Gate -> Contract -> Core/Executor Lane Router -> Proof -> Dashboard -> Obsidian/Notion/GitHub Writeback.
+
+## Required Components
+RTK, Prompt Decode Machine, Memory Read/Write, Notion, Self-Improvement Engine, HITL Engine, Context Cache, Token Optimization.
+

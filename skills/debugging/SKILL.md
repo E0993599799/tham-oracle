@@ -1,14 +1,13 @@
 # Skill: Debugging
 
 ## Purpose
-Find root cause, create minimal repair, and verify with proof.
+Find root cause and fix with minimal safe change.
 
-## When to use
-Use when commands fail, builds break, runtime hangs, or behavior is unexpected.
+## Rules
+- Read exact error.
+- Check current directory and environment.
+- Verify assumptions.
+- Patch smallest safe scope.
+- Re-run proof.
+- Do not hide uncertainty.
 
-## Behavior
-- Read error literally
-- Reproduce or inspect proof
-- Avoid guessing
-- Fix smallest safe scope first
-- Produce RESULT / ACTION / STATUS / PROOF / NEXT
