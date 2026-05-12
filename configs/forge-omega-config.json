@@ -1,0 +1,59 @@
+{
+  "_comment": "Forge/Omega runtime config for Tham Oracle. No secrets, tokens, or credentials stored here.",
+  "_version": "1.0",
+  "_updated": "2026-05-12",
+
+  "identity": {
+    "name": "tham-oracle",
+    "role": "brain-orchestrator",
+    "human": "พี่เอก / Ekkarat"
+  },
+
+  "oracle": {
+    "tham": { "port": 47778, "status": "active" },
+    "dev":  { "port": 47779, "status": "template/inactive" },
+    "qa":   { "port": 47780, "status": "template/inactive" }
+  },
+
+  "studio": {
+    "port": 3000,
+    "api_target": "http://localhost:47778"
+  },
+
+  "persistence": {
+    "preferred": "supabase",
+    "fallback": "sqlite-local",
+    "note": "Do NOT default to better-sqlite3/native sqlite for runtime persistence"
+  },
+
+  "flow": {
+    "steps": [
+      "natural-language-input",
+      "intent-decode",
+      "memory-gate",
+      "risk-gate",
+      "contract",
+      "executor-lane-router",
+      "execution",
+      "proof-reader",
+      "dashboard-update",
+      "writeback"
+    ],
+    "writebacks": ["obsidian", "notion", "github"]
+  },
+
+  "rules": {
+    "no_force_push": true,
+    "no_secrets_in_commits": true,
+    "hermes_not_default": true,
+    "no_cmd_popup": true,
+    "proof_before_ok": true,
+    "powershell_first_windows": true,
+    "wsl_linux_only_when_required": true
+  },
+
+  "tmux_sessions": {
+    "main": "tham-oracle-stack",
+    "fleet": "oracle-fleet"
+  }
+}

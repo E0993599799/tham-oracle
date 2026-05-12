@@ -31,3 +31,21 @@
 **Why**: Separates durable knowledge by type; memory and proofs can grow without polluting identity.
 **Applies to**: All knowledge storage in tham-oracle repo.
 **Revisit when**: Step 05+ introduces a different structure.
+
+---
+
+## 2026-05-13 — ψ vault is primary session memory; brain/ is durable knowledge
+
+**Decision**: ψ/ vault = session memory (learnings, retrospectives, active, archive, lab, writing, learn). brain/ = durable structured knowledge (identity, decisions, proofs, reflections).
+**Why**: ψ/ grows fast and is ephemeral-ish; brain/ should stay clean and stable. Separation makes grep faster.
+**Applies to**: All writes — ask "is this durable knowledge or session artifact?" before choosing path.
+**Revisit when**: oracle-v2 MCP replaces flat-file memory fully.
+
+---
+
+## 2026-05-13 — Forge/Omega integration: configs/ as structured registry
+
+**Decision**: All Forge/Omega configs (agent-registry, lane-cards, forge-omega-config) live in `configs/` at repo root.
+**Why**: Separates runtime config from docs and brain knowledge. Easy to read programmatically.
+**Applies to**: Agent registry, lane card definitions, fleet configs.
+**Revisit when**: Config needs secret values — then split into public config + encrypted secrets store.

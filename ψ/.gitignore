@@ -3,3 +3,6 @@
 
 # Ignore data files
 data/
+*.secret
+*.key
+*.token

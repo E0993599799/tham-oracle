@@ -1,0 +1,12 @@
+{
+  "lane_id": "core-runner",
+  "agent": "core",
+  "description": "Core bridge รับ structured task จาก Tham → submit ผ่าน GitHub inbox → เขียน proof",
+  "input_format": "structured JSON task contract",
+  "output_format": "proof file + GitHub issue/comment",
+  "risk_gate": "inherit from Tham",
+  "memory_gate": "read-only",
+  "proof_required": true,
+  "status": "template — activate when Core agent is deployed",
+  "activation_command": "see docs/forge-omega-integration.md"
+}

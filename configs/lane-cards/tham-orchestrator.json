@@ -1,0 +1,21 @@
+{
+  "lane_id": "orchestrator",
+  "agent": "tham",
+  "description": "ธาม รับ intent จาก Human → decode → route ไปยัง executor lane ที่เหมาะสม",
+  "input_format": "natural language (Thai/English)",
+  "output_format": "structured contract + proof",
+  "risk_gate": "always-on",
+  "memory_gate": "always-on",
+  "proof_required": true,
+  "allowed_actions": [
+    "read-memory", "write-memory", "search-oracle",
+    "route-to-lane", "generate-proof", "summarize-result",
+    "write-code", "review-code", "debug", "research"
+  ],
+  "forbidden_actions": [
+    "git push --force",
+    "commit secrets",
+    "execute without proof",
+    "assume success without verification"
+  ]
+}

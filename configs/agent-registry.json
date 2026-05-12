@@ -1,0 +1,83 @@
+{
+  "_comment": "Tham Oracle — Agent Registry v1.0 (2026-05-12). No secrets stored here.",
+  "_version": "1.0",
+  "_updated": "2026-05-12",
+
+  "agents": [
+    {
+      "id": "tham",
+      "soul": "ธาม — Personal Oracle for พี่เอก",
+      "role": "brain-orchestrator",
+      "capabilities": [
+        "intent-decode",
+        "memory-read",
+        "memory-write",
+        "risk-gate",
+        "proof-writer",
+        "executor-routing",
+        "code-review",
+        "debugging",
+        "research-synthesis",
+        "prompt-engineering"
+      ],
+      "lane": "orchestrator",
+      "port": 47778,
+      "status": "active",
+      "validation": "oracle_search + oracle_learn via oracle-v2 MCP"
+    },
+    {
+      "id": "core",
+      "soul": "Core — Bridge/Gate/Proof Writer",
+      "role": "bridge-gate",
+      "capabilities": [
+        "github-inbox",
+        "proof-write",
+        "task-gate",
+        "structured-submit"
+      ],
+      "lane": "core-runner",
+      "port": null,
+      "status": "template",
+      "validation": "GitHub inbox + proof file existence"
+    },
+    {
+      "id": "bob",
+      "soul": "BoB — Inter-Oracle Coordinator",
+      "role": "coordinator",
+      "capabilities": [
+        "oracle-communication",
+        "cc-routing",
+        "status-report"
+      ],
+      "lane": "coordinator",
+      "port": null,
+      "status": "template",
+      "validation": "oracle-communication-law.md compliance"
+    },
+    {
+      "id": "hermes",
+      "soul": "Hermes — Legacy/Specialist Adapter",
+      "role": "specialist-legacy",
+      "capabilities": [
+        "legacy-api",
+        "specialist-task"
+      ],
+      "lane": "hermes-optional",
+      "port": null,
+      "status": "inactive",
+      "validation": "explicitly routed only — never default"
+    }
+  ],
+
+  "lanes": [
+    { "id": "orchestrator", "description": "Tham brain — receives intent, routes to executor" },
+    { "id": "core-runner", "description": "Core bridge — structured GitHub inbox tasks" },
+    { "id": "powershell-sfsr", "description": "PowerShell one-file-one-run for Windows automation" },
+    { "id": "openclaw-9router", "description": "Local OpenAI-compatible routing via 9router/OpenClaw" },
+    { "id": "local-worker", "description": "Local worker processes on WSL/Linux" },
+    { "id": "web-browser", "description": "Web/browser automation worker" },
+    { "id": "research-worker", "description": "Research and synthesis worker" },
+    { "id": "codex-manual", "description": "Codex manual coding lane — high-quality prompts only" },
+    { "id": "hermes-optional", "description": "Hermes legacy adapter — specialist only when explicitly routed" }
+  ]
+}
