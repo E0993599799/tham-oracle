@@ -30,6 +30,17 @@ Last updated: 2026-05-13
 - `tham-oracle` — Oracle repo complete (Steps 01-11 done)
 - `forge-omega-integration` — integration complete, Omega (Core agent) deployed at D:/Git/omega-oracle
 
+## Providers (verified 2026-05-13)
+
+| Provider | Endpoint | Model | Status |
+|----------|----------|-------|--------|
+| 9router (OpenClaw) | port 20128 | — | ✅ active |
+| Hermes (via 9router) | port 20128 | `ollama/minimax-m2.5` | ✅ verified |
+| Tham oracle-v2 | port 47778 | — | manual start |
+| Omega oracle-v2 | port 47779 | — | manual start |
+
+Available via 9router: `cc/claude-sonnet-4-6`, `ollama/minimax-m2.5`, `ollama/qwen3.5`, `ollama/glm-4.7-flash`, `ollama/kimi-k2.5`
+
 ## Risk Flags
 - oracle-v2 HTTP server requires manual start (not auto-started) — `bash scripts/start-oracle-v2-http.sh`
 - oracle-v2 /api/learn stores `pattern` only — content/tags fields are ignored

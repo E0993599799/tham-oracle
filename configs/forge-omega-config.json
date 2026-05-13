@@ -1,7 +1,7 @@
 {
   "_comment": "Forge/Omega runtime config for Tham Oracle. No secrets, tokens, or credentials stored here.",
-  "_version": "1.0",
-  "_updated": "2026-05-12",
+  "_version": "1.1",
+  "_updated": "2026-05-13",
 
   "identity": {
     "name": "tham-oracle",
@@ -50,6 +50,33 @@
     "proof_before_ok": true,
     "powershell_first_windows": true,
     "wsl_linux_only_when_required": true
+  },
+
+  "providers": {
+    "9router": {
+      "base_url": "http://127.0.0.1:20128/v1",
+      "api_key_env": "OPENCLAW_API_KEY",
+      "status": "active",
+      "port": 20128,
+      "models": {
+        "claude": "cc/claude-sonnet-4-6",
+        "hermes": "ollama/minimax-m2.5",
+        "fast": "ollama/glm-4.7-flash"
+      },
+      "available": [
+        "cc/claude-opus-4-7", "cc/claude-sonnet-4-6", "cc/claude-haiku-4-5-20251001",
+        "ollama/minimax-m2.5", "ollama/qwen3.5", "ollama/glm-4.7-flash",
+        "ollama/kimi-k2.5", "ollama/glm-5", "ollama/gpt-oss:120b"
+      ]
+    },
+    "hermes": {
+      "provider": "openai-compat",
+      "base_url": "http://127.0.0.1:20128/v1",
+      "model": "ollama/minimax-m2.5",
+      "status": "active",
+      "verified": "2026-05-13",
+      "note": "Hermes routes through 9router (OpenClaw) — not direct Ollama"
+    }
   },
 
   "tmux_sessions": {
