@@ -54,4 +54,5 @@ Available via 9router: `cc/claude-sonnet-4-6`, `ollama/minimax-m2.5`, `ollama/qw
 - oracle-v2 HTTP tested: learn ✅ search(FTS5) ✅ list ✅ stats ✅ — MCP stdio ❌ (2026-05-13)
 - Omega (Core agent) deployed: D:/Git/omega-oracle — CLAUDE.md, .mcp.json, ψ vault, hooks (2026-05-13)
 - Omega ↔ Forge queue bridge: forge-queue-claim.sh + forge-proof-write.sh ✅ (2026-05-13)
-- SFSR-23 claimed test ✅ | Forge evidence written to tools/logs/ ✅
+- SFSR-23 COMPLETE ✅ — Hermes verdict: REQUIREMENTS_MET 1-8, VERDICT=COMPLETE (2026-05-13)
+- SFSR-24–28 pending
