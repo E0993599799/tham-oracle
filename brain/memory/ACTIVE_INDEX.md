@@ -34,7 +34,7 @@ Last updated: 2026-05-13
 - oracle-v2 HTTP server requires manual start (not auto-started) — `bash scripts/start-oracle-v2-http.sh`
 - oracle-v2 /api/learn stores `pattern` only — content/tags fields are ignored
 - oracle-v2 vector search needs external embedding API (bge-m3/qwen3/nomic) — currently FTS5 only
-- Omega (Core agent) deployed — open D:/Git/omega-oracle ใน Claude Code เพื่อใช้งาน
+- Omega (Core agent) deployed + connected to Forge queue (2026-05-13)
 - Supabase credentials not yet configured
 
 ## Last Proof
@@ -42,3 +42,5 @@ Last updated: 2026-05-13
 - Forge/Omega integration: configs/, docs/forge-omega-integration.md, scripts/forge-omega-health.sh (2026-05-13)
 - oracle-v2 HTTP tested: learn ✅ search(FTS5) ✅ list ✅ stats ✅ — MCP stdio ❌ (2026-05-13)
 - Omega (Core agent) deployed: D:/Git/omega-oracle — CLAUDE.md, .mcp.json, ψ vault, hooks (2026-05-13)
+- Omega ↔ Forge queue bridge: forge-queue-claim.sh + forge-proof-write.sh ✅ (2026-05-13)
+- SFSR-23 claimed test ✅ | Forge evidence written to tools/logs/ ✅
