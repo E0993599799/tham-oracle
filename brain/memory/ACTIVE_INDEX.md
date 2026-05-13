@@ -13,7 +13,7 @@ Last updated: 2026-05-13
 | Brain areas | 7 (identity, memory, projects, skills, decisions, proofs, reflections) |
 | ψ vault dirs | 10 (inbox/memory/learn/writing/lab/active/archive/outbox + learnings/retrospectives) |
 | Forge/Omega status | integration complete — agent-registry, lane-cards, health-check, docs |
-| oracle-v2 MCP | configured (.mcp.json), HTTP port 47778 |
+| oracle-v2 MCP | HTTP-only (stdio tools removed in v3) — port 47778, DB: ~/.arra-oracle-v2/ |
 | maw | installed (/root/.bun/bin/maw) |
 | ghq | installed (/usr/local/bin/ghq) |
 
@@ -31,10 +31,13 @@ Last updated: 2026-05-13
 - `forge-omega-integration` — integration files created, Core agent pending deployment
 
 ## Risk Flags
-- oracle-v2 HTTP server requires manual start (not auto-started)
+- oracle-v2 HTTP server requires manual start (not auto-started) — `bash scripts/start-oracle-v2-http.sh`
+- oracle-v2 /api/learn stores `pattern` only — content/tags fields are ignored
+- oracle-v2 vector search needs external embedding API (bge-m3/qwen3/nomic) — currently FTS5 only
 - Core agent is template only — not deployed
 - Supabase credentials not yet configured
 
 ## Last Proof
 - Commit `2dbb8af` — steps 04-10 complete (2026-05-12)
 - Forge/Omega integration: configs/, docs/forge-omega-integration.md, scripts/forge-omega-health.sh (2026-05-13)
+- oracle-v2 HTTP tested: learn ✅ search(FTS5) ✅ list ✅ stats ✅ — MCP stdio ❌ (2026-05-13)
