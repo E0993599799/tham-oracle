@@ -31,3 +31,9 @@ temp/
 
 # Local setup logs (commit summary files manually if needed)
 .oracle-setup/logs/
+
+# Supabase local temp state
+supabase/.temp/
+
+# Tools runtime logs (empty dirs only — logs excluded by *.log rule)
+tools/logs/
