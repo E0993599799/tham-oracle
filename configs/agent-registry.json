@@ -27,7 +27,7 @@
     },
     {
       "id": "core",
-      "soul": "Core — Bridge/Gate/Proof Writer",
+      "soul": "Omega — Core Bridge/Gate/Proof Writer",
       "role": "bridge-gate",
       "capabilities": [
         "github-inbox",
@@ -36,9 +36,12 @@
         "structured-submit"
       ],
       "lane": "core-runner",
-      "port": null,
-      "status": "template",
-      "validation": "GitHub inbox + proof file existence"
+      "port": 47779,
+      "repo": "E0993599799/Omega",
+      "local_path": "D:/Git/omega-oracle",
+      "status": "active",
+      "validation": "GitHub inbox + proof file existence",
+      "deployed": "2026-05-13"
     },
     {
       "id": "bob",

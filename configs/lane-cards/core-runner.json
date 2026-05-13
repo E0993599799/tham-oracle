@@ -7,6 +7,11 @@
   "risk_gate": "inherit from Tham",
   "memory_gate": "read-only",
   "proof_required": true,
-  "status": "template — activate when Core agent is deployed",
-  "activation_command": "see docs/forge-omega-integration.md"
+  "status": "active",
+  "oracle_name": "Omega",
+  "repo": "E0993599799/Omega",
+  "local_path": "D:/Git/omega-oracle",
+  "port": 47779,
+  "deployed": "2026-05-13",
+  "activation_command": "open D:/Git/omega-oracle in Claude Code"
 }
