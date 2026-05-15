@@ -1,0 +1,40 @@
+{
+  "_comment": "tmux pane assignment for agent cross-pane messaging. Session: oracle-fleet",
+  "_version": "1.0",
+  "_updated": "2026-05-15",
+
+  "session": "oracle-fleet",
+
+  "agents": {
+    "tham": {
+      "window": "tham",
+      "role": "brain-orchestrator",
+      "inbox": "ψ/inbox/tham",
+      "repo": "E0993599799/tham-oracle",
+      "local_path": "/root/repos/tham-oracle"
+    },
+    "core": {
+      "window": "core",
+      "role": "bridge-gate",
+      "inbox": "ψ/inbox/core",
+      "repo": "E0993599799/Omega",
+      "local_path": "/root/ghq/github.com/E0993599799/Omega"
+    },
+    "bob": {
+      "window": "bob",
+      "role": "coordinator",
+      "inbox": "ψ/inbox/bob",
+      "repo": null,
+      "local_path": null,
+      "note": "BoB runs as coordinator window in oracle-fleet — no separate repo"
+    },
+    "hermes": {
+      "window": "hermes",
+      "role": "specialist-legacy",
+      "inbox": "ψ/inbox/hermes",
+      "repo": null,
+      "local_path": null,
+      "note": "Hermes window shows 9router status + receives routed tasks"
+    }
+  }
+}

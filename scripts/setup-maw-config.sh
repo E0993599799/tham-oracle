@@ -23,18 +23,23 @@ TOKEN=$(openssl rand -base64 32)
 cat > "$CONFIG_FILE" << EOF
 {
   "host": "local",
+  "bind": "0.0.0.0",
   "port": 3457,
   "node": "tham-node",
   "federationToken": "${TOKEN}",
   "peers": [],
   "namedPeers": [],
   "agents": {
-    "tham": "tham-node"
+    "tham":   "tham-node",
+    "omega":  "tham-node",
+    "core":   "tham-node",
+    "bob":    "tham-node",
+    "hermes": "tham-node"
   }
 }
 EOF
 
-# Fleet config for Tham Oracle
+# Fleet config: tham (window 0)
 cat > "$FLEET_DIR/01-tham.json" << 'EOF'
 {
   "name": "tham",
@@ -44,8 +49,42 @@ cat > "$FLEET_DIR/01-tham.json" << 'EOF'
 }
 EOF
 
+# Fleet config: omega/core (window 1)
+cat > "$FLEET_DIR/02-omega.json" << 'EOF'
+{
+  "name": "omega",
+  "windows": [
+    {"name": "core", "repo": "E0993599799/Omega"}
+  ]
+}
+EOF
+
+# Fleet config: bob coordinator (window 2)
+cat > "$FLEET_DIR/03-bob.json" << 'EOF'
+{
+  "name": "bob",
+  "windows": [
+    {"name": "bob", "repo": "E0993599799/tham-oracle"}
+  ]
+}
+EOF
+
+# Fleet config: hermes specialist (window 3)
+cat > "$FLEET_DIR/04-hermes.json" << 'EOF'
+{
+  "name": "hermes",
+  "windows": [
+    {"name": "hermes", "repo": "E0993599799/tham-oracle"}
+  ]
+}
+EOF
+
 echo "✓ Config created: $CONFIG_FILE"
-echo "✓ Fleet config: $FLEET_DIR/01-tham.json"
+echo "✓ Fleet configs:"
+echo "   $FLEET_DIR/01-tham.json"
+echo "   $FLEET_DIR/02-omega.json"
+echo "   $FLEET_DIR/03-bob.json"
+echo "   $FLEET_DIR/04-hermes.json"
 echo ""
 echo "⚠ federationToken is stored locally only — do NOT commit $CONFIG_FILE"
 echo ""
