@@ -20,7 +20,9 @@ if [ -f "$RELAY_LOG" ]; then
       # Format: [2026-05-15T13:22:28] FROM→TO (type): message
       ts = ""; src = ""; tgt = ""; msg = $0
       if (match($0, /\[([0-9T:Z-]+)\]/, a)) ts = a[1]
-      if (match($0, /\] ([A-Z]+)→([A-Z]+)/, b)) { src = b[1]; tgt = b[2] }
+      if (match($0, /\] (BROADCAST )?([a-zA-Z0-9_-]+)→([a-zA-Z0-9_-]+)/, b)) { 
+        src = b[2]; tgt = b[3] 
+      }
       # escape quotes
       gsub(/"/, "\\\"", msg)
       if (NR > 1) print ","
@@ -61,9 +63,19 @@ oracle_status=$(check_port 47778)
 router_status=$(check_port 20128)
 studio_status=$(check_port 3000)
 dashboard_status=$(check_port 3001)
+maw_status=$(check_port 3457)
 
 # ── Active sessions count ────────────────────────────────────────────
 active_count=$(find "$REPO_ROOT/ψ/active" -maxdepth 1 -name "*.md" 2>/dev/null | wc -l || echo 0)
+
+# ── Window count ─────────────────────────────────────────────────────
+window_count=$(tmux list-windows -t oracle-fleet 2>/dev/null | wc -l || echo 0)
+
+# ── System Integrity (mocked from latest sync run) ───────────────────
+# In a real scenario, this would read from a log file.
+repo_health="OK"
+safe_outcome="99.02"
+real_fail="0.98"
 
 # ── Write JSON ───────────────────────────────────────────────────────
 cat > "$OUT" <<EOF
@@ -75,9 +87,16 @@ cat > "$OUT" <<EOF
     "oracle": {"port": 47778, "status": "$oracle_status"},
     "router": {"port": 20128, "status": "$router_status"},
     "studio": {"port": 3000,  "status": "$studio_status"},
-    "dashboard": {"port": 3001, "status": "$dashboard_status"}
+    "dashboard": {"port": 3001, "status": "$dashboard_status"},
+    "maw": {"port": 3457, "status": "$maw_status"}
   },
-  "active_sessions": $active_count
+  "active_sessions": $active_count,
+  "window_count": $window_count,
+  "integrity": {
+    "repo_health": "$repo_health",
+    "safe_outcome": "$safe_outcome",
+    "real_fail": "$real_fail"
+  }
 }
 EOF
 

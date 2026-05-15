@@ -1,0 +1,44 @@
+[workspace]
+members = [
+    "crates/themion-core",
+    "crates/themion-cli",
+    "crates/themion-web",
+    "crates/themion-cli-web-ui",
+]
+resolver = "2"
+
+[workspace.dependencies]
+tokio = { version = "1", features = ["full"] }
+reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+anyhow = "1"
+toml = "0.8"
+async-trait = "0.1"
+base64 = "0.22"
+urlencoding = "2"
+ratatui = { version = "0.29", features = ["unstable-rendered-line-info"] }
+crossterm = { version = "0.28", features = ["event-stream", "bracketed-paste"] }
+tokio-stream = "0.1"
+rusqlite = { version = "0.31", features = ["bundled"] }
+uuid = { version = "1", features = ["v4", "serde"] }
+json5 = "0.4"
+thiserror = "1"
+zenoh = "=1.9.0"
+stylos = { git = "https://github.com/tasanakorn/stylos.git", rev = "73b30ca7314257e6c28ce2d82cf72102cb2da94f" }
+fastembed = { version = "5.13.3", default-features = false, features = ["hf-hub-rustls-tls", "ort-download-binaries-rustls-tls"] }
+tiktoken-rs = "0.11.0"
+
+[workspace.package]
+version = "0.78.0"
+edition = "2021"
+
+[profile.dev]
+debug = false
+incremental = true
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = "symbols"
+opt-level = "z"

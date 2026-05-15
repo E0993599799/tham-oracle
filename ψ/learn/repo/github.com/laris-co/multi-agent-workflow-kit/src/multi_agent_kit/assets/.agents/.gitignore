@@ -1,0 +1,14 @@
+# Track toolkit assets within .agents while ignoring generated content
+*
+!.gitignore
+!agents.yaml
+!README.md
+!config/
+!config/tmux.conf
+!maw.env.sh
+!maw.completion.bash
+!maw.completion.zsh
+!profiles/
+!profiles/*.sh
+!scripts/
+!scripts/*.sh

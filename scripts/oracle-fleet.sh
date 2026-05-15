@@ -91,13 +91,13 @@ tmux send-keys -t "$SESSION:design" \
 tmux send-keys -t "$SESSION:design" \
   "bash $REPO_ROOT/scripts/start-uxui-gemini.sh" Enter
 
-# Right pane: BugFix Agent (Codex-style)
+# Right pane: BugFix Agent (opencode + OpenRouter)
 tmux split-window -h -t "$SESSION:design"
 tmux send-keys -t "$SESSION:design.right" "cd $REPO_ROOT && clear" Enter
 tmux send-keys -t "$SESSION:design.right" \
-  "printf '\033[1;33m╔═══════════════════════════════════╗\n║  BugFix Agent (Codex-Style)       ║\n║  MUST research before working     ║\n╚═══════════════════════════════════╝\033[0m\n'" Enter
+  "printf '\033[1;33m╔═══════════════════════════════════╗\n║  BugFix Agent [OPENROUTER/CODEX]  ║\n║  MUST research before working     ║\n╚═══════════════════════════════════╝\033[0m\n'" Enter
 tmux send-keys -t "$SESSION:design.right" \
-  "claude --name 'BugFix' --append-system-prompt-file $PROMPT_DIR/bugfix-prompt.md" Enter
+  "bash $REPO_ROOT/scripts/start-bugfix-codex.sh" Enter
 
 tmux select-layout -t "$SESSION:design" even-horizontal
 tmux select-pane -t "$SESSION:design.left"

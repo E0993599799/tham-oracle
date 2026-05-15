@@ -44,3 +44,22 @@ Human คือพี่เอก / Ekkarat
 4. `commit + push` หลัง /rrr เสมอ — ไม่มีข้อยกเว้น
 5. `cc BoB` ทุกครั้งที่คุยกับ Oracle อื่น
 6. ห้ามเงียบเมื่อ Oracle อื่น message มา
+7. **Claude quota หมด → swap Codex ทันที** — ไม่ถาม ไม่หยุด: `cc/* → cx/gpt-4o → gemini/* → ollama/*`
+
+## Routing Fallback Chain (Quota)
+
+เมื่อ Claude (cc) quota หมด ให้ swap ตาม chain นี้โดยอัตโนมัติ:
+```
+cc/claude-sonnet-4-6       ← primary
+  ↓ 429 / quota_exceeded
+cx/gpt-4o   (Account 1)  ←─┐ round-robin ตั้งแต่แรก
+cx/gpt-4o-2 (Account 2)  ←─┘ กระจาย load ไม่รอ quota หมด
+  ↓ ทั้งสองหมด
+gemini/gemini-2.0-flash    ← via 9router
+  ↓ quota
+ollama/minimax-m2.5        ← Hermes local (always available)
+```
+
+สำหรับ coding task (Codex CLI): `nextCodexPane()` สลับ pane 0 / pane 1 round-robin
+- pane 0 = `oracle:codex-swarm.0` — Account 1
+- pane 1 = `oracle:codex-swarm.1` — Account 2
