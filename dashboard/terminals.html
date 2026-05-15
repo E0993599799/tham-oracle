@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Omega OS — Fleet Terminals</title>
+<link href="https://fonts.googleapis.com/css2?family=Ubuntu+Mono:ital,wght@0,400;0,700;1,400&family=Ubuntu:wght@300;400;500;700&family=Noto+Sans+Thai:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:       #0a0d12;
+    --surface:  #111520;
+    --surface2: #161b27;
+    --border:   #1e2535;
+    --border2:  #252d40;
+    --text:     #cdd5e0;
+    --muted:    #5a6580;
+    --accent:   #3b82f6;
+    --green:    #22c55e;
+    --red:      #ef4444;
+    --yellow:   #f59e0b;
+    --term-bg:  #0d1017;
+    --term-fg:  #c9d1d9;
+    --font-ui:  'Ubuntu', 'Noto Sans Thai', sans-serif;
+    --font-mono:'Ubuntu Mono', 'Consolas', monospace;
+  }
+
+  html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font-ui); overflow: hidden; }
+
+  /* ── Header ─────────────────────────────────────────────────────── */
+  header {
+    display: flex; align-items: center; gap: 16px;
+    padding: 0 20px; height: 52px;
+    background: linear-gradient(135deg, #0f1629 0%, #0a1020 100%);
+    border-bottom: 1px solid var(--border);
+    position: relative; z-index: 10;
+    box-shadow: 0 2px 12px rgba(0,0,0,.5);
+  }
+  .logo {
+    font-size: 15px; font-weight: 700; letter-spacing: .5px;
+    background: linear-gradient(90deg, #60a5fa, #a78bfa);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    white-space: nowrap;
+  }
+  .logo span { font-weight: 300; opacity: .7; }
+  .hdr-sep { width: 1px; height: 20px; background: var(--border2); }
+  .hdr-tag {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; color: var(--muted);
+  }
+  .hdr-tag .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--green); box-shadow: 0 0 6px var(--green);
+    animation: pulse-dot 2s ease-in-out infinite;
+  }
+  .hdr-tag .dot.offline { background: var(--red); box-shadow: 0 0 6px var(--red); animation: none; }
+  @keyframes pulse-dot { 0%,100% { opacity:1 } 50% { opacity:.4 } }
+
+  .hdr-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  .btn-reconnect {
+    font-size: 11px; font-family: var(--font-ui); padding: 4px 12px;
+    border: 1px solid var(--border2); border-radius: 4px;
+    background: transparent; color: var(--muted); cursor: pointer;
+    transition: all .15s;
+  }
+  .btn-reconnect:hover { border-color: var(--accent); color: var(--accent); }
+  .clock { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+  #pane-count { font-size: 12px; color: var(--muted); }
+  #pane-count strong { color: var(--text); }
+
+  /* ── Main grid area ─────────────────────────────────────────────── */
+  main {
+    height: calc(100vh - 52px);
+    overflow-y: auto;
+    padding: 14px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+
+  /* ── Window group row ───────────────────────────────────────────── */
+  .win-group { display: flex; flex-direction: column; gap: 6px; }
+  .win-label {
+    font-size: 10px; font-weight: 600; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--muted);
+    padding: 0 4px;
+  }
+  .win-label span { opacity: .5; font-weight: 400; letter-spacing: 0; }
+  .win-panes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  /* ── Terminal card ──────────────────────────────────────────────── */
+  .tcard {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    box-shadow: 0 4px 16px rgba(0,0,0,.4);
+    transition: border-color .2s;
+    position: relative;
+  }
+  .tcard:hover { border-color: var(--border2); }
+  .tcard::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: var(--ac);
+    opacity: .8;
+  }
+
+  /* card header */
+  .tcard-hdr {
+    display: flex; align-items: center; gap: 8px;
+    padding: 7px 10px 6px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .traffic-lights { display: flex; gap: 4px; }
+  .tl { width: 9px; height: 9px; border-radius: 50%; }
+  .tl-r { background: #ff5f57; }
+  .tl-y { background: #febc2e; }
+  .tl-g { background: #28c840; }
+  .agent-name {
+    font-size: 12px; font-weight: 600; letter-spacing: .3px;
+    color: var(--ac);
+  }
+  .agent-role { font-size: 10px; color: var(--muted); margin-left: 2px; }
+  .card-hdr-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  .stream-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--muted);
+    transition: background .3s;
+  }
+  .stream-dot.live { background: var(--green); box-shadow: 0 0 5px var(--green); animation: pulse-dot 1.5s ease-in-out infinite; }
+  .stream-dot.err  { background: var(--red); }
+  .cmd-badge { font-family: var(--font-mono); font-size: 9px; color: var(--muted); max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* terminal body */
+  .tcard-body {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    height: 240px;
+  }
+  .term-pre {
+    position: absolute; inset: 0;
+    margin: 0; padding: 8px 10px;
+    font-family: var(--font-mono);
+    font-size: 11.5px; line-height: 1.55;
+    background: var(--term-bg);
+    color: var(--term-fg);
+    overflow-y: auto; overflow-x: auto;
+    white-space: pre;
+    tab-size: 4;
+  }
+  .term-pre::-webkit-scrollbar { width: 4px; height: 4px; }
+  .term-pre::-webkit-scrollbar-track { background: transparent; }
+  .term-pre::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  /* ── Empty state ────────────────────────────────────────────────── */
+  .empty-state {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 12px; text-align: center; color: var(--muted);
+    padding: 40px;
+  }
+  .empty-state .icon { font-size: 40px; opacity: .3; }
+  .empty-state h2 { font-size: 18px; font-weight: 500; color: var(--text); }
+  .empty-state code { font-family: var(--font-mono); font-size: 13px; color: var(--accent); background: var(--surface); padding: 6px 14px; border-radius: 4px; }
+
+  /* ── Scrollbar for main ─────────────────────────────────────────── */
+  main::-webkit-scrollbar { width: 6px; }
+  main::-webkit-scrollbar-track { background: transparent; }
+  main::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+  /* ── Responsive single-column ───────────────────────────────────── */
+  @media (max-width: 768px) {
+    .win-panes { grid-template-columns: 1fr; }
+    .tcard-body { height: 200px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Ω Omega OS <span>Fleet Terminals</span></div>
+  <div class="hdr-sep"></div>
+  <div class="hdr-tag">
+    <div class="dot" id="session-dot"></div>
+    <span id="session-label">oracle-fleet</span>
+  </div>
+  <div class="hdr-sep"></div>
+  <div id="pane-count"><strong>—</strong> panes</div>
+
+  <div class="hdr-right">
+    <div class="clock" id="clock"></div>
+    <button class="btn-reconnect" onclick="reconnectAll()">⟳ Reconnect</button>
+  </div>
+</header>
+
+<main id="main-grid">
+  <div class="empty-state" id="empty">
+    <div class="icon">⬛</div>
+    <h2>Fleet not running</h2>
+    <p>Start the oracle-fleet session first:</p>
+    <code>bash scripts/oracle-fleet.sh</code>
+  </div>
+</main>
+
+<script>
+'use strict';
+
+// ── Config ──────────────────────────────────────────────────────────
+const API  = '';   // same origin
+const WINDOW_ORDER = ['brain', 'exec', 'ops', 'design'];
+const WIN_LABELS = {
+  brain:  'Brain  ·  Orchestration',
+  exec:   'Exec   ·  Bridge & Specialist',
+  ops:    'Ops    ·  Maintenance & Monitoring',
+  design: 'Design  ·  UX/UI & BugFix',
+};
+
+// Active SSE connections
+const sources = {};
+let panes = [];
+
+// ── ANSI → HTML ──────────────────────────────────────────────────────
+const FG16 = {
+  '30':'#4c566a','31':'#bf616a','32':'#a3be8c','33':'#ebcb8b',
+  '34':'#81a1c1','35':'#b48ead','36':'#88c0d0','37':'#e5e9f0',
+  '90':'#616e88','91':'#ff6e6e','92':'#a3be8c','93':'#ffffa5',
+  '94':'#81a1c1','95':'#c586c0','96':'#56d6e0','97':'#ffffff',
+};
+const BG16 = {
+  '40':'#3b4252','41':'#bf616a','42':'#a3be8c','43':'#ebcb8b',
+  '44':'#5e81ac','45':'#b48ead','46':'#88c0d0','47':'#d8dee9',
+  '100':'#616e88','101':'#ff6e6e','102':'#a3be8c','103':'#ffffa5',
+  '104':'#81a1c1','105':'#c586c0','106':'#56d6e0','107':'#eceff4',
+};
+
+function x256(n) {
+  if (n < 16) return Object.values(FG16)[n] || '#888';
+  if (n < 232) {
+    const v = n - 16;
+    return `rgb(${Math.floor(v/36)*51},${Math.floor((v%36)/6)*51},${(v%6)*51})`;
+  }
+  const g = (n - 232) * 10 + 8;
+  return `rgb(${g},${g},${g})`;
+}
+
+function stateCSS(s) {
+  const p = [];
+  if (s.fg) p.push(`color:${s.fg}`);
+  if (s.bg) p.push(`background:${s.bg}`);
+  if (s.bold)      p.push('font-weight:700');
+  if (s.italic)    p.push('font-style:italic');
+  if (s.underline) p.push('text-decoration:underline');
+  if (s.dim)       p.push('opacity:.55');
+  return p.join(';');
+}
+
+function ansiToHtml(raw) {
+  // Strip non-color CSI sequences (cursor movement, clear, etc.)
+  let text = raw
+    .replace(/\x1b\[\?[\d;]*[hl]/g, '')    // mode set/reset
+    .replace(/\x1b\[[\d;]*[ABCDHIJKST]/g, '') // cursor movement / erase
+    .replace(/\x1b\[\d*[Mmr]/g, '')         // scroll region, margins
+    .replace(/\x1b[()][AB012]/g, '')        // charset
+    .replace(/\x1b[=>78MDHZ]/g, '')         // misc
+    .replace(/\x1b\[\d*[Pnuf]/g, '');       // misc CSI
+
+  const parts = text.split(/(\x1b\[[\d;]*m)/);
+  let state = {};
+  let html = '';
+
+  for (const part of parts) {
+    if (part.startsWith('\x1b[')) {
+      const codes = part.slice(2, -1).split(';').filter(Boolean);
+      if (codes.length === 0 || (codes.length === 1 && codes[0] === '0')) {
+        state = {};
+        continue;
+      }
+      let i = 0;
+      while (i < codes.length) {
+        const c = codes[i];
+        if      (c === '1')  state.bold = true;
+        else if (c === '2')  state.dim  = true;
+        else if (c === '3')  state.italic = true;
+        else if (c === '4')  state.underline = true;
+        else if (c === '22') { delete state.bold; delete state.dim; }
+        else if (c === '23') delete state.italic;
+        else if (c === '24') delete state.underline;
+        else if (FG16[c])    state.fg = FG16[c];
+        else if (BG16[c])    state.bg = BG16[c];
+        else if (c === '39') delete state.fg;
+        else if (c === '49') delete state.bg;
+        else if (c === '38' && codes[i+1] === '5') { state.fg = x256(parseInt(codes[i+2])); i += 2; }
+        else if (c === '48' && codes[i+1] === '5') { state.bg = x256(parseInt(codes[i+2])); i += 2; }
+        else if (c === '38' && codes[i+1] === '2') { state.fg = `rgb(${codes[i+2]},${codes[i+3]},${codes[i+4]})`; i += 4; }
+        else if (c === '48' && codes[i+1] === '2') { state.bg = `rgb(${codes[i+2]},${codes[i+3]},${codes[i+4]})`; i += 4; }
+        i++;
+      }
+    } else if (part) {
+      const esc = part
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+      const css = stateCSS(state);
+      html += css ? `<span style="${css}">${esc}</span>` : esc;
+    }
+  }
+  return html;
+}
+
+// ── Build grid ───────────────────────────────────────────────────────
+function buildGrid(paneList) {
+  const grid = document.getElementById('main-grid');
+  const empty = document.getElementById('empty');
+
+  // Disconnect old SSE
+  Object.values(sources).forEach(es => es.close());
+  Object.keys(sources).forEach(k => delete sources[k]);
+
+  // Group by window
+  const byWindow = {};
+  for (const p of paneList) {
+    if (!byWindow[p.window]) byWindow[p.window] = [];
+    byWindow[p.window].push(p);
+  }
+
+  // Remove old groups (keep empty state)
+  [...grid.querySelectorAll('.win-group')].forEach(el => el.remove());
+
+  if (paneList.length === 0) {
+    empty.style.display = 'flex';
+    document.getElementById('session-dot').className = 'dot offline';
+    document.getElementById('pane-count').innerHTML = '<strong>0</strong> panes';
+    return;
+  }
+
+  empty.style.display = 'none';
+  document.getElementById('session-dot').className = 'dot';
+  document.getElementById('pane-count').innerHTML = `<strong>${paneList.length}</strong> panes`;
+
+  const order = WINDOW_ORDER.filter(w => byWindow[w]);
+  // Append any windows not in WINDOW_ORDER
+  Object.keys(byWindow).forEach(w => { if (!order.includes(w)) order.push(w); });
+
+  for (const winName of order) {
+    const winPanes = byWindow[winName] || [];
+    const group = document.createElement('div');
+    group.className = 'win-group';
+
+    const label = document.createElement('div');
+    label.className = 'win-label';
+    label.innerHTML = `${winName} <span>· ${WIN_LABELS[winName] || ''}</span>`;
+    group.appendChild(label);
+
+    const row = document.createElement('div');
+    row.className = 'win-panes';
+    row.style.gridTemplateColumns = `repeat(${Math.min(winPanes.length, 4)}, 1fr)`;
+    group.appendChild(row);
+
+    for (const pane of winPanes) {
+      row.appendChild(buildCard(pane));
+    }
+
+    grid.appendChild(group);
+  }
+}
+
+function buildCard(pane) {
+  const card = document.createElement('div');
+  card.className = 'tcard';
+  card.style.setProperty('--ac', pane.color || '#6b7280');
+  card.id = `card-${pane.id.replace('%', 'p')}`;
+
+  card.innerHTML = `
+    <div class="tcard-hdr">
+      <div class="traffic-lights">
+        <div class="tl tl-r"></div>
+        <div class="tl tl-y"></div>
+        <div class="tl tl-g"></div>
+      </div>
+      <span class="agent-name">${pane.name}</span>
+      <span class="agent-role">${pane.role || ''}</span>
+      <div class="card-hdr-right">
+        <span class="cmd-badge" title="${pane.cmd || ''}">${pane.cmd || ''}</span>
+        <div class="stream-dot" id="dot-${pane.id.replace('%', 'p')}"></div>
+      </div>
+    </div>
+    <div class="tcard-body">
+      <pre class="term-pre" id="pre-${pane.id.replace('%', 'p')}"><span style="color:#5a6580">— connecting —</span></pre>
+    </div>
+  `;
+
+  subscribePane(pane);
+  return card;
+}
+
+function subscribePane(pane) {
+  const safeId = pane.id.replace('%', 'p');
+  const pre = document.getElementById(`pre-${safeId}`);
+  const dot = document.getElementById(`dot-${safeId}`);
+  if (!pre || !dot) return;
+
+  const es = new EventSource(`${API}/api/stream?id=${encodeURIComponent(pane.id)}`);
+  sources[pane.id] = es;
+
+  let prev = null;
+  let autoScroll = true;
+
+  pre.addEventListener('scroll', () => {
+    autoScroll = (pre.scrollHeight - pre.scrollTop - pre.clientHeight) < 20;
+  });
+
+  es.onopen = () => { dot.className = 'stream-dot live'; };
+
+  es.onmessage = (e) => {
+    const content = JSON.parse(e.data);
+    if (content === prev) return;
+    prev = content;
+    pre.innerHTML = ansiToHtml(content);
+    if (autoScroll) pre.scrollTop = pre.scrollHeight;
+  };
+
+  es.onerror = () => {
+    dot.className = 'stream-dot err';
+    setTimeout(() => {
+      if (sources[pane.id] === es) {
+        es.close();
+        subscribePane(pane); // reconnect
+      }
+    }, 3000);
+  };
+}
+
+// ── Fetch pane list and rebuild ───────────────────────────────────────
+async function loadPanes() {
+  try {
+    const r = await fetch(`${API}/api/panes`);
+    if (!r.ok) throw new Error(r.status);
+    const data = await r.json();
+    if (JSON.stringify(data) !== JSON.stringify(panes)) {
+      panes = data;
+      buildGrid(panes);
+    }
+  } catch {
+    document.getElementById('session-dot').className = 'dot offline';
+  }
+}
+
+function reconnectAll() {
+  panes = [];
+  loadPanes();
+}
+
+// ── Clock ────────────────────────────────────────────────────────────
+function tickClock() {
+  const d = new Date();
+  document.getElementById('clock').textContent =
+    d.toLocaleTimeString('th-TH', { hour12: false });
+}
+
+// ── Init ─────────────────────────────────────────────────────────────
+loadPanes();
+setInterval(loadPanes, 5000); // refresh pane list every 5s
+tickClock();
+setInterval(tickClock, 1000);
+</script>
+</body>
+</html>
