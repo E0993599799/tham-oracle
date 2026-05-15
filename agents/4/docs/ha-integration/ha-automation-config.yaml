@@ -1,0 +1,64 @@
+# Home Assistant Automation — Push sensor readings to Supabase Edge Function
+# Add to: /config/automations.yaml (or via UI > Automations > Add Automation > Edit in YAML)
+#
+# Required HA config (configuration.yaml):
+#   rest_command:
+#     supabase_ingest:
+#       url: "https://<project-ref>.supabase.co/functions/v1/ha-sensor-ingest"
+#       method: POST
+#       headers:
+#         Authorization: "Bearer {{ ingest_secret }}"
+#         Content-Type: "application/json"
+#       payload: "{{ payload }}"
+#       timeout: 30
+#
+# Replace <project-ref> with the actual Supabase project ref.
+# Set HA secret: store HA_INGEST_SECRET in HA Secrets (secrets.yaml) or as env var.
+
+- alias: "Supabase Sensor Ingest — Every 15 min"
+  id: supabase_sensor_ingest_15m
+  description: "Push temperature/humidity readings to Supabase every 15 minutes"
+  trigger:
+    - platform: time_pattern
+      minutes: "/15"
+  action:
+    - service: rest_command.supabase_ingest
+      data:
+        ingest_secret: !secret ha_ingest_secret
+        payload: >
+          {
+            "source": "ha_automation",
+            "readings": [
+              {
+                "entity_id": "sensor.temperature_indoor",
+                "state": "{{ states('sensor.temperature_indoor') }}",
+                "last_updated": "{{ now().isoformat() }}",
+                "attributes": {
+                  "unit_of_measurement": "°C",
+                  "device_class": "temperature",
+                  "friendly_name": "{{ state_attr('sensor.temperature_indoor', 'friendly_name') }}"
+                }
+              },
+              {
+                "entity_id": "sensor.humidity_indoor",
+                "state": "{{ states('sensor.humidity_indoor') }}",
+                "last_updated": "{{ now().isoformat() }}",
+                "attributes": {
+                  "unit_of_measurement": "%",
+                  "device_class": "humidity",
+                  "friendly_name": "{{ state_attr('sensor.humidity_indoor', 'friendly_name') }}"
+                }
+              },
+              {
+                "entity_id": "sensor.temperature_outdoor",
+                "state": "{{ states('sensor.temperature_outdoor') }}",
+                "last_updated": "{{ now().isoformat() }}",
+                "attributes": {
+                  "unit_of_measurement": "°C",
+                  "device_class": "temperature",
+                  "friendly_name": "{{ state_attr('sensor.temperature_outdoor', 'friendly_name') }}"
+                }
+              }
+            ]
+          }
+  mode: single

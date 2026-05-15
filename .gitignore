@@ -40,7 +40,6 @@ tools/logs/
 
 # Added by Multi-Agent Workflow Kit
 /.agents
-/agents
 /.envrc
 /MAW-*
 .claude/settings.local.json
