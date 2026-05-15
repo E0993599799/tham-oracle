@@ -20,6 +20,8 @@ fi
 # Generate token — not committed, stored locally only
 TOKEN=$(openssl rand -base64 32)
 
+REPO_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+
 cat > "$CONFIG_FILE" << EOF
 {
   "host": "local",
@@ -36,6 +38,10 @@ cat > "$CONFIG_FILE" << EOF
     "bob":         "tham-node",
     "hermes":      "tham-node",
     "housekeeper": "tham-node"
+  },
+  "commands": {
+    "uxui":   "claude --name 'UX-UI'   --append-system-prompt-file ${REPO_DIR}/configs/agent-prompts/uxui-prompt.md",
+    "bugfix": "claude --name 'BugFix'  --append-system-prompt-file ${REPO_DIR}/configs/agent-prompts/bugfix-prompt.md"
   }
 }
 EOF
