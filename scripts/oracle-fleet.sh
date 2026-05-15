@@ -84,12 +84,12 @@ echo "  [ops]    housekeeper (L) | studio (R)"
 # ════════════════════════════════════════════════════════
 tmux new-window -t "$SESSION" -n "design"
 
-# Left pane: UX/UI Design Agent
+# Left pane: UX/UI Design Agent (Gemini)
 tmux send-keys -t "$SESSION:design" "cd $REPO_ROOT && clear" Enter
 tmux send-keys -t "$SESSION:design" \
-  "printf '\033[1;36m╔═══════════════════════════════════╗\n║  UX/UI Design Agent               ║\n║  MUST research before working     ║\n╚═══════════════════════════════════╝\033[0m\n'" Enter
+  "printf '\033[1;36m╔═══════════════════════════════════╗\n║  UX/UI Design Agent  [GEMINI]     ║\n║  MUST research before working     ║\n╚═══════════════════════════════════╝\033[0m\n'" Enter
 tmux send-keys -t "$SESSION:design" \
-  "claude --name 'UX-UI' --append-system-prompt-file $PROMPT_DIR/uxui-prompt.md" Enter
+  "bash $REPO_ROOT/scripts/start-uxui-gemini.sh" Enter
 
 # Right pane: BugFix Agent (Codex-style)
 tmux split-window -h -t "$SESSION:design"

@@ -49,13 +49,14 @@ else
   tmux new-window -t "$TARGET_SESSION" -n "$WINDOW"
 fi
 
-# ── Left pane: UX/UI Agent ──────────────────────────────────────────
+# ── Left pane: UX/UI Design Agent (Gemini) ──────────────────────────
+GEMINI_LAUNCHER="$REPO_ROOT/scripts/start-uxui-gemini.sh"
 tmux send-keys -t "$TARGET_SESSION:$WINDOW" "cd $PROJECT_DIR && clear" Enter
 tmux send-keys -t "$TARGET_SESSION:$WINDOW" \
-  "printf '\033[1;36m╔═══════════════════════════════════╗\n║  UX/UI Design Agent               ║\n║  MUST research before working     ║\n╚═══════════════════════════════════╝\033[0m\n'" Enter
+  "printf '\033[1;36m╔═══════════════════════════════════╗\n║  UX/UI Design Agent  [GEMINI]     ║\n║  MUST research before working     ║\n╚═══════════════════════════════════╝\033[0m\n'" Enter
 sleep 0.3
 tmux send-keys -t "$TARGET_SESSION:$WINDOW" \
-  "claude --name 'UX-UI' --append-system-prompt-file $UXUI_PROMPT" Enter
+  "bash $GEMINI_LAUNCHER" Enter
 
 # ── Right pane: BugFix Agent ────────────────────────────────────────
 tmux split-window -h -t "$TARGET_SESSION:$WINDOW"
@@ -76,7 +77,8 @@ tmux select-window -t "$TARGET_SESSION:$WINDOW"
 echo ""
 echo "Design swarm spawned in '$TARGET_SESSION:$WINDOW'"
 echo ""
-echo "  LEFT  │ UX/UI Design Agent"
+echo "  LEFT  │ UX/UI Design Agent  [GEMINI]"
+echo "        │ Launcher: scripts/start-uxui-gemini.sh"
 echo "        │ Prompt: configs/agent-prompts/uxui-prompt.md"
 echo "        │ RESEARCH REQUIRED before any design work"
 echo ""

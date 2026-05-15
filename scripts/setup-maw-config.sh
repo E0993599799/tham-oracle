@@ -40,7 +40,7 @@ cat > "$CONFIG_FILE" << EOF
     "housekeeper": "tham-node"
   },
   "commands": {
-    "uxui":   "claude --name 'UX-UI'   --append-system-prompt-file ${REPO_DIR}/configs/agent-prompts/uxui-prompt.md",
+    "uxui":   "bash ${REPO_DIR}/scripts/start-uxui-gemini.sh",
     "bugfix": "claude --name 'BugFix'  --append-system-prompt-file ${REPO_DIR}/configs/agent-prompts/bugfix-prompt.md"
   }
 }
