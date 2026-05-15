@@ -104,10 +104,11 @@ tmux select-pane -t "$SESSION:design.left"
 echo "  [design] uxui (L) | bugfix (R)"
 
 # ════════════════════════════════════════════════════════
-# Focus: brain window, tham pane
+# Focus: design window (interactive agents) on attach
+# brain/ops windows are monitoring — not for typing
 # ════════════════════════════════════════════════════════
-tmux select-window -t "$SESSION:brain"
-tmux select-pane -t "$SESSION:brain.left"
+tmux select-window -t "$SESSION:design"
+tmux select-pane -t "$SESSION:design.left"
 
 echo ""
 echo "Fleet '$SESSION' ready — 4 windows × 2 panes:"
