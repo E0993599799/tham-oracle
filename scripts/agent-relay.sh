@@ -73,14 +73,23 @@ LOG_DIR="$REPO_ROOT/ψ/memory"
 mkdir -p "$LOG_DIR"
 echo "[$TS] $FROM→$TO ($TYPE): ${MSG:0:80}" >> "$LOG_DIR/agent-relay.log"
 
-# --- tmux paste (best-effort) ---
+# --- tmux paste (best-effort) — uses pane-registry window.pane targets ---
+# Pane map: tham=brain.left bob=brain.right core=exec.left
+#           hermes=exec.right housekeeper=ops.left
+declare -A PANE_TARGET
+PANE_TARGET[tham]="brain.left"
+PANE_TARGET[bob]="brain.right"
+PANE_TARGET[core]="exec.left"
+PANE_TARGET[hermes]="exec.right"
+PANE_TARGET[housekeeper]="ops.left"
+
 if tmux has-session -t "$SESSION" 2>/dev/null; then
-  if tmux list-windows -t "$SESSION" -F '#W' 2>/dev/null | grep -qx "$TO"; then
-    NOTICE="[BoB relay] Message from $FROM — check ψ/inbox/$TO/"
-    tmux send-keys -t "$SESSION:$TO" "" ""  # focus pane gently
-    echo "  → tmux signal sent to pane: $SESSION:$TO"
+  TARGET="${PANE_TARGET[$TO]:-}"
+  if [ -n "$TARGET" ]; then
+    tmux send-keys -t "$SESSION:$TARGET" "" ""  # gentle focus
+    echo "  → tmux signal sent to pane: $SESSION:$TARGET"
   else
-    echo "  ⚠ pane '$TO' not found in $SESSION — message written to inbox only"
+    echo "  ⚠ no pane target for '$TO' — message written to inbox only"
   fi
 else
   echo "  ⚠ session '$SESSION' not running — message written to inbox only"

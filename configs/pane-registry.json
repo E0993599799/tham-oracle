@@ -1,49 +1,81 @@
 {
-  "_comment": "tmux pane assignment for agent cross-pane messaging. Session: oracle-fleet",
-  "_version": "1.1",
+  "_comment": "tmux pane assignment — 3 windows × 2 panes each. Session: oracle-fleet",
+  "_version": "1.2",
   "_updated": "2026-05-15",
 
   "session": "oracle-fleet",
 
+  "layout": "3 windows × 2 panes (split-h)",
+  "windows": {
+    "brain": {
+      "index": 0,
+      "description": "Orchestration layer",
+      "left":  "tham",
+      "right": "bob"
+    },
+    "exec": {
+      "index": 1,
+      "description": "Execution layer",
+      "left":  "core",
+      "right": "hermes"
+    },
+    "ops": {
+      "index": 2,
+      "description": "Operations layer",
+      "left":  "housekeeper",
+      "right": "studio"
+    }
+  },
+
   "agents": {
     "tham": {
-      "window": "tham",
+      "window": "brain", "pane": "left",
+      "tmux_target": "oracle-fleet:brain.left",
       "role": "brain-orchestrator",
       "inbox": "ψ/inbox/tham",
       "repo": "E0993599799/tham-oracle",
       "local_path": "/root/repos/tham-oracle"
     },
+    "bob": {
+      "window": "brain", "pane": "right",
+      "tmux_target": "oracle-fleet:brain.right",
+      "role": "coordinator",
+      "inbox": "ψ/inbox/bob",
+      "repo": null,
+      "local_path": null
+    },
     "core": {
-      "window": "core",
+      "window": "exec", "pane": "left",
+      "tmux_target": "oracle-fleet:exec.left",
       "role": "bridge-gate",
       "inbox": "ψ/inbox/core",
       "repo": "E0993599799/Omega",
       "local_path": "/root/ghq/github.com/E0993599799/Omega"
     },
-    "bob": {
-      "window": "bob",
-      "role": "coordinator",
-      "inbox": "ψ/inbox/bob",
-      "repo": null,
-      "local_path": null,
-      "note": "BoB runs as coordinator window in oracle-fleet — no separate repo"
-    },
     "hermes": {
-      "window": "hermes",
+      "window": "exec", "pane": "right",
+      "tmux_target": "oracle-fleet:exec.right",
       "role": "specialist-legacy",
       "inbox": "ψ/inbox/hermes",
       "repo": null,
-      "local_path": null,
-      "note": "Hermes window shows 9router status + receives routed tasks"
+      "local_path": null
     },
     "housekeeper": {
-      "window": "housekeeper",
+      "window": "ops", "pane": "left",
+      "tmux_target": "oracle-fleet:ops.left",
       "role": "maintenance",
       "inbox": "ψ/inbox/housekeeper",
       "repo": null,
       "local_path": null,
-      "activation": "bash scripts/housekeeper-run.sh",
-      "note": "Runs maintenance cycle on fleet startup and on demand"
+      "activation": "bash scripts/housekeeper-run.sh"
+    },
+    "studio": {
+      "window": "ops", "pane": "right",
+      "tmux_target": "oracle-fleet:ops.right",
+      "role": "dashboard",
+      "inbox": null,
+      "repo": null,
+      "local_path": null
     }
   }
 }
