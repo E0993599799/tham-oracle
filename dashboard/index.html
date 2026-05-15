@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Omega OS — Fleet Dashboard</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&family=Ubuntu+Mono:wght@400;700&family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans:  ['Ubuntu', 'Noto Sans Thai', 'sans-serif'],
+            thai:  ['Noto Sans Thai', 'sans-serif'],
+            mono:  ['Ubuntu Mono', 'monospace'],
+          },
+          colors: {
+            ink:   '#0f1724',
+            panel: '#f4f6fb',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { background: #f0f3fa; font-family: 'Ubuntu', 'Noto Sans Thai', sans-serif; }
+
+    /* Background dot grid */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      background-image: radial-gradient(circle, #c7d0e8 1px, transparent 1px);
+      background-size: 28px 28px;
+      pointer-events: none;
+      opacity: .45;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #c7d0e8; border-radius: 4px; }
+
+    /* Pulse rings */
+    @keyframes ring {
+      0%   { transform: scale(1);   opacity: .8; }
+      70%  { transform: scale(2.2); opacity: 0;  }
+      100% { transform: scale(2.2); opacity: 0;  }
+    }
+    .pulse-ring {
+      position: relative; display: inline-flex; align-items: center; justify-content: center;
+    }
+    .pulse-ring::before {
+      content: '';
+      position: absolute; inset: 0; border-radius: 9999px;
+      background: currentColor;
+      animation: ring 2s ease-out infinite;
+    }
+    .pulse-dot { position: relative; z-index: 1; }
+
+    /* Card lift on hover */
+    .lift { transition: transform .18s ease, box-shadow .18s ease; }
+    .lift:hover { transform: translateY(-3px); }
+
+    /* Agent card accent border */
+    .acard { border-top: 3px solid var(--ac); }
+
+    /* Relay entry slide-in */
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-8px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    .relay-entry { animation: slideIn .25s ease; }
+
+    /* Terminal blink */
+    @keyframes blink { 50% { opacity: 0; } }
+    .blink { animation: blink 1.1s step-end infinite; }
+
+    /* Gradient header */
+    .hdr-grad {
+      background: linear-gradient(135deg, #0f1724 0%, #1a2744 60%, #0f2040 100%);
+    }
+  </style>
+</head>
+
+<body class="min-h-screen relative">
+<div class="relative z-10">
+
+  <!-- ── HEADER ─────────────────────────────────────────── -->
+  <header class="hdr-grad shadow-2xl">
+    <div class="max-w-screen-2xl mx-auto px-8 py-4 flex items-center justify-between">
+
+      <!-- Logo + Title -->
+      <div class="flex items-center gap-4">
+        <div class="w-10 h-10 rounded-xl bg-blue-500/20 border border-blue-400/30 flex items-center justify-center shadow-lg shadow-blue-900/40">
+          <i data-lucide="zap" class="w-5 h-5 text-blue-300"></i>
+        </div>
+        <div>
+          <div class="flex items-baseline gap-2">
+            <h1 class="text-white font-bold text-xl tracking-tight leading-none">Omega OS</h1>
+            <span class="text-blue-400 text-xs font-mono bg-blue-500/10 border border-blue-500/20 px-2 py-0.5 rounded-md">v2</span>
+          </div>
+          <p class="text-slate-400 text-xs mt-0.5 font-thai">Fleet Dashboard · ศูนย์บัญชาการ</p>
+        </div>
+      </div>
+
+      <!-- Center: fleet pulse -->
+      <div class="flex items-center gap-6">
+        <div class="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/10">
+          <span class="pulse-ring text-green-400 w-2 h-2">
+            <span class="pulse-dot w-2 h-2 rounded-full bg-green-400 block"></span>
+          </span>
+          <span class="text-white text-sm font-medium">5 agents</span>
+          <span class="text-slate-500 text-xs">active</span>
+        </div>
+        <div class="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 border border-white/10">
+          <i data-lucide="layers" class="w-4 h-4 text-slate-400"></i>
+          <span class="text-white text-sm font-medium">4 windows</span>
+          <span class="text-slate-500 text-xs">× 2 panes</span>
+        </div>
+      </div>
+
+      <!-- Right: clock + user -->
+      <div class="flex items-center gap-4">
+        <div class="text-right">
+          <div id="clock" class="text-white font-mono text-lg leading-none tabular-nums"></div>
+          <div id="dateline" class="text-slate-400 text-xs mt-0.5 font-thai"></div>
+        </div>
+        <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/8 border border-white/10">
+          <div class="w-7 h-7 rounded-lg bg-blue-500/20 flex items-center justify-center">
+            <i data-lucide="user" class="w-3.5 h-3.5 text-blue-300"></i>
+          </div>
+          <div>
+            <p class="text-white text-xs font-semibold font-thai leading-none">พี่เอก</p>
+            <p class="text-slate-400 text-xs mt-0.5">Human · Ekkarat</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── MAIN ───────────────────────────────────────────── -->
+  <main class="max-w-screen-2xl mx-auto px-8 py-7 space-y-6">
+
+    <!-- ── ROW 1: Agent cards ──────────────────────────── -->
+    <section>
+      <div class="flex items-center gap-3 mb-4">
+        <i data-lucide="cpu" class="w-4 h-4 text-slate-500"></i>
+        <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-widest">Agent Fleet</h2>
+        <div class="flex-1 h-px bg-slate-200"></div>
+        <span class="text-xs text-slate-400 font-thai">กองเรือ agent ทั้งหมด</span>
+      </div>
+
+      <div class="grid grid-cols-5 gap-4">
+
+        <!-- THAM -->
+        <div class="acard lift bg-white rounded-2xl p-5 shadow-lg shadow-blue-100/60 cursor-pointer" style="--ac:#3b82f6">
+          <div class="flex items-start justify-between mb-4">
+            <div class="w-11 h-11 rounded-xl bg-blue-50 flex items-center justify-center shadow-inner">
+              <i data-lucide="brain" class="w-5 h-5 text-blue-500"></i>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="pulse-ring text-blue-400 w-2 h-2">
+                <span class="pulse-dot w-2 h-2 rounded-full bg-blue-400 block"></span>
+              </span>
+              <span class="text-xs font-semibold text-blue-500">active</span>
+            </div>
+          </div>
+          <h3 class="font-bold text-slate-800 text-base leading-tight">ธาม</h3>
+          <p class="text-xs text-slate-400 mb-3 font-thai">สมอง / ผู้ประสานงาน</p>
+          <div class="space-y-1.5">
+            <div class="flex items-center gap-2 text-xs text-slate-500">
+              <i data-lucide="server" class="w-3 h-3 text-blue-400 flex-shrink-0"></i>
+              <span class="font-mono">oracle-v2 :47778</span>
+            </div>
+            <div class="flex items-center gap-2 text-xs text-slate-500">
+              <i data-lucide="layers" class="w-3 h-3 text-blue-400 flex-shrink-0"></i>
+              <span>62 skills</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- CORE -->
+        <div class="acard lift bg-white rounded-2xl p-5 shadow-lg shadow-emerald-100/60 cursor-pointer" style="--ac:#10b981">
+          <div class="flex items-start justify-between mb-4">
+            <div class="w-11 h-11 rounded-xl bg-emerald-50 flex items-center justify-center shadow-inner">
+              <i data-lucide="git-merge" class="w-5 h-5 text-emerald-500"></i>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="pulse-ring text-emerald-400 w-2 h-2">
+                <span class="pulse-dot w-2 h-2 rounded-full bg-emerald-400 block"></span>
+              </span>
+              <span class="text-xs font-semibold text-emerald-500">active</span>
+            </div>
+          </div>
+          <h3 class="font-bold text-slate-800 text-base leading-tight">Core / Omega</h3>
+          <p class="text-xs text-slate-400 mb-3 font-thai">สะพาน / ประตู</p>
+          <div class="space-y-1.5">
+            <div class="flex items-center gap-2 text-xs text-slate-500">
+              <i data-lucide="github" class="w-3 h-3 text-emerald-400 flex-shrink-0"></i>
+              <span class="font-mono">E0993599799/Omega</span>
+            </div>
+            <div class="flex items-center gap-2 text-xs text-slate-500">
+              <i data-lucide="shield" class="w-3 h-3 text-emerald-400 flex-shrink-0"></i>
+              <span>proof writer</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- BOB -->
+        <div class="acard lift bg-white rounded-2xl p-5 shadow-lg shadow-amber-100/60 cursor-pointer" style="--ac:#f59e0b">
+          <div class="flex items-start justify-between mb-4">
+            <div class="w-11 h-11 rounded-xl bg-amber-50 flex items-center justify-center shadow-inner">
+              <i data-lucide="radio" class="w-5 h-5 text-amber-500"></i>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="pulse-ring text-amber-400 w-2 h-2">
+                <span class="pulse-dot w-2 h-2 rounded-full bg-amber-400 block"></span>
+              </span>
+              <span class="text-xs font-semibold text-amber-500">active</span>
+            </div>
+          </div>
+          <h3 class="font-bold text-slate-800 text-base leading-tight">BoB</h3>
+          <p class="text-xs text-slate-400 mb-3 font-thai">ผู้ประสานงาน fleet</p>
+          <div class="space-y-1.5">
+            <div class="flex items-center gap-2 text-xs text-slate-500">
+              <i data-lucide="activity" class="w-3 h-3 text-amber-400 flex-shrink-0"></i>
+              <span class="font-mono">relay log</span>
+            </div>
+            <div class="flex items-center gap-2 text-xs text-slate-500">
+              <i data-lucide="cc" class="w-3 h-3 text-amber-400 flex-shrink-0"></i>
+              <span>cc all inter-oracle</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- HERMES -->
+        <div class="acard lift bg-white rounded-2xl p-5 shadow-lg shadow-violet-100/60 cursor-pointer" style="--ac:#8b5cf6">
+          <div class="flex items-start justify-between mb-4">
+            <div class="w-11 h-11 rounded-xl bg-violet-50 flex items-center justify-center shadow-inner">
+              <i data-lucide="cpu" class="w-5 h-5 text-violet-500"></i>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="pulse-ring text-violet-400 w-2 h-2">
+                <span class="pulse-dot w-2 h-2 rounded-full bg-violet-400 block"></span>
+              </span>
+              <span class="text-xs font-semibold text-violet-500">active</span>
+            </div>
+          </div>
+          <h3 class="font-bold text-slate-800 text-base leading-tight">Hermes</h3>
+          <p class="text-xs text-slate-400 mb-3 font-thai">ผู้เชี่ยวชาญ / Legacy</p>
+          <div class="space-y-1.5">
+            <div class="flex items-center gap-2 text-xs text-slate-500">
+              <i data-lucide="route" class="w-3 h-3 text-violet-400 flex-shrink-0"></i>
+              <span class="font-mono">9router :20128</span>
+            </div>
+            <div class="flex items-center gap-2 text-xs text-slate-500">
+              <i data-lucide="box" class="w-3 h-3 text-violet-400 flex-shrink-0"></i>
+              <span>minimax-m2.5</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- HOUSEKEEPER -->
+        <div class="acard lift bg-white rounded-2xl p-5 shadow-lg shadow-rose-100/60 cursor-pointer" style="--ac:#ef4444">
+          <div class="flex items-start justify-between mb-4">
+            <div class="w-11 h-11 rounded-xl bg-rose-50 flex items-center justify-center shadow-inner">
+              <i data-lucide="home" class="w-5 h-5 text-rose-500"></i>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="pulse-ring text-rose-400 w-2 h-2">
+                <span class="pulse-dot w-2 h-2 rounded-full bg-rose-400 block"></span>
+              </span>
+              <span class="text-xs font-semibold text-rose-500">active</span>
+            </div>
+          </div>
+          <h3 class="font-bold text-slate-800 text-base leading-tight">Housekeeper</h3>
+          <p class="text-xs text-slate-400 mb-3 font-thai">ดูแลระบบ / บำรุงรักษา</p>
+          <div class="space-y-1.5">
+            <div class="flex items-center gap-2 text-xs text-slate-500">
+              <i data-lucide="archive" class="w-3 h-3 text-rose-400 flex-shrink-0"></i>
+              <span>ψ vault maintenance</span>
+            </div>
+            <div class="flex items-center gap-2 text-xs text-slate-500">
+              <i data-lucide="alert-triangle" class="w-3 h-3 text-rose-400 flex-shrink-0"></i>
+              <span>never deletes</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ── ROW 2: Fleet map + Relay log ───────────────── -->
+    <div class="grid grid-cols-3 gap-5">
+
+      <!-- Fleet windows map -->
+      <div class="col-span-2 bg-white rounded-2xl shadow-lg shadow-slate-200/80 p-6">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center">
+            <i data-lucide="layout-dashboard" class="w-4 h-4 text-slate-200"></i>
+          </div>
+          <div>
+            <h2 class="font-bold text-slate-800 text-sm leading-none">oracle-fleet</h2>
+            <p class="text-xs text-slate-400 mt-0.5 font-mono">tmux session · 4 windows × 2 panes</p>
+          </div>
+          <div class="ml-auto flex items-center gap-2 text-xs text-slate-400 font-mono bg-slate-100 px-3 py-1.5 rounded-lg">
+            <i data-lucide="terminal" class="w-3 h-3"></i>
+            tmux attach -t oracle-fleet
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+
+          <!-- brain -->
+          <div class="rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+            <div class="bg-slate-900 px-4 py-2 flex items-center gap-2">
+              <div class="flex gap-1.5">
+                <div class="w-2.5 h-2.5 rounded-full bg-rose-500/70"></div>
+                <div class="w-2.5 h-2.5 rounded-full bg-amber-500/70"></div>
+                <div class="w-2.5 h-2.5 rounded-full bg-green-500/70"></div>
+              </div>
+              <span class="text-slate-400 text-xs font-mono ml-1">brain <span class="text-slate-600">[win 0]</span></span>
+              <span class="ml-auto text-slate-600 text-xs font-thai">monitoring</span>
+            </div>
+            <div class="grid grid-cols-2 divide-x divide-slate-100">
+              <div class="p-4 bg-blue-50/60 hover:bg-blue-50 transition-colors">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="pulse-ring text-blue-400 w-2 h-2"><span class="pulse-dot w-2 h-2 rounded-full bg-blue-400 block"></span></span>
+                  <span class="text-xs font-bold text-blue-700">tham</span>
+                  <span class="text-xs text-slate-400 font-mono ml-auto">:47778</span>
+                </div>
+                <p class="text-xs text-slate-500">oracle-v2 server</p>
+                <p class="text-xs text-slate-400 font-thai mt-0.5">ไม่ interactive</p>
+              </div>
+              <div class="p-4 bg-amber-50/60 hover:bg-amber-50 transition-colors">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="pulse-ring text-amber-400 w-2 h-2"><span class="pulse-dot w-2 h-2 rounded-full bg-amber-400 block"></span></span>
+                  <span class="text-xs font-bold text-amber-700">bob</span>
+                  <span class="text-xs text-slate-400 font-mono ml-auto">log</span>
+                </div>
+                <p class="text-xs text-slate-500">relay log watcher</p>
+                <p class="text-xs text-slate-400 font-thai mt-0.5">tail -f</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- exec -->
+          <div class="rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+            <div class="bg-slate-900 px-4 py-2 flex items-center gap-2">
+              <div class="flex gap-1.5">
+                <div class="w-2.5 h-2.5 rounded-full bg-rose-500/70"></div>
+                <div class="w-2.5 h-2.5 rounded-full bg-amber-500/70"></div>
+                <div class="w-2.5 h-2.5 rounded-full bg-green-500/70"></div>
+              </div>
+              <span class="text-slate-400 text-xs font-mono ml-1">exec <span class="text-slate-600">[win 1]</span></span>
+              <span class="ml-auto text-slate-600 text-xs font-thai">monitoring</span>
+            </div>
+            <div class="grid grid-cols-2 divide-x divide-slate-100">
+              <div class="p-4 bg-emerald-50/60 hover:bg-emerald-50 transition-colors">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="pulse-ring text-emerald-400 w-2 h-2"><span class="pulse-dot w-2 h-2 rounded-full bg-emerald-400 block"></span></span>
+                  <span class="text-xs font-bold text-emerald-700">core</span>
+                </div>
+                <p class="text-xs text-slate-500">Claude Code</p>
+                <p class="text-xs text-slate-400 font-mono mt-0.5">Omega</p>
+              </div>
+              <div class="p-4 bg-violet-50/60 hover:bg-violet-50 transition-colors">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="pulse-ring text-violet-400 w-2 h-2"><span class="pulse-dot w-2 h-2 rounded-full bg-violet-400 block"></span></span>
+                  <span class="text-xs font-bold text-violet-700">hermes</span>
+                  <span class="text-xs text-slate-400 font-mono ml-auto">:20128</span>
+                </div>
+                <p class="text-xs text-slate-500">9router health</p>
+                <p class="text-xs text-slate-400 font-mono mt-0.5">minimax-m2.5</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- ops -->
+          <div class="rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+            <div class="bg-slate-900 px-4 py-2 flex items-center gap-2">
+              <div class="flex gap-1.5">
+                <div class="w-2.5 h-2.5 rounded-full bg-rose-500/70"></div>
+                <div class="w-2.5 h-2.5 rounded-full bg-amber-500/70"></div>
+                <div class="w-2.5 h-2.5 rounded-full bg-green-500/70"></div>
+              </div>
+              <span class="text-slate-400 text-xs font-mono ml-1">ops <span class="text-slate-600">[win 2]</span></span>
+              <span class="ml-auto text-slate-600 text-xs font-thai">monitoring</span>
+            </div>
+            <div class="grid grid-cols-2 divide-x divide-slate-100">
+              <div class="p-4 bg-rose-50/60 hover:bg-rose-50 transition-colors">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="pulse-ring text-rose-400 w-2 h-2"><span class="pulse-dot w-2 h-2 rounded-full bg-rose-400 block"></span></span>
+                  <span class="text-xs font-bold text-rose-700">housekeeper</span>
+                </div>
+                <p class="text-xs text-slate-500">maintenance cycle</p>
+                <p class="text-xs text-slate-400 font-mono mt-0.5">ψ vault</p>
+              </div>
+              <div class="p-4 bg-sky-50/60 hover:bg-sky-50 transition-colors">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="pulse-ring text-sky-400 w-2 h-2"><span class="pulse-dot w-2 h-2 rounded-full bg-sky-400 block"></span></span>
+                  <span class="text-xs font-bold text-sky-700">studio</span>
+                  <span class="text-xs text-slate-400 font-mono ml-auto">:3000</span>
+                </div>
+                <p class="text-xs text-slate-500">Oracle Studio</p>
+                <p class="text-xs text-slate-400 font-mono mt-0.5">dashboard</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- design -->
+          <div class="rounded-xl border-2 border-blue-200 overflow-hidden shadow-sm">
+            <div class="bg-slate-900 px-4 py-2 flex items-center gap-2">
+              <div class="flex gap-1.5">
+                <div class="w-2.5 h-2.5 rounded-full bg-rose-500/70"></div>
+                <div class="w-2.5 h-2.5 rounded-full bg-amber-500/70"></div>
+                <div class="w-2.5 h-2.5 rounded-full bg-green-500/70"></div>
+              </div>
+              <span class="text-slate-400 text-xs font-mono ml-1">design <span class="text-slate-600">[win 3]</span></span>
+              <span class="ml-auto text-blue-400 text-xs font-bold font-thai">⌨ interactive</span>
+            </div>
+            <div class="grid grid-cols-2 divide-x divide-slate-100">
+              <div class="p-4 bg-cyan-50/80 hover:bg-cyan-50 transition-colors">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="pulse-ring text-cyan-400 w-2 h-2"><span class="pulse-dot w-2 h-2 rounded-full bg-cyan-400 block"></span></span>
+                  <span class="text-xs font-bold text-cyan-700">UX/UI</span>
+                  <span class="text-xs bg-cyan-100 text-cyan-600 px-1.5 py-0.5 rounded font-mono ml-auto">Gemini</span>
+                </div>
+                <p class="text-xs text-slate-500">Design Agent</p>
+                <p class="text-xs text-rose-500 font-thai mt-0.5">research-first ❗</p>
+              </div>
+              <div class="p-4 bg-orange-50/80 hover:bg-orange-50 transition-colors">
+                <div class="flex items-center gap-2 mb-2">
+                  <span class="pulse-ring text-orange-400 w-2 h-2"><span class="pulse-dot w-2 h-2 rounded-full bg-orange-400 block"></span></span>
+                  <span class="text-xs font-bold text-orange-700">BugFix</span>
+                  <span class="text-xs bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded font-mono ml-auto">Claude</span>
+                </div>
+                <p class="text-xs text-slate-500">Codex-Style</p>
+                <p class="text-xs text-rose-500 font-thai mt-0.5">research-first ❗</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Relay log -->
+      <div class="bg-white rounded-2xl shadow-lg shadow-slate-200/80 p-6 flex flex-col">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
+            <i data-lucide="activity" class="w-4 h-4 text-amber-500"></i>
+          </div>
+          <div>
+            <h2 class="font-bold text-slate-800 text-sm leading-none">Relay Log</h2>
+            <p class="text-xs text-slate-400 mt-0.5 font-thai">บันทึกการสื่อสาร</p>
+          </div>
+          <div class="ml-auto flex items-center gap-1.5">
+            <span class="pulse-ring text-green-400 w-1.5 h-1.5"><span class="pulse-dot w-1.5 h-1.5 rounded-full bg-green-400 block"></span></span>
+            <span class="text-xs text-green-600 font-medium">live</span>
+          </div>
+        </div>
+
+        <div id="relayLog" class="flex-1 space-y-2 overflow-y-auto max-h-72 pr-1"></div>
+
+        <div class="mt-4 pt-3 border-t border-slate-100">
+          <p class="text-xs text-slate-400 font-mono truncate">ψ/memory/agent-relay.log</p>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── ROW 3: Services + Flow + Commands ──────────── -->
+    <div class="grid grid-cols-3 gap-5">
+
+      <!-- Services health -->
+      <div class="bg-white rounded-2xl shadow-lg shadow-slate-200/80 p-6">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center">
+            <i data-lucide="server" class="w-4 h-4 text-slate-500"></i>
+          </div>
+          <div>
+            <h2 class="font-bold text-slate-800 text-sm">Services</h2>
+            <p class="text-xs text-slate-400 font-thai mt-0.5">สถานะบริการ</p>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+
+          <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-lg bg-blue-100 flex items-center justify-center">
+                <i data-lucide="database" class="w-4 h-4 text-blue-600"></i>
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-slate-800">oracle-v2</p>
+                <p class="text-xs font-mono text-slate-400">port 47778</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="pulse-ring text-green-400 w-2 h-2"><span class="pulse-dot w-2 h-2 rounded-full bg-green-400 block"></span></span>
+              <span class="text-xs font-semibold text-green-600">online</span>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-lg bg-violet-100 flex items-center justify-center">
+                <i data-lucide="route" class="w-4 h-4 text-violet-600"></i>
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-slate-800">9router</p>
+                <p class="text-xs font-mono text-slate-400">port 20128</p>
+              </div>
+            </div>
+            <div id="svc-9router" class="flex items-center gap-1.5">
+              <div class="w-2 h-2 rounded-full bg-slate-300"></div>
+              <span class="text-xs font-medium text-slate-400">–</span>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-lg bg-sky-100 flex items-center justify-center">
+                <i data-lucide="monitor" class="w-4 h-4 text-sky-600"></i>
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-slate-800">Oracle Studio</p>
+                <p class="text-xs font-mono text-slate-400">port 3000</p>
+              </div>
+            </div>
+            <div id="svc-studio" class="flex items-center gap-1.5">
+              <div class="w-2 h-2 rounded-full bg-slate-300"></div>
+              <span class="text-xs font-medium text-slate-400">–</span>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 hover:bg-slate-100 transition-colors">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-lg bg-emerald-100 flex items-center justify-center">
+                <i data-lucide="network" class="w-4 h-4 text-emerald-600"></i>
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-slate-800">maw federation</p>
+                <p class="text-xs font-mono text-slate-400">port 3457</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="pulse-ring text-green-400 w-2 h-2"><span class="pulse-dot w-2 h-2 rounded-full bg-green-400 block"></span></span>
+              <span class="text-xs font-semibold text-green-600">online</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Communication flow -->
+      <div class="bg-white rounded-2xl shadow-lg shadow-slate-200/80 p-6">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+            <i data-lucide="git-branch" class="w-4 h-4 text-blue-500"></i>
+          </div>
+          <div>
+            <h2 class="font-bold text-slate-800 text-sm">Flow</h2>
+            <p class="text-xs text-slate-400 font-thai mt-0.5">การไหลของคำสั่ง</p>
+          </div>
+        </div>
+
+        <div class="flex flex-col items-center gap-0">
+
+          <div class="w-full flex justify-center">
+            <div class="px-5 py-2.5 rounded-xl bg-slate-800 text-white text-xs font-semibold flex items-center gap-2 shadow-lg">
+              <i data-lucide="user" class="w-3.5 h-3.5"></i>
+              <span class="font-thai">พี่เอก</span>
+            </div>
+          </div>
+
+          <div class="flex flex-col items-center py-1">
+            <div class="w-px h-5 bg-gradient-to-b from-slate-300 to-blue-300"></div>
+            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-blue-300 -mt-1.5"></i>
+          </div>
+
+          <div class="w-full flex justify-center">
+            <div class="px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 shadow-md border-2" style="background:#eff6ff; color:#2563eb; border-color:#bfdbfe;">
+              <i data-lucide="brain" class="w-3.5 h-3.5"></i>
+              ธาม · Brain
+            </div>
+          </div>
+
+          <div class="flex flex-col items-center py-1">
+            <div class="w-px h-5 bg-gradient-to-b from-blue-300 to-slate-300"></div>
+            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-300 -mt-1.5"></i>
+          </div>
+
+          <div class="w-full flex justify-center">
+            <div class="px-4 py-2 rounded-xl bg-slate-100 text-xs text-slate-600 flex items-center gap-2 font-medium">
+              <i data-lucide="shuffle" class="w-3.5 h-3.5"></i>
+              Executor Lane Router
+            </div>
+          </div>
+
+          <div class="flex flex-col items-center py-1">
+            <div class="w-px h-5 bg-slate-300"></div>
+            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-slate-300 -mt-1.5"></i>
+          </div>
+
+          <div class="w-full grid grid-cols-4 gap-1.5">
+            <div class="py-2 rounded-lg text-center text-xs font-semibold" style="background:#ecfdf5;color:#059669;">core</div>
+            <div class="py-2 rounded-lg text-center text-xs font-semibold" style="background:#ecfeff;color:#0891b2;">uxui</div>
+            <div class="py-2 rounded-lg text-center text-xs font-semibold" style="background:#fff7ed;color:#c2410c;">bugfix</div>
+            <div class="py-2 rounded-lg text-center text-xs font-semibold" style="background:#f5f3ff;color:#7c3aed;">hermes</div>
+          </div>
+
+          <div class="flex flex-col items-center py-1">
+            <div class="w-px h-5 bg-gradient-to-b from-slate-300 to-amber-300"></div>
+            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-amber-300 -mt-1.5"></i>
+          </div>
+
+          <div class="w-full flex justify-center">
+            <div class="px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 shadow-sm border" style="background:#fffbeb; color:#b45309; border-color:#fde68a;">
+              <i data-lucide="radio" class="w-3.5 h-3.5"></i>
+              BoB · cc all
+            </div>
+          </div>
+
+          <div class="flex flex-col items-center py-1">
+            <div class="w-px h-5 bg-amber-200"></div>
+            <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-amber-200 -mt-1.5"></i>
+          </div>
+
+          <div class="w-full grid grid-cols-3 gap-1.5">
+            <div class="py-2 rounded-lg text-center text-xs font-medium bg-slate-100 text-slate-600 flex items-center justify-center gap-1">
+              <i data-lucide="book-open" class="w-3 h-3"></i>Obsidian
+            </div>
+            <div class="py-2 rounded-lg text-center text-xs font-medium bg-slate-100 text-slate-600 flex items-center justify-center gap-1">
+              <i data-lucide="file-text" class="w-3 h-3"></i>Notion
+            </div>
+            <div class="py-2 rounded-lg text-center text-xs font-medium bg-slate-100 text-slate-600 flex items-center justify-center gap-1">
+              <i data-lucide="github" class="w-3 h-3"></i>GitHub
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Quick Commands -->
+      <div class="bg-white rounded-2xl shadow-lg shadow-slate-200/80 p-6">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center">
+            <i data-lucide="terminal" class="w-4 h-4 text-green-400"></i>
+          </div>
+          <div>
+            <h2 class="font-bold text-slate-800 text-sm">Quick Commands</h2>
+            <p class="text-xs text-slate-400 font-thai mt-0.5">คำสั่งด่วน · คลิกเพื่อ copy</p>
+          </div>
+        </div>
+
+        <div class="space-y-2">
+
+          <button onclick="copyCmd(this,'bash scripts/oracle-fleet.sh')" class="cmd-btn w-full text-left p-3 rounded-xl bg-slate-50 border border-slate-100 hover:border-blue-200 hover:bg-blue-50/50 transition-all group">
+            <div class="flex items-start justify-between gap-2">
+              <div class="w-6 h-6 rounded-md bg-blue-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <i data-lucide="play" class="w-3 h-3 text-blue-600"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-xs font-mono text-slate-700 truncate">bash scripts/oracle-fleet.sh</p>
+                <p class="text-xs text-slate-400 font-thai mt-0.5">เปิด fleet ทุก window</p>
+              </div>
+              <i data-lucide="copy" class="w-3.5 h-3.5 text-slate-300 group-hover:text-blue-400 flex-shrink-0 mt-0.5 transition-colors"></i>
+            </div>
+          </button>
+
+          <button onclick="copyCmd(this,`bash scripts/agent-broadcast.sh tham \"fleet online\"`)" class="cmd-btn w-full text-left p-3 rounded-xl bg-slate-50 border border-slate-100 hover:border-amber-200 hover:bg-amber-50/50 transition-all group">
+            <div class="flex items-start justify-between gap-2">
+              <div class="w-6 h-6 rounded-md bg-amber-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <i data-lucide="radio" class="w-3 h-3 text-amber-600"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-xs font-mono text-slate-700 truncate">agent-broadcast.sh tham "..."</p>
+                <p class="text-xs text-slate-400 font-thai mt-0.5">broadcast ถึงทุก agent</p>
+              </div>
+              <i data-lucide="copy" class="w-3.5 h-3.5 text-slate-300 group-hover:text-amber-400 flex-shrink-0 mt-0.5 transition-colors"></i>
+            </div>
+          </button>
+
+          <button onclick="copyCmd(this,'bash scripts/agent-relay.sh tham core \"task\" task')" class="cmd-btn w-full text-left p-3 rounded-xl bg-slate-50 border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50/50 transition-all group">
+            <div class="flex items-start justify-between gap-2">
+              <div class="w-6 h-6 rounded-md bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <i data-lucide="send" class="w-3 h-3 text-emerald-600"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-xs font-mono text-slate-700 truncate">agent-relay.sh tham core "..."</p>
+                <p class="text-xs text-slate-400 font-thai mt-0.5">ส่งงานระหว่าง agent</p>
+              </div>
+              <i data-lucide="copy" class="w-3.5 h-3.5 text-slate-300 group-hover:text-emerald-400 flex-shrink-0 mt-0.5 transition-colors"></i>
+            </div>
+          </button>
+
+          <button onclick="copyCmd(this,'bash scripts/housekeeper-run.sh')" class="cmd-btn w-full text-left p-3 rounded-xl bg-slate-50 border border-slate-100 hover:border-rose-200 hover:bg-rose-50/50 transition-all group">
+            <div class="flex items-start justify-between gap-2">
+              <div class="w-6 h-6 rounded-md bg-rose-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <i data-lucide="home" class="w-3 h-3 text-rose-600"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-xs font-mono text-slate-700 truncate">housekeeper-run.sh</p>
+                <p class="text-xs text-slate-400 font-thai mt-0.5">รัน maintenance cycle</p>
+              </div>
+              <i data-lucide="copy" class="w-3.5 h-3.5 text-slate-300 group-hover:text-rose-400 flex-shrink-0 mt-0.5 transition-colors"></i>
+            </div>
+          </button>
+
+          <button onclick="copyCmd(this,'bash scripts/spawn-design-swarm.sh')" class="cmd-btn w-full text-left p-3 rounded-xl bg-slate-50 border border-slate-100 hover:border-cyan-200 hover:bg-cyan-50/50 transition-all group">
+            <div class="flex items-start justify-between gap-2">
+              <div class="w-6 h-6 rounded-md bg-cyan-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <i data-lucide="palette" class="w-3 h-3 text-cyan-600"></i>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-xs font-mono text-slate-700 truncate">spawn-design-swarm.sh</p>
+                <p class="text-xs text-slate-400 font-thai mt-0.5">เปิด design swarm</p>
+              </div>
+              <i data-lucide="copy" class="w-3.5 h-3.5 text-slate-300 group-hover:text-cyan-400 flex-shrink-0 mt-0.5 transition-colors"></i>
+            </div>
+          </button>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── FOOTER ───────────────────────────────────────── -->
+    <footer class="flex items-center justify-between pt-2 pb-6 text-xs text-slate-400">
+      <span class="font-mono">Omega OS Fleet Dashboard · tham-oracle</span>
+      <span class="font-thai">พัฒนาโดย ธาม สำหรับ พี่เอก</span>
+      <span class="font-mono" id="refresh-timer">auto-refresh: 30s</span>
+    </footer>
+
+  </main>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 bg-slate-900 text-white text-xs rounded-xl shadow-2xl border border-white/10 translate-y-16 opacity-0 transition-all duration-300 pointer-events-none">
+  <i data-lucide="check-circle" class="w-4 h-4 text-green-400 flex-shrink-0"></i>
+  <span id="toastMsg">Copied to clipboard</span>
+</div>
+
+<script>
+  // ── Init Lucide ────────────────────────────────────────
+  lucide.createIcons();
+
+  // ── Clock ─────────────────────────────────────────────
+  function tick() {
+    const now = new Date();
+    document.getElementById('clock').textContent = now.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+    document.getElementById('dateline').textContent = now.toLocaleDateString('th-TH', { weekday:'short', year:'numeric', month:'short', day:'numeric' });
+  }
+  tick(); setInterval(tick, 1000);
+
+  // ── Relay log seed data ────────────────────────────────
+  const AGENTS = {
+    tham:        { color: '#3b82f6', bg: '#eff6ff' },
+    core:        { color: '#10b981', bg: '#ecfdf5' },
+    bob:         { color: '#f59e0b', bg: '#fffbeb' },
+    hermes:      { color: '#8b5cf6', bg: '#f5f3ff' },
+    housekeeper: { color: '#ef4444', bg: '#fef2f2' },
+    uxui:        { color: '#06b6d4', bg: '#ecfeff' },
+    bugfix:      { color: '#f97316', bg: '#fff7ed' },
+    ALL:         { color: '#64748b', bg: '#f8fafc' },
+  };
+
+  let relayData = [
+    { ts:'13:54:39', from:'tham',        to:'ALL',         type:'status',  msg:'fleet online' },
+    { ts:'13:54:39', from:'tham',        to:'bob',         type:'status',  msg:'fleet online (cc)' },
+    { ts:'13:50:12', from:'housekeeper', to:'bob',         type:'status',  msg:'Housekeeper cycle complete @ 2026-05-15' },
+    { ts:'13:47:03', from:'tham',        to:'core',        type:'task',    msg:'review PR #12 before merge' },
+    { ts:'13:46:58', from:'tham',        to:'bob',         type:'task',    msg:'review PR #12 (cc)' },
+    { ts:'13:44:21', from:'core',        to:'tham',        type:'reply',   msg:'PR #12 LGTM — no blocking issues found' },
+  ];
+
+  function renderLog() {
+    const el = document.getElementById('relayLog');
+    if (!relayData.length) {
+      el.innerHTML = '<p class="text-xs text-slate-400 text-center py-8 font-thai">ยังไม่มีข้อความ</p>';
+      return;
+    }
+    el.innerHTML = relayData.map(e => {
+      const fa = AGENTS[e.from] || AGENTS.ALL;
+      const ta = AGENTS[e.to]   || AGENTS.ALL;
+      const typeColors = { task:'bg-blue-100 text-blue-600', status:'bg-slate-100 text-slate-500', reply:'bg-green-100 text-green-600', consult:'bg-violet-100 text-violet-600' };
+      return `<div class="relay-entry p-3 rounded-xl border-l-[3px] hover:shadow-sm transition-shadow" style="border-color:${fa.color}; background:${fa.bg}20;">
+        <div class="flex items-center gap-2 mb-1">
+          <span class="text-xs font-bold" style="color:${fa.color}">${e.from}</span>
+          <i data-lucide="arrow-right" class="w-3 h-3 text-slate-400"></i>
+          <span class="text-xs font-semibold" style="color:${ta.color}">${e.to}</span>
+          <span class="ml-1 text-xs px-1.5 py-0.5 rounded-full ${typeColors[e.type]||'bg-slate-100 text-slate-500'} font-medium">${e.type}</span>
+          <span class="ml-auto text-xs font-mono text-slate-400">${e.ts}</span>
+        </div>
+        <p class="text-xs text-slate-600 leading-snug">${e.msg}</p>
+      </div>`;
+    }).join('');
+    lucide.createIcons();
+  }
+  renderLog();
+
+  // Fetch real relay log via data.json (generated by dashboard-update.sh)
+  async function fetchData() {
+    try {
+      const res = await fetch('data.json?t=' + Date.now());
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.relay && data.relay.length) { relayData = data.relay; renderLog(); }
+    } catch {}
+  }
+  fetchData();
+  setInterval(fetchData, 30000);
+
+  // ── Port health checks ─────────────────────────────────
+  async function checkPort(id, url, label) {
+    const el = document.getElementById(id);
+    try {
+      const res = await fetch(url, { signal: AbortSignal.timeout(2000) });
+      if (res.ok || res.status < 500) {
+        el.innerHTML = `<span class="pulse-ring text-green-400 w-2 h-2"><span class="pulse-dot w-2 h-2 rounded-full bg-green-400 block"></span></span><span class="text-xs font-semibold text-green-600">online</span>`;
+      } else throw new Error();
+    } catch {
+      el.innerHTML = `<div class="w-2 h-2 rounded-full bg-slate-300"></div><span class="text-xs font-medium text-slate-400">offline</span>`;
+    }
+    lucide.createIcons();
+  }
+  checkPort('svc-9router', 'http://127.0.0.1:20128/v1/models', '9router');
+  checkPort('svc-studio',  'http://127.0.0.1:3000',            'studio');
+  setInterval(() => {
+    checkPort('svc-9router', 'http://127.0.0.1:20128/v1/models', '9router');
+    checkPort('svc-studio',  'http://127.0.0.1:3000',            'studio');
+  }, 30000);
+
+  // ── Copy command ───────────────────────────────────────
+  function copyCmd(btn, cmd) {
+    navigator.clipboard.writeText(cmd).then(() => {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastMsg').textContent = cmd.length > 40 ? cmd.slice(0,40)+'…' : cmd;
+      toast.classList.remove('translate-y-16','opacity-0');
+      toast.classList.add('translate-y-0','opacity-100');
+      setTimeout(() => {
+        toast.classList.add('translate-y-16','opacity-0');
+        toast.classList.remove('translate-y-0','opacity-100');
+      }, 2200);
+    });
+  }
+
+  // ── Refresh countdown ──────────────────────────────────
+  let secs = 30;
+  setInterval(() => {
+    secs--; if (secs < 0) secs = 30;
+    document.getElementById('refresh-timer').textContent = `auto-refresh: ${secs}s`;
+  }, 1000);
+</script>
+</body>
+</html>
