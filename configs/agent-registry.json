@@ -1,7 +1,7 @@
 {
-  "_comment": "Tham Oracle — Agent Registry v1.0 (2026-05-12). No secrets stored here.",
-  "_version": "1.0",
-  "_updated": "2026-05-12",
+  "_comment": "Tham Oracle — Agent Registry v1.1 (2026-05-15). No secrets stored here.",
+  "_version": "1.1",
+  "_updated": "2026-05-15",
 
   "agents": [
     {
@@ -50,12 +50,17 @@
       "capabilities": [
         "oracle-communication",
         "cc-routing",
-        "status-report"
+        "status-report",
+        "conflict-escalation"
       ],
       "lane": "coordinator",
       "port": null,
-      "status": "template",
-      "validation": "oracle-communication-law.md compliance"
+      "activation": "maw hey bob | /talk-to bob",
+      "status": "active",
+      "deployed": "2026-05-15",
+      "validation": "oracle-communication-law.md compliance",
+      "lane_card": "configs/lane-cards/bob-coordinator.json",
+      "skill": "skills/oracle-coordinator/SKILL.md"
     },
     {
       "id": "hermes",
@@ -67,8 +72,15 @@
       ],
       "lane": "hermes-optional",
       "port": null,
-      "status": "inactive",
-      "validation": "explicitly routed only — never default"
+      "provider": "openai-compat",
+      "base_url": "http://127.0.0.1:20128/v1",
+      "model": "ollama/minimax-m2.5",
+      "routes_through": "9router (port 20128)",
+      "status": "active",
+      "verified": "2026-05-13",
+      "validation": "explicitly routed only — never default",
+      "lane_card": "configs/lane-cards/hermes-optional.json",
+      "skill": "skills/hermes-legacy-adapter/SKILL.md"
     }
   ],
 

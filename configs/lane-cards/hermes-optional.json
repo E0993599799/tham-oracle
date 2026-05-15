@@ -1,0 +1,44 @@
+{
+  "lane_id": "hermes-optional",
+  "agent": "hermes",
+  "soul": "Hermes — Legacy/Specialist Adapter",
+  "description": "Hermes specialist/legacy adapter — ใช้เฉพาะเมื่อ Tham explicitly route มาเท่านั้น ห้ามใช้ default",
+  "input_format": "structured JSON task contract",
+  "output_format": "completion result + proof",
+  "provider": "openai-compat",
+  "base_url": "http://127.0.0.1:20128/v1",
+  "model": "ollama/minimax-m2.5",
+  "routes_through": "9router/OpenClaw (port 20128)",
+  "risk_gate": "inherit from Tham",
+  "memory_gate": "read-only",
+  "proof_required": true,
+  "when_to_use": [
+    "Legacy API compatibility tasks requiring non-Claude model",
+    "Specialist tasks explicitly assigned by Executor Lane Router",
+    "Tasks where minimax-m2.5 has demonstrated advantage"
+  ],
+  "when_NOT_to_use": [
+    "Default fallback when Claude is slow — never",
+    "Tasks Claude Sonnet/Haiku can handle",
+    "Shortcutting around main execution lanes",
+    "Any task without explicit route decision"
+  ],
+  "invocation_contract": {
+    "lane": "hermes-optional",
+    "task": "...",
+    "reason_for_hermes": "...",
+    "structured_input": {},
+    "expected_output": "...",
+    "proof_required": true
+  },
+  "health_check": "curl http://127.0.0.1:20128/v1/models | jq '.data[] | select(.id | contains(\"minimax\"))'",
+  "rules": [
+    "NEVER route to Hermes by default",
+    "Always use structured JSON contract — no raw natural language",
+    "Verify 9router is running on port 20128 before invoke",
+    "Watch for shim recursion — Hermes must not call itself",
+    "Confirm ollama model minimax-m2.5 is loaded before sending task"
+  ],
+  "status": "active",
+  "verified": "2026-05-13"
+}
