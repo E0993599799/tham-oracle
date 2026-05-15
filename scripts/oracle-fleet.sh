@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
-# Start Oracle fleet — 3 windows, 2 panes each (1 หน้า = 2 agents)
+# Start Oracle fleet — 4 windows, 2 panes each (1 หน้า = 2 agents)
 #
 # Layout:
-#   win 0 "brain"  │ tham (left) │ bob (right)        │
-#   win 1 "exec"   │ core (left) │ hermes (right)      │
-#   win 2 "ops"    │ housekeeper (left) │ studio (right)│
+#   win 0 "brain"  │ tham (left)        │ bob (right)        │
+#   win 1 "exec"   │ core (left)        │ hermes (right)     │
+#   win 2 "ops"    │ housekeeper (left) │ studio (right)     │
+#   win 3 "design" │ uxui (left)        │ bugfix (right)     │
 
 set -euo pipefail
 
@@ -18,7 +19,9 @@ if tmux has-session -t "$SESSION" 2>/dev/null; then
   exit 0
 fi
 
-echo "Starting oracle-fleet (3 windows × 2 panes)..."
+PROMPT_DIR="$REPO_ROOT/configs/agent-prompts"
+
+echo "Starting oracle-fleet (4 windows × 2 panes)..."
 
 # ════════════════════════════════════════════════════════
 # Window 0: "brain" — tham (left) | bob (right)
@@ -77,17 +80,42 @@ tmux select-pane -t "$SESSION:ops.left"
 echo "  [ops]    housekeeper (L) | studio (R)"
 
 # ════════════════════════════════════════════════════════
+# Window 3: "design" — uxui (left) | bugfix (right)
+# ════════════════════════════════════════════════════════
+tmux new-window -t "$SESSION" -n "design"
+
+# Left pane: UX/UI Design Agent
+tmux send-keys -t "$SESSION:design" "cd $REPO_ROOT && clear" Enter
+tmux send-keys -t "$SESSION:design" \
+  "printf '\033[1;36m╔═══════════════════════════════════╗\n║  UX/UI Design Agent               ║\n║  MUST research before working     ║\n╚═══════════════════════════════════╝\033[0m\n'" Enter
+tmux send-keys -t "$SESSION:design" \
+  "claude --name 'UX-UI' --append-system-prompt-file $PROMPT_DIR/uxui-prompt.md" Enter
+
+# Right pane: BugFix Agent (Codex-style)
+tmux split-window -h -t "$SESSION:design"
+tmux send-keys -t "$SESSION:design.right" "cd $REPO_ROOT && clear" Enter
+tmux send-keys -t "$SESSION:design.right" \
+  "printf '\033[1;33m╔═══════════════════════════════════╗\n║  BugFix Agent (Codex-Style)       ║\n║  MUST research before working     ║\n╚═══════════════════════════════════╝\033[0m\n'" Enter
+tmux send-keys -t "$SESSION:design.right" \
+  "claude --name 'BugFix' --append-system-prompt-file $PROMPT_DIR/bugfix-prompt.md" Enter
+
+tmux select-layout -t "$SESSION:design" even-horizontal
+tmux select-pane -t "$SESSION:design.left"
+echo "  [design] uxui (L) | bugfix (R)"
+
+# ════════════════════════════════════════════════════════
 # Focus: brain window, tham pane
 # ════════════════════════════════════════════════════════
 tmux select-window -t "$SESSION:brain"
 tmux select-pane -t "$SESSION:brain.left"
 
 echo ""
-echo "Fleet '$SESSION' ready — 3 windows × 2 panes:"
+echo "Fleet '$SESSION' ready — 4 windows × 2 panes:"
 echo ""
-echo "  brain  [win 0]  tham       │  bob"
-echo "  exec   [win 1]  core       │  hermes"
-echo "  ops    [win 2]  housekeeper│  studio"
+echo "  brain  [win 0]  tham        │  bob"
+echo "  exec   [win 1]  core        │  hermes"
+echo "  ops    [win 2]  housekeeper │  studio"
+echo "  design [win 3]  uxui        │  bugfix"
 echo ""
 echo "Attach : tmux attach -t $SESSION"
 echo "Switch : Ctrl+b n/p  (next/prev window)"
