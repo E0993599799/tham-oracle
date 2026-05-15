@@ -11,7 +11,7 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 INBOX_ROOT="$REPO_ROOT/ψ/inbox"
 SESSION="oracle-fleet"
-ALL_AGENTS="tham core bob hermes"
+ALL_AGENTS="tham core bob hermes housekeeper"
 
 FROM="${1:-}"
 MSG="${2:-}"
