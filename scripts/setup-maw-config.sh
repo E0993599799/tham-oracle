@@ -30,11 +30,12 @@ cat > "$CONFIG_FILE" << EOF
   "peers": [],
   "namedPeers": [],
   "agents": {
-    "tham":   "tham-node",
-    "omega":  "tham-node",
-    "core":   "tham-node",
-    "bob":    "tham-node",
-    "hermes": "tham-node"
+    "tham":        "tham-node",
+    "omega":       "tham-node",
+    "core":        "tham-node",
+    "bob":         "tham-node",
+    "hermes":      "tham-node",
+    "housekeeper": "tham-node"
   }
 }
 EOF
@@ -80,11 +81,22 @@ cat > "$FLEET_DIR/04-hermes.json" << 'EOF'
 EOF
 
 echo "✓ Config created: $CONFIG_FILE"
+# Fleet config: housekeeper maintenance (window 4)
+cat > "$FLEET_DIR/05-housekeeper.json" << 'EOF'
+{
+  "name": "housekeeper",
+  "windows": [
+    {"name": "housekeeper", "repo": "E0993599799/tham-oracle"}
+  ]
+}
+EOF
+
 echo "✓ Fleet configs:"
 echo "   $FLEET_DIR/01-tham.json"
 echo "   $FLEET_DIR/02-omega.json"
 echo "   $FLEET_DIR/03-bob.json"
 echo "   $FLEET_DIR/04-hermes.json"
+echo "   $FLEET_DIR/05-housekeeper.json"
 echo ""
 echo "⚠ federationToken is stored locally only — do NOT commit $CONFIG_FILE"
 echo ""

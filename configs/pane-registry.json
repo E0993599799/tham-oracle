@@ -1,6 +1,6 @@
 {
   "_comment": "tmux pane assignment for agent cross-pane messaging. Session: oracle-fleet",
-  "_version": "1.0",
+  "_version": "1.1",
   "_updated": "2026-05-15",
 
   "session": "oracle-fleet",
@@ -35,6 +35,15 @@
       "repo": null,
       "local_path": null,
       "note": "Hermes window shows 9router status + receives routed tasks"
+    },
+    "housekeeper": {
+      "window": "housekeeper",
+      "role": "maintenance",
+      "inbox": "ψ/inbox/housekeeper",
+      "repo": null,
+      "local_path": null,
+      "activation": "bash scripts/housekeeper-run.sh",
+      "note": "Runs maintenance cycle on fleet startup and on demand"
     }
   }
 }

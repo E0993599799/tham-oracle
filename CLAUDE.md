@@ -94,6 +94,7 @@ Installed in `skills/`. Each skill has a `SKILL.md` with purpose, rules, and out
 - `self-improvement-engine` — Capture mistakes and convert them into future rules/checks
 - `human-feedback-hitl` — Keep Human in control while reducing unnecessary confirmation
 - `oracle-coordinator` — BoB inter-oracle relay: cc routing, conflict escalation, fleet status
+- `housekeeper` — Maintenance agent: inbox archival, log rotation, health check, git reminder
 - `agent-federation-architecture` — Design multi-agent federation and communication systems
 - `codex-manual-lane` — Prepare strong prompts for Codex/manual coding lane
 - `mawa-oracle-ecosystem` — Understand Oracle/MAWA systems and adapt to Forge/Omega

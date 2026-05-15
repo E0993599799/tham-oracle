@@ -48,7 +48,14 @@ tmux send-keys -t "$SESSION:hermes" \
   "echo '=== Hermes — Legacy/Specialist Adapter ===' && echo 'Provider: 9router → ollama/minimax-m2.5 (port 20128)' && echo '' && echo 'Health check:' && curl -s http://127.0.0.1:20128/v1/models 2>/dev/null | python3 -c \"import sys,json; m=json.load(sys.stdin); [print(' -', x['id']) for x in m.get('data',[])]\" || echo '  ⚠ 9router not running on port 20128'" Enter
 echo "  [hermes] 9router health check → port 20128"
 
-# ── Window 4: Oracle Studio ──
+# ── Window 4: housekeeper — maintenance agent ──
+tmux new-window -t "$SESSION" -n "housekeeper"
+tmux send-keys -t "$SESSION:housekeeper" "cd $REPO_ROOT && clear" Enter
+tmux send-keys -t "$SESSION:housekeeper" \
+  "echo '=== Housekeeper — Forge/Omega Maintenance ===' && bash scripts/housekeeper-run.sh" Enter
+echo "  [housekeeper] maintenance cycle started"
+
+# ── Window 5: Oracle Studio ──
 sleep 3
 tmux new-window -t "$SESSION" -n "studio"
 tmux send-keys -t "$SESSION:studio" \
@@ -57,13 +64,15 @@ echo "  [studio] Oracle Studio → port 3000"
 
 tmux select-window -t "$SESSION:tham"
 echo ""
-echo "Fleet '$SESSION' running — 4 agents + studio:"
-echo "  tham   → oracle-v2 http://localhost:47778"
-echo "  core   → Omega/Claude Code"
-echo "  bob    → coordinator (relay log)"
-echo "  hermes → 9router http://127.0.0.1:20128"
-echo "  studio → http://localhost:3000"
+echo "Fleet '$SESSION' running — 5 agents + studio:"
+echo "  tham        → oracle-v2 http://localhost:47778"
+echo "  core        → Omega/Claude Code"
+echo "  bob         → coordinator (relay log)"
+echo "  hermes      → 9router http://127.0.0.1:20128"
+echo "  housekeeper → maintenance (ψ vault, health, log rotation)"
+echo "  studio      → http://localhost:3000"
 echo ""
 echo "Attach: tmux attach -t $SESSION"
 echo "Relay:  bash scripts/agent-relay.sh <from> <to> <message>"
 echo "Bcast:  bash scripts/agent-broadcast.sh <from> <message>"
+echo "Clean:  bash scripts/housekeeper-run.sh"

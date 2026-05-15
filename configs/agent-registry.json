@@ -1,6 +1,6 @@
 {
-  "_comment": "Tham Oracle — Agent Registry v1.1 (2026-05-15). No secrets stored here.",
-  "_version": "1.1",
+  "_comment": "Tham Oracle — Agent Registry v1.2 (2026-05-15). No secrets stored here.",
+  "_version": "1.2",
   "_updated": "2026-05-15",
 
   "agents": [
@@ -81,6 +81,26 @@
       "validation": "explicitly routed only — never default",
       "lane_card": "configs/lane-cards/hermes-optional.json",
       "skill": "skills/hermes-legacy-adapter/SKILL.md"
+    },
+    {
+      "id": "housekeeper",
+      "soul": "Housekeeper — Forge/Omega Maintenance",
+      "role": "maintenance",
+      "capabilities": [
+        "inbox-archival",
+        "log-rotation",
+        "health-check",
+        "active-archive",
+        "git-reminder"
+      ],
+      "lane": "housekeeper",
+      "port": null,
+      "activation": "bash scripts/housekeeper-run.sh",
+      "status": "active",
+      "deployed": "2026-05-15",
+      "validation": "housekeeper.log existence + BoB broadcast receipt",
+      "lane_card": "configs/lane-cards/housekeeper-maintenance.json",
+      "skill": "skills/housekeeper/SKILL.md"
     }
   ],
 
@@ -93,6 +113,7 @@
     { "id": "web-browser", "description": "Web/browser automation worker" },
     { "id": "research-worker", "description": "Research and synthesis worker" },
     { "id": "codex-manual", "description": "Codex manual coding lane — high-quality prompts only" },
-    { "id": "hermes-optional", "description": "Hermes legacy adapter — specialist only when explicitly routed" }
+    { "id": "hermes-optional", "description": "Hermes legacy adapter — specialist only when explicitly routed" },
+    { "id": "housekeeper", "description": "Housekeeper maintenance — inbox archival, log rotation, health check, git reminder" }
   ]
 }
