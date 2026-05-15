@@ -172,6 +172,51 @@
   main::-webkit-scrollbar-track { background: transparent; }
   main::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
 
+  /* ── Input bar ──────────────────────────────────────────────────── */
+  .tcard-footer {
+    display: flex; align-items: center; gap: 0;
+    background: #080b10;
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .input-prompt {
+    padding: 0 8px 0 10px;
+    font-family: var(--font-mono); font-size: 12px;
+    color: var(--ac); opacity: .9; user-select: none;
+    flex-shrink: 0;
+  }
+  .term-input {
+    flex: 1; min-width: 0;
+    background: transparent; border: none; outline: none;
+    font-family: var(--font-mono); font-size: 12px;
+    color: var(--term-fg); padding: 6px 4px;
+    caret-color: var(--ac);
+  }
+  .term-input::placeholder { color: var(--muted); opacity: .5; }
+  .btn-send, .btn-type {
+    flex-shrink: 0; border: none; cursor: pointer;
+    font-family: var(--font-mono); font-size: 11px; font-weight: 700;
+    padding: 6px 10px; transition: background .15s, color .15s;
+    white-space: nowrap;
+  }
+  .btn-type {
+    background: transparent; color: var(--muted);
+    border-left: 1px solid var(--border);
+  }
+  .btn-type:hover { color: var(--text); background: #12161f; }
+  .btn-send {
+    background: rgba(59,130,246,.12); color: var(--ac);
+    border-left: 1px solid var(--border);
+  }
+  .btn-send:hover { background: rgba(59,130,246,.25); }
+  .btn-send:active { background: rgba(59,130,246,.4); }
+
+  /* Sent flash */
+  @keyframes flash-ok  { 0%{background:rgba(34,197,94,.25)} 100%{background:transparent} }
+  @keyframes flash-err { 0%{background:rgba(239,68,68,.25)}  100%{background:transparent} }
+  .tcard-footer.flash-ok  { animation: flash-ok  .4s ease-out; }
+  .tcard-footer.flash-err { animation: flash-err .4s ease-out; }
+
   /* ── Responsive single-column ───────────────────────────────────── */
   @media (max-width: 768px) {
     .win-panes { grid-template-columns: 1fr; }
@@ -391,10 +436,81 @@ function buildCard(pane) {
     <div class="tcard-body">
       <pre class="term-pre" id="pre-${pane.id.replace('%', 'p')}"><span style="color:#5a6580">— connecting —</span></pre>
     </div>
+    <div class="tcard-footer" id="footer-${pane.id.replace('%', 'p')}">
+      <span class="input-prompt">›</span>
+      <input class="term-input" id="inp-${pane.id.replace('%', 'p')}"
+             type="text" placeholder="send keys to ${pane.name}…"
+             autocomplete="off" spellcheck="false" />
+      <button class="btn-type" title="Send without Enter (just type)"
+              onclick="sendKeys('${pane.id}', false)">→</button>
+      <button class="btn-send" title="Send + Enter (execute)"
+              onclick="sendKeys('${pane.id}', true)">↵ Run</button>
+    </div>
   `;
+
+  // Enter key in input = Run (with Enter)
+  card.querySelector('.term-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter')      { e.preventDefault(); sendKeys(pane.id, true); }
+    if (e.key === 'ArrowUp')    { e.preventDefault(); navigateHistory(pane.id, -1); }
+    if (e.key === 'ArrowDown')  { e.preventDefault(); navigateHistory(pane.id, +1); }
+  });
 
   subscribePane(pane);
   return card;
+}
+
+// ── Command history per pane ──────────────────────────────────────────
+const history = {};   // paneId → string[]
+const histIdx = {};   // paneId → number (cursor)
+
+function navigateHistory(paneId, dir) {
+  const safeId = paneId.replace('%', 'p');
+  const inp = document.getElementById(`inp-${safeId}`);
+  if (!inp) return;
+  const h = history[paneId] || [];
+  if (!h.length) return;
+  let idx = histIdx[paneId] ?? h.length;
+  idx = Math.max(0, Math.min(h.length - 1, idx + dir));
+  histIdx[paneId] = idx;
+  inp.value = h[idx];
+}
+
+// ── Send keys to pane ─────────────────────────────────────────────────
+async function sendKeys(paneId, enter = true) {
+  const safeId = paneId.replace('%', 'p');
+  const inp    = document.getElementById(`inp-${safeId}`);
+  const footer = document.getElementById(`footer-${safeId}`);
+  if (!inp) return;
+
+  const keys = inp.value;
+  if (!keys.trim() && enter) return;
+
+  // Save to history
+  if (keys.trim()) {
+    if (!history[paneId]) history[paneId] = [];
+    history[paneId].push(keys);
+    histIdx[paneId] = history[paneId].length;
+  }
+
+  inp.value = '';
+  inp.disabled = true;
+
+  try {
+    const r = await fetch(`${API}/api/send`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: paneId, keys, enter }),
+    });
+    const data = await r.json();
+    footer.classList.remove('flash-ok', 'flash-err');
+    void footer.offsetWidth; // reflow to restart animation
+    footer.classList.add(data.ok ? 'flash-ok' : 'flash-err');
+  } catch {
+    footer.classList.add('flash-err');
+  } finally {
+    inp.disabled = false;
+    inp.focus();
+  }
 }
 
 function subscribePane(pane) {

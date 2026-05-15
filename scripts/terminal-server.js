@@ -8,7 +8,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
+const { execSync, execFileSync } = require('child_process');
 
 const PORT    = parseInt(process.argv[2] || process.env.TERM_PORT || '3002', 10);
 const SESSION = process.argv[3] || process.env.TMUX_SESSION || 'oracle-fleet';
@@ -112,6 +112,30 @@ const server = http.createServer((req, res) => {
     const dataTimer = setInterval(send, 500);
     const hbTimer   = setInterval(beat, 15000);
     req.on('close', () => { clearInterval(dataTimer); clearInterval(hbTimer); });
+    return;
+  }
+
+  // ── /api/send  POST { id, keys, enter? } ──────────────────────────
+  if (url.pathname === '/api/send' && req.method === 'POST') {
+    let body = '';
+    req.on('data', chunk => { body += chunk; if (body.length > 4096) req.destroy(); });
+    req.on('end', () => {
+      try {
+        const { id, keys, enter = true } = JSON.parse(body);
+        // Validate pane id: must be %N
+        if (!/^%\d+$/.test(id)) throw new Error('invalid pane id');
+        if (typeof keys !== 'string' || keys.length > 2048) throw new Error('invalid keys');
+        const args = enter
+          ? ['send-keys', '-t', id, keys, 'Enter']
+          : ['send-keys', '-t', id, keys];
+        execFileSync('tmux', args, { stdio: 'ignore' });
+        res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ ok: true }));
+      } catch (e) {
+        res.writeHead(400, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+        res.end(JSON.stringify({ ok: false, error: e.message }));
+      }
+    });
     return;
   }
 
