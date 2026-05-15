@@ -71,13 +71,13 @@ tmux new-window -t "$SESSION" -n "ops"
 tmux send-keys -t "$SESSION:ops" \
   "cd $REPO_ROOT && printf '\033[1;31m=== HOUSEKEEPER — Maintenance ===\033[0m\n' && bash scripts/housekeeper-run.sh" Enter
 
-# Right pane: Oracle Studio (wait for tham to start)
+# Right pane: Fleet Dashboard (port 3001) + Oracle Studio (port 3000) after
 tmux split-window -h -t "$SESSION:ops"
 tmux send-keys -t "$SESSION:ops.right" \
-  "printf '\033[1;34m=== STUDIO — Oracle Studio (port 3000) ===\033[0m\n' && sleep 4 && bunx oracle-studio --api http://localhost:47778 --port 3000" Enter
+  "printf '\033[1;34m=== DASHBOARD — Fleet Dashboard (port 3001) ===\033[0m\n' && sleep 2 && bash $REPO_ROOT/scripts/start-dashboard.sh 3001" Enter
 
 tmux select-pane -t "$SESSION:ops.left"
-echo "  [ops]    housekeeper (L) | studio (R)"
+echo "  [ops]    housekeeper (L) | dashboard :3001 (R)"
 
 # ════════════════════════════════════════════════════════
 # Window 3: "design" — uxui (left) | bugfix (right)
@@ -115,7 +115,7 @@ echo "Fleet '$SESSION' ready — 4 windows × 2 panes:"
 echo ""
 echo "  brain  [win 0]  tham        │  bob"
 echo "  exec   [win 1]  core        │  hermes"
-echo "  ops    [win 2]  housekeeper │  studio"
+echo "  ops    [win 2]  housekeeper │  dashboard :3001"
 echo "  design [win 3]  uxui        │  bugfix"
 echo ""
 echo "Attach : tmux attach -t $SESSION"
