@@ -1,0 +1,23 @@
+{
+  "total_tasks": 35,
+  "success": 2,
+  "success_rate_pct": 5.71,
+  "blocked": 0,
+  "timeout": 0,
+  "error": 31,
+  "avg_duration_seconds": 0.15,
+  "risk_distribution": {
+    "low": 16,
+    "medium": 17,
+    "high": 2
+  },
+  "lane_distribution": {
+    "ollama": 4,
+    "codex_gpt55": 18,
+    "unknown": 2,
+    "claude": 8,
+    "gemini": 2,
+    "powershell_sfsr": 1
+  },
+  "anomalies_detected": 27
+}

@@ -1,0 +1,228 @@
+{
+  "date": "2026-05-17",
+  "anomalies_detected": 27,
+  "anomalies": [
+    {
+      "type": "fallback_used",
+      "task_id": "coding_intent",
+      "primary_lane": "codex_gpt55",
+      "fallback_lane": "ollama",
+      "status": "ERROR",
+      "recommendation": "Primary codex_gpt55 failed; fallback ollama attempted. Monitor primary lane health."
+    },
+    {
+      "type": "fallback_used",
+      "task_id": "complete_cycle_test",
+      "primary_lane": "codex_gpt55",
+      "fallback_lane": "ollama",
+      "status": "ERROR",
+      "recommendation": "Primary codex_gpt55 failed; fallback ollama attempted. Monitor primary lane health."
+    },
+    {
+      "type": "fallback_used",
+      "task_id": "review_intent",
+      "primary_lane": "claude",
+      "fallback_lane": "codex_gpt55",
+      "status": "ERROR",
+      "recommendation": "Primary claude failed; fallback codex_gpt55 attempted. Monitor primary lane health."
+    },
+    {
+      "type": "fallback_used",
+      "task_id": "sample_design_001",
+      "primary_lane": "claude",
+      "fallback_lane": "codex_gpt55",
+      "status": "ERROR",
+      "recommendation": "Primary claude failed; fallback codex_gpt55 attempted. Monitor primary lane health."
+    },
+    {
+      "type": "fallback_used",
+      "task_id": "sample_fix_bug_001",
+      "primary_lane": "codex_gpt55",
+      "fallback_lane": "ollama",
+      "status": "ERROR",
+      "recommendation": "Primary codex_gpt55 failed; fallback ollama attempted. Monitor primary lane health."
+    },
+    {
+      "type": "fallback_used",
+      "task_id": "sample_patch_001",
+      "primary_lane": "codex_gpt55",
+      "fallback_lane": "ollama",
+      "status": "ERROR",
+      "recommendation": "Primary codex_gpt55 failed; fallback ollama attempted. Monitor primary lane health."
+    },
+    {
+      "type": "fallback_used",
+      "task_id": "sample_performance_001",
+      "primary_lane": "claude",
+      "fallback_lane": "codex_gpt55",
+      "status": "ERROR",
+      "recommendation": "Primary claude failed; fallback codex_gpt55 attempted. Monitor primary lane health."
+    },
+    {
+      "type": "fallback_used",
+      "task_id": "sample_refactor_001",
+      "primary_lane": "claude",
+      "fallback_lane": "codex_gpt55",
+      "status": "ERROR",
+      "recommendation": "Primary claude failed; fallback codex_gpt55 attempted. Monitor primary lane health."
+    },
+    {
+      "type": "fallback_used",
+      "task_id": "sample_review_001",
+      "primary_lane": "claude",
+      "fallback_lane": "codex_gpt55",
+      "status": "ERROR",
+      "recommendation": "Primary claude failed; fallback codex_gpt55 attempted. Monitor primary lane health."
+    },
+    {
+      "type": "fallback_used",
+      "task_id": "sample_search_001",
+      "primary_lane": "gemini",
+      "fallback_lane": "ollama",
+      "status": "ERROR",
+      "recommendation": "Primary gemini failed; fallback ollama attempted. Monitor primary lane health."
+    },
+    {
+      "type": "fallback_used",
+      "task_id": "sample_security_audit_001",
+      "primary_lane": "claude",
+      "fallback_lane": "codex_gpt55",
+      "status": "ERROR",
+      "recommendation": "Primary claude failed; fallback codex_gpt55 attempted. Monitor primary lane health."
+    },
+    {
+      "type": "fallback_used",
+      "task_id": "sample_write_code_001",
+      "primary_lane": "codex_gpt55",
+      "fallback_lane": "ollama",
+      "status": "ERROR",
+      "recommendation": "Primary codex_gpt55 failed; fallback ollama attempted. Monitor primary lane health."
+    },
+    {
+      "type": "fallback_used",
+      "task_id": "schema_test",
+      "primary_lane": "claude",
+      "fallback_lane": "codex_gpt55",
+      "status": "ERROR",
+      "recommendation": "Primary claude failed; fallback codex_gpt55 attempted. Monitor primary lane health."
+    },
+    {
+      "type": "fallback_used",
+      "task_id": "search_intent",
+      "primary_lane": "gemini",
+      "fallback_lane": "ollama",
+      "status": "ERROR",
+      "recommendation": "Primary gemini failed; fallback ollama attempted. Monitor primary lane health."
+    },
+    {
+      "type": "fallback_used",
+      "task_id": "test_fallback_chain",
+      "primary_lane": "codex_gpt55",
+      "fallback_lane": "ollama",
+      "status": "ERROR",
+      "recommendation": "Primary codex_gpt55 failed; fallback ollama attempted. Monitor primary lane health."
+    },
+    {
+      "type": "fallback_used",
+      "task_id": "test_gate_timeouts",
+      "primary_lane": "codex_gpt55",
+      "fallback_lane": "ollama",
+      "status": "ERROR",
+      "recommendation": "Primary codex_gpt55 failed; fallback ollama attempted. Monitor primary lane health."
+    },
+    {
+      "type": "fallback_used",
+      "task_id": "test_gates_passed",
+      "primary_lane": "claude",
+      "fallback_lane": "codex_gpt55",
+      "status": "ERROR",
+      "recommendation": "Primary claude failed; fallback codex_gpt55 attempted. Monitor primary lane health."
+    },
+    {
+      "type": "fallback_used",
+      "task_id": "test_hermes_block_high_risk",
+      "primary_lane": "codex_gpt55",
+      "fallback_lane": "ollama",
+      "status": "ERROR",
+      "recommendation": "Primary codex_gpt55 failed; fallback ollama attempted. Monitor primary lane health."
+    },
+    {
+      "type": "fallback_used",
+      "task_id": "test_intent_classify",
+      "primary_lane": "codex_gpt55",
+      "fallback_lane": "ollama",
+      "status": "ERROR",
+      "recommendation": "Primary codex_gpt55 failed; fallback ollama attempted. Monitor primary lane health."
+    },
+    {
+      "type": "fallback_used",
+      "task_id": "test_intent_fix",
+      "primary_lane": "codex_gpt55",
+      "fallback_lane": "ollama",
+      "status": "ERROR",
+      "recommendation": "Primary codex_gpt55 failed; fallback ollama attempted. Monitor primary lane health."
+    },
+    {
+      "type": "fallback_used",
+      "task_id": "test_intent_review",
+      "primary_lane": "codex_gpt55",
+      "fallback_lane": "ollama",
+      "status": "ERROR",
+      "recommendation": "Primary codex_gpt55 failed; fallback ollama attempted. Monitor primary lane health."
+    },
+    {
+      "type": "fallback_used",
+      "task_id": "test_intent_write",
+      "primary_lane": "codex_gpt55",
+      "fallback_lane": "ollama",
+      "status": "ERROR",
+      "recommendation": "Primary codex_gpt55 failed; fallback ollama attempted. Monitor primary lane health."
+    },
+    {
+      "type": "fallback_used",
+      "task_id": "test_memory_timeout",
+      "primary_lane": "codex_gpt55",
+      "fallback_lane": "ollama",
+      "status": "ERROR",
+      "recommendation": "Primary codex_gpt55 failed; fallback ollama attempted. Monitor primary lane health."
+    },
+    {
+      "type": "fallback_used",
+      "task_id": "test_proof_schema",
+      "primary_lane": "codex_gpt55",
+      "fallback_lane": "ollama",
+      "status": "ERROR",
+      "recommendation": "Primary codex_gpt55 failed; fallback ollama attempted. Monitor primary lane health."
+    },
+    {
+      "type": "fallback_used",
+      "task_id": "test_risk_escalation",
+      "primary_lane": "codex_gpt55",
+      "fallback_lane": "ollama",
+      "status": "ERROR",
+      "recommendation": "Primary codex_gpt55 failed; fallback ollama attempted. Monitor primary lane health."
+    },
+    {
+      "type": "fallback_used",
+      "task_id": "test_risk_high",
+      "primary_lane": "codex_gpt55",
+      "fallback_lane": "ollama",
+      "status": "ERROR",
+      "recommendation": "Primary codex_gpt55 failed; fallback ollama attempted. Monitor primary lane health."
+    },
+    {
+      "type": "fallback_used",
+      "task_id": "test_risk_medium",
+      "primary_lane": "codex_gpt55",
+      "fallback_lane": "ollama",
+      "status": "ERROR",
+      "recommendation": "Primary codex_gpt55 failed; fallback ollama attempted. Monitor primary lane health."
+    }
+  ],
+  "recommendations": [
+    "Monitor lane health for degraded services",
+    "Escalate blocked high-risk tasks for human review",
+    "Review slow routes to optimize execution",
+    "Track fallback usage to identify primary lane issues"
+  ]
+}
