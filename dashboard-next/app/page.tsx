@@ -70,10 +70,18 @@ interface HealthData {
   runtimes: RuntimeTool[]
 }
 
-type Section = 'fleet' | 'health' | 'git' | 'memory' | 'queue' | 'services' | 'constitution' | 'metrics'
+// === Task Board types ===
+interface Task { id: string; name: string; column: string; mtime: string; sizeKB: number; type: string }
+interface TasksData {
+  columns: { inbox: Task[]; active: Task[]; outbox: Task[]; proofs: Task[]; archive: Task[] }
+  total: number
+}
+
+type Section = 'fleet' | 'tasks' | 'health' | 'git' | 'memory' | 'queue' | 'services' | 'constitution' | 'metrics'
 
 const SECTION_LABELS: Record<Section, string> = {
   fleet:        'Oracle Fleet',
+  tasks:        'Task Board',
   health:       'Status Monitor',
   git:          'Git Activity',
   memory:       'Memory Gate',
@@ -119,9 +127,91 @@ function ago(days: number): string {
   return `${days}d ago`
 }
 
+// ── Stat Cards Row ─────────────────────────────────────────────────────────
+function StatCardsRow({ fleet, health, git }: {
+  fleet: FleetData | null
+  health: HealthData | null
+  git: GitData | null
+}) {
+  const stats = [
+    {
+      label: 'Total Oracles',
+      value: fleet?.summary.total ?? '—',
+      sub: `${fleet?.summary.active ?? 0} active`,
+      color: 'var(--accent)',
+      icon: '◉',
+    },
+    {
+      label: 'Fleet Health',
+      value: fleet
+        ? `${Math.round((fleet.summary.active / fleet.summary.total) * 100)}%`
+        : '—',
+      sub: `${fleet?.summary.stale ?? 0} stale · ${fleet?.summary.cold ?? 0} cold`,
+      color: 'var(--success)',
+      icon: '⚡',
+    },
+    {
+      label: 'Services',
+      value: health ? `${health.summary.healthy}/${health.summary.total}` : '—',
+      sub: health?.summary.unhealthy
+        ? `${health.summary.unhealthy} need attention`
+        : 'all healthy',
+      color: health?.summary.unhealthy ? 'var(--danger)' : 'var(--success)',
+      icon: '◈',
+    },
+    {
+      label: 'Last Commit',
+      value: git?.commits[0]?.ago ?? '—',
+      sub: git?.commits[0]?.subject?.slice(0, 30) ?? '',
+      color: 'var(--info)',
+      icon: '⎇',
+    },
+  ]
+
+  return (
+    <div style={{
+      display: 'grid',
+      gridTemplateColumns: 'repeat(4, 1fr)',
+      gap: 12,
+      marginBottom: 20,
+    }}>
+      {stats.map((s, i) => (
+        <div key={i} className="stat-card" style={{
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border)',
+          borderRadius: 12,
+          padding: '16px 20px',
+          position: 'relative',
+          overflow: 'hidden',
+          transition: 'border-color 0.2s, box-shadow 0.2s',
+        }}>
+          {/* Glow accent top border */}
+          <div style={{
+            position: 'absolute', top: 0, left: 0, right: 0, height: 2,
+            background: `linear-gradient(90deg, ${s.color}, transparent)`,
+          }} />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+            <span style={{ color: 'var(--text-muted)', fontSize: 11, fontWeight: 500, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+              {s.label}
+            </span>
+            <span style={{ color: s.color, fontSize: 16 }}>{s.icon}</span>
+          </div>
+          <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.1 }}>
+            {s.value}
+          </div>
+          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+            {s.sub}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 // ── Sidebar ────────────────────────────────────────────────────────────────
 const NAV_ITEMS: { id: Section; label: string; icon: string }[] = [
   { id: 'fleet',        label: 'Fleet',          icon: '◉' },
+  { id: 'tasks',        label: 'Task Board',     icon: '🗂️' },
   { id: 'health',       label: 'Status Monitor', icon: '⚡' },
   { id: 'git',          label: 'Git',            icon: '⎇' },
   { id: 'memory',       label: 'Memory Gate',    icon: '🧠' },
@@ -135,8 +225,8 @@ function Sidebar({ active, onNav }: { active: Section; onNav: (s: Section) => vo
   return (
     <div className="sidebar">
       <div className="sidebar-logo">
-        <span style={{ color: '#3b7cf4', fontSize: 16 }}>ธ</span>
-        <span style={{ color: '#c7d8ff', fontSize: 13, fontWeight: 700 }}>ธาม</span>
+        <span style={{ color: 'var(--accent)', fontSize: 16 }}>ธ</span>
+        <span style={{ color: 'var(--text-primary)', fontSize: 13, fontWeight: 700 }}>ธาม</span>
       </div>
       <nav className="sidebar-nav">
         {NAV_ITEMS.map(item => (
@@ -151,7 +241,7 @@ function Sidebar({ active, onNav }: { active: Section; onNav: (s: Section) => vo
         ))}
       </nav>
       <div className="sidebar-footer">
-        <span style={{ color: '#2a3a5c', fontSize: 10 }}>v2 · port 3000</span>
+        <span style={{ fontSize: 10 }}>v2 · port 3000</span>
       </div>
     </div>
   )
@@ -181,7 +271,7 @@ type FleetFilter = 'all' | 'active' | 'stale' | 'cold' | 'abandoned' | 'not-awak
 
 function FleetPanel({ data }: { data: FleetData | null }) {
   const [filter, setFilter] = useState<FleetFilter>('all')
-  if (!data) return <div style={{ color: '#8491b0' }}>loading fleet…</div>
+  if (!data) return <div style={{ color: 'var(--text-muted)' }}>loading fleet…</div>
 
   const oracles = data.oracles.filter(o => {
     if (filter === 'all')          return true
@@ -211,25 +301,25 @@ function FleetPanel({ data }: { data: FleetData | null }) {
         {oracles.map(o => (
           <div key={o.name} className={`oracle-card ${statusClass(o.days)}`}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
-              <span style={{ fontSize: 12, fontWeight: 600, color: '#c7d8ff' }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>
                 {o.status} {o.name}
               </span>
               {o.hasAwaken && (
-                <span style={{ fontSize: 10, color: '#a855f7', background: '#4c1d9522', borderRadius: 4, padding: '1px 5px', border: '1px solid #7c3aed33' }}>
+                <span style={{ fontSize: 10, color: '#a855f7', background: 'rgba(76,29,149,0.13)', borderRadius: 4, padding: '1px 5px', border: '1px solid rgba(124,58,237,0.2)' }}>
                   ✦ awakened
                 </span>
               )}
             </div>
-            <div style={{ color: '#8491b0', fontSize: 11 }}>
-              {o.branch && <span style={{ color: '#4ade80', marginRight: 6 }}>{o.branch}</span>}
+            <div style={{ color: 'var(--text-muted)', fontSize: 11 }}>
+              {o.branch && <span style={{ color: 'var(--success)', marginRight: 6 }}>{o.branch}</span>}
               {o.days === 0
-                ? <span style={{ color: '#4ade80' }}>today</span>
+                ? <span style={{ color: 'var(--success)' }}>today</span>
                 : ago(o.days)
               }
             </div>
           </div>
         ))}
-        {oracles.length === 0 && <div style={{ color: '#8491b0', padding: 8 }}>none</div>}
+        {oracles.length === 0 && <div style={{ color: 'var(--text-muted)', padding: 8 }}>none</div>}
       </div>
     </div>
   )
@@ -237,7 +327,7 @@ function FleetPanel({ data }: { data: FleetData | null }) {
 
 // ── Git Panel ──────────────────────────────────────────────────────────────
 function GitPanel({ data }: { data: GitData | null }) {
-  if (!data) return <div style={{ color: '#8491b0' }}>loading git…</div>
+  if (!data) return <div style={{ color: 'var(--text-muted)' }}>loading git…</div>
   return (
     <div>
       <div style={{ marginBottom: 10, display: 'flex', gap: 10, alignItems: 'center' }}>
@@ -264,7 +354,7 @@ function GitPanel({ data }: { data: GitData | null }) {
               <td style={{ maxWidth: 380, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {c.subject}
               </td>
-              <td style={{ color: '#8491b0', whiteSpace: 'nowrap' }}>{c.ago}</td>
+              <td style={{ color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{c.ago}</td>
             </tr>
           ))}
         </tbody>
@@ -275,15 +365,15 @@ function GitPanel({ data }: { data: GitData | null }) {
 
 // ── Memory Panel ───────────────────────────────────────────────────────────
 function MemoryPanel({ data }: { data: MemData | null }) {
-  if (!data) return <div style={{ color: '#8491b0' }}>loading memory…</div>
+  if (!data) return <div style={{ color: 'var(--text-muted)' }}>loading memory…</div>
 
   return (
     <div>
       <div style={{ marginBottom: 12 }}>
         {data.files.map(f => (
           <div key={f.key} style={{
-            background: '#0d1829',
-            border: '1px solid #1e2d4a',
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border)',
             borderRadius: 6,
             padding: '8px 12px',
             marginBottom: 6,
@@ -295,15 +385,15 @@ function MemoryPanel({ data }: { data: MemData | null }) {
                   ? <span className="badge badge-green">✓ exists</span>
                   : <span className="badge badge-red">✗ missing</span>
                 }
-                <span style={{ color: '#8491b0', fontSize: 10 }}>{f.sizeKB}KB</span>
+                <span style={{ color: 'var(--text-muted)', fontSize: 10 }}>{f.sizeKB}KB</span>
                 {f.hash && f.hash !== 'untracked' && (
                   <span className="hash">{f.hash}</span>
                 )}
               </div>
             </div>
-            <div style={{ color: '#8491b0', fontSize: 11 }}>{f.path}</div>
+            <div style={{ color: 'var(--text-muted)', fontSize: 11 }}>{f.path}</div>
             {f.snippet && (
-              <div style={{ color: '#6b7fa8', fontSize: 10, marginTop: 3, fontStyle: 'italic' }}>
+              <div style={{ color: 'var(--text-muted)', fontSize: 10, marginTop: 3, fontStyle: 'italic' }}>
                 {f.snippet.slice(0, 100)}
               </div>
             )}
@@ -313,7 +403,7 @@ function MemoryPanel({ data }: { data: MemData | null }) {
 
       {data.constitutionRules.length > 0 && (
         <div>
-          <div style={{ fontSize: 10, color: '#8491b0', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
+          <div style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
             Constitution ({data.constitutionRules.length} rules)
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -331,7 +421,7 @@ function MemoryPanel({ data }: { data: MemData | null }) {
 
 // ── Metrics Panel ──────────────────────────────────────────────────────────
 function MetricsPanel({ data }: { data: MetricsData | null }) {
-  if (!data) return <div style={{ color: '#8491b0' }}>loading metrics…</div>
+  if (!data) return <div style={{ color: 'var(--text-muted)' }}>loading metrics…</div>
 
   return (
     <div>
@@ -342,7 +432,7 @@ function MetricsPanel({ data }: { data: MetricsData | null }) {
         </span>
       </div>
       {data.rows.length === 0 ? (
-        <div style={{ color: '#8491b0' }}>no session metrics yet</div>
+        <div style={{ color: 'var(--text-muted)' }}>no session metrics yet</div>
       ) : (
         <table>
           <thead>
@@ -357,11 +447,11 @@ function MetricsPanel({ data }: { data: MetricsData | null }) {
           <tbody>
             {data.rows.map((r, i) => (
               <tr key={i}>
-                <td style={{ color: '#8491b0', fontSize: 10 }}>{r.when}</td>
+                <td style={{ color: 'var(--text-muted)', fontSize: 10 }}>{r.when}</td>
                 <td><span className="hash">{r.session.slice(0, 8)}</span></td>
-                <td style={{ color: '#4ade80', fontSize: 11 }}>{r.win.slice(0, 40)}</td>
-                <td style={{ color: '#f59e0b', fontSize: 11 }}>{r.friction.slice(0, 40)}</td>
-                <td style={{ color: '#f87171', fontSize: 11 }}>{r.error.slice(0, 40)}</td>
+                <td style={{ color: 'var(--success)', fontSize: 11 }}>{r.win.slice(0, 40)}</td>
+                <td style={{ color: 'var(--warning)', fontSize: 11 }}>{r.friction.slice(0, 40)}</td>
+                <td style={{ color: 'var(--danger)', fontSize: 11 }}>{r.error.slice(0, 40)}</td>
               </tr>
             ))}
           </tbody>
@@ -373,7 +463,7 @@ function MetricsPanel({ data }: { data: MetricsData | null }) {
 
 // ── Inbox Panel ────────────────────────────────────────────────────────────
 function InboxPanel({ data }: { data: InboxData | null }) {
-  if (!data) return <div style={{ color: '#8491b0' }}>loading queue…</div>
+  if (!data) return <div style={{ color: 'var(--text-muted)' }}>loading queue…</div>
 
   const sections = [
     { label: 'inbox',  icon: '📥', val: data.inbox,  badge: 'badge-blue' },
@@ -388,17 +478,17 @@ function InboxPanel({ data }: { data: InboxData | null }) {
         const raw = (val.files ?? val.recent ?? []) as (FileEntry | string)[]
         return (
           <div key={label} style={{
-            background: '#0d1829',
-            border: '1px solid #1e2d4a',
+            background: 'var(--bg-surface)',
+            border: '1px solid var(--border)',
             borderRadius: 8,
             padding: '10px 12px',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-              <span style={{ color: '#c7d8ff', fontSize: 12 }}>{icon} {label}</span>
+              <span style={{ color: 'var(--text-primary)', fontSize: 12 }}>{icon} {label}</span>
               <span className={`badge ${badge}`}>{val.count}</span>
             </div>
             {raw.length === 0 && (
-              <div style={{ color: '#4a5878', fontSize: 11 }}>empty</div>
+              <div style={{ color: 'var(--text-muted)', fontSize: 11 }}>empty</div>
             )}
             {raw.map((f, i) => {
               const name   = typeof f === 'string' ? f : f.name
@@ -406,22 +496,22 @@ function InboxPanel({ data }: { data: InboxData | null }) {
               const sizeKB = typeof f === 'string' ? 0  : f.sizeKB
               return (
                 <div key={i} style={{
-                  borderBottom: i < raw.length - 1 ? '1px solid #111d30' : 'none',
+                  borderBottom: i < raw.length - 1 ? '1px solid var(--border-sub)' : 'none',
                   padding: '5px 0',
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'flex-start',
                   gap: 8,
                 }}>
-                  <span style={{ color: '#93a8d8', fontSize: 11, wordBreak: 'break-all', flex: 1 }}>
+                  <span style={{ color: 'var(--text-secondary)', fontSize: 11, wordBreak: 'break-all', flex: 1 }}>
                     {name.slice(0, 36)}{name.length > 36 ? '…' : ''}
                   </span>
                   <div style={{ textAlign: 'right', flexShrink: 0 }}>
                     {mtime && (
-                      <div style={{ color: '#4ade80', fontSize: 10 }}>{fmtTime(mtime)}</div>
+                      <div style={{ color: 'var(--success)', fontSize: 10 }}>{fmtTime(mtime)}</div>
                     )}
                     {sizeKB > 0 && (
-                      <div style={{ color: '#4a5878', fontSize: 10 }}>{sizeKB}KB</div>
+                      <div style={{ color: 'var(--text-muted)', fontSize: 10 }}>{sizeKB}KB</div>
                     )}
                   </div>
                 </div>
@@ -436,11 +526,11 @@ function InboxPanel({ data }: { data: InboxData | null }) {
 
 // ── Services Panel ─────────────────────────────────────────────────────────
 function ServicesPanel({ data }: { data: ServicesData | null }) {
-  if (!data) return <div style={{ color: '#8491b0' }}>loading services…</div>
+  if (!data) return <div style={{ color: 'var(--text-muted)' }}>loading services…</div>
 
   return (
     <div>
-      <div style={{ marginBottom: 10, fontSize: 10, color: '#8491b0' }}>
+      <div style={{ marginBottom: 10, fontSize: 10, color: 'var(--text-muted)' }}>
         Probed at: {data.checked_at ? fmtTime(data.checked_at) : '—'} · auto-refresh 15s
       </div>
       <table>
@@ -456,7 +546,7 @@ function ServicesPanel({ data }: { data: ServicesData | null }) {
         <tbody>
           {data.services.map(svc => (
             <tr key={svc.name}>
-              <td style={{ fontWeight: 600, color: '#c7d8ff' }}>{svc.name}</td>
+              <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{svc.name}</td>
               <td><span className="hash">{svc.port}</span></td>
               <td>
                 {svc.status === 'online'
@@ -464,10 +554,10 @@ function ServicesPanel({ data }: { data: ServicesData | null }) {
                   : <span className="badge badge-red">🔴 offline</span>
                 }
               </td>
-              <td style={{ color: svc.latency_ms && svc.latency_ms < 200 ? '#4ade80' : '#f59e0b' }}>
+              <td style={{ color: svc.latency_ms && svc.latency_ms < 200 ? 'var(--success)' : 'var(--warning)' }}>
                 {svc.latency_ms != null ? `${svc.latency_ms}ms` : '—'}
               </td>
-              <td style={{ color: '#8491b0', fontSize: 11 }}>
+              <td style={{ color: 'var(--text-muted)', fontSize: 11 }}>
                 {svc.checked_at ? fmtTime(svc.checked_at) : '—'}
               </td>
             </tr>
@@ -480,14 +570,14 @@ function ServicesPanel({ data }: { data: ServicesData | null }) {
 
 // ── Constitution Panel ─────────────────────────────────────────────────────
 function ConstitutionPanel({ data }: { data: ConstitutionData | null }) {
-  if (!data) return <div style={{ color: '#8491b0' }}>loading constitution…</div>
-  if (data.error) return <div style={{ color: '#f87171' }}>Error: {data.error}</div>
+  if (!data) return <div style={{ color: 'var(--text-muted)' }}>loading constitution…</div>
+  if (data.error) return <div style={{ color: 'var(--danger)' }}>Error: {data.error}</div>
 
   return (
     <div>
       <div style={{ marginBottom: 12, display: 'flex', gap: 10, alignItems: 'center' }}>
         <span className="badge badge-blue">📜 {data.total} rules</span>
-        <span style={{ color: '#8491b0', fontSize: 11 }}>Immutable — cannot be overridden by prompts</span>
+        <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>Immutable — cannot be overridden by prompts</span>
       </div>
       <div className="constitution-grid">
         {data.rules.map(rule => (
@@ -495,11 +585,11 @@ function ConstitutionPanel({ data }: { data: ConstitutionData | null }) {
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
               <span className="badge badge-blue constitution-id">{rule.id}</span>
               <div style={{ flex: 1 }}>
-                <div style={{ color: '#c7d8ff', fontSize: 12, fontWeight: 600, marginBottom: 4 }}>
+                <div style={{ color: 'var(--text-primary)', fontSize: 12, fontWeight: 600, marginBottom: 4 }}>
                   {rule.title}
                 </div>
                 {rule.description && (
-                  <div style={{ color: '#8491b0', fontSize: 11, lineHeight: 1.5 }}>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: 11, lineHeight: 1.5 }}>
                     {rule.description}
                   </div>
                 )}
@@ -534,7 +624,7 @@ function StatusMonitorPanel({ data }: { data: HealthData | null }) {
     setTimeout(() => setFixing(null), 3000)
   }
 
-  if (!data) return <div style={{ color: '#8491b0' }}>loading health...</div>
+  if (!data) return <div style={{ color: 'var(--text-muted)' }}>loading health...</div>
 
   const { summary, http, tmux, runtimes, watchdog } = data
   const allHealthy = summary.unhealthy === 0
@@ -545,21 +635,21 @@ function StatusMonitorPanel({ data }: { data: HealthData | null }) {
     return (
       <div style={{
         display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
-        padding: '7px 0', borderBottom: '1px solid #0d1829', gap: 8,
+        padding: '7px 0', borderBottom: '1px solid var(--bg-surface)', gap: 8,
       }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ fontSize: 13 }}>{ok ? '🟢' : '🔴'}</span>
-            <span style={{ color: ok ? '#c7d8ff' : '#f87171', fontSize: 12, fontWeight: 600 }}>{name}</span>
-            {category && <span style={{ color: '#4a5878', fontSize: 10 }}>{category}</span>}
+            <span style={{ color: ok ? 'var(--text-primary)' : 'var(--danger)', fontSize: 12, fontWeight: 600 }}>{name}</span>
+            {category && <span style={{ color: 'var(--text-muted)', fontSize: 10 }}>{category}</span>}
           </div>
           {detail && (
-            <div style={{ color: '#6b7fa8', fontSize: 10, marginTop: 2, marginLeft: 21, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 320 }}>
+            <div style={{ color: 'var(--text-muted)', fontSize: 10, marginTop: 2, marginLeft: 21, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 320 }}>
               {detail}
             </div>
           )}
           {result && (
-            <div style={{ color: '#fbbf24', fontSize: 10, marginTop: 4, marginLeft: 21, background: '#1c1400', padding: '3px 6px', borderRadius: 4, wordBreak: 'break-all' }}>
+            <div style={{ color: 'var(--warning)', fontSize: 10, marginTop: 4, marginLeft: 21, background: 'rgba(245,158,11,0.08)', padding: '3px 6px', borderRadius: 4, wordBreak: 'break-all' }}>
               agent: {result.slice(0, 120)}
             </div>
           )}
@@ -570,9 +660,9 @@ function StatusMonitorPanel({ data }: { data: HealthData | null }) {
               onClick={() => runFix(fix)}
               disabled={isFixing}
               style={{
-                padding: '3px 10px', borderRadius: 6, border: '1px solid #ef4444',
-                background: isFixing ? '#7f1d1d33' : 'transparent',
-                color: isFixing ? '#fca5a5' : '#f87171',
+                padding: '3px 10px', borderRadius: 6, border: '1px solid var(--danger)',
+                background: isFixing ? 'rgba(239,68,68,0.2)' : 'transparent',
+                color: isFixing ? '#fca5a5' : 'var(--danger)',
                 cursor: isFixing ? 'not-allowed' : 'pointer',
                 fontSize: 10, fontFamily: 'inherit', fontWeight: 600,
               }}
@@ -600,7 +690,7 @@ function StatusMonitorPanel({ data }: { data: HealthData | null }) {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
         {/* HTTP Services */}
         <div>
-          <div style={{ color: '#8491b0', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
+          <div style={{ color: 'var(--text-muted)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
             HTTP Access Points
           </div>
           {http.map(s => (
@@ -612,21 +702,21 @@ function StatusMonitorPanel({ data }: { data: HealthData | null }) {
 
         {/* Runtimes + Watchdog + tmux */}
         <div>
-          <div style={{ color: '#8491b0', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
+          <div style={{ color: 'var(--text-muted)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
             Runtime Tools
           </div>
           {runtimes.map(r => (
             <StatusRow key={r.name} name={r.name} detail={r.detail} ok={r.ok} fix={r.fix} category="tool" />
           ))}
 
-          <div style={{ color: '#8491b0', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '12px 0 8px' }}>
+          <div style={{ color: 'var(--text-muted)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '12px 0 8px' }}>
             Watchdog
           </div>
           {watchdog.map((w, i) => (
             <StatusRow key={i} name={w.name} detail={w.pid ? `PID ${w.pid}` : ''} ok={w.ok} fix={w.fix} category="watchdog" />
           ))}
 
-          <div style={{ color: '#8491b0', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '12px 0 8px' }}>
+          <div style={{ color: 'var(--text-muted)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '12px 0 8px' }}>
             tmux Sessions
           </div>
           {tmux.map((t, i) => (
@@ -635,8 +725,88 @@ function StatusMonitorPanel({ data }: { data: HealthData | null }) {
         </div>
       </div>
 
-      <div style={{ marginTop: 8, color: '#4a5878', fontSize: 10 }}>
+      <div style={{ marginTop: 8, color: 'var(--text-muted)', fontSize: 10 }}>
         probed {new Date(data.checked_at).toLocaleTimeString('th-TH')} · ⚡ Fix triggers AI agent diagnostic
+      </div>
+    </div>
+  )
+}
+
+// ── Task Board Panel ───────────────────────────────────────────────────────
+const COLUMN_CONFIG = [
+  { key: 'inbox',   label: 'Inbox',   color: 'var(--accent)',    icon: '📥' },
+  { key: 'active',  label: 'Active',  color: 'var(--warning)',   icon: '⚡' },
+  { key: 'outbox',  label: 'Outbox',  color: 'var(--success)',   icon: '📤' },
+  { key: 'proofs',  label: 'Proofs',  color: 'var(--info)',      icon: '✅' },
+  { key: 'archive', label: 'Archive', color: 'var(--text-muted)', icon: '📦' },
+]
+
+function TaskBoardPanel({ data }: { data: TasksData | null }) {
+  if (!data) return <div style={{ color: 'var(--text-muted)' }}>loading tasks…</div>
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+        <span className="badge badge-blue">{data.total} total tasks</span>
+        <span className="badge badge-yellow">{data.columns.active.length} in progress</span>
+        <span className="badge badge-green">{data.columns.proofs.length} proven</span>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10 }}>
+        {COLUMN_CONFIG.map(col => {
+          const tasks = (data.columns as Record<string, Task[]>)[col.key] ?? []
+          return (
+            <div key={col.key} style={{
+              background: 'var(--bg-card)',
+              border: '1px solid var(--border)',
+              borderRadius: 10,
+              overflow: 'hidden',
+            }}>
+              {/* Column header */}
+              <div style={{
+                padding: '10px 12px',
+                borderBottom: `2px solid ${col.color}`,
+                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+              }}>
+                <span style={{ fontSize: 11, fontWeight: 600, color: col.color }}>
+                  {col.icon} {col.label}
+                </span>
+                <span style={{
+                  background: `color-mix(in srgb, ${col.color} 13%, transparent)`,
+                  color: col.color,
+                  borderRadius: 999, padding: '1px 7px', fontSize: 10, fontWeight: 700,
+                }}>
+                  {tasks.length}
+                </span>
+              </div>
+              {/* Task cards */}
+              <div style={{ padding: 8, display: 'flex', flexDirection: 'column', gap: 6, minHeight: 60 }}>
+                {tasks.slice(0, 8).map(t => (
+                  <div key={t.id} style={{
+                    background: 'var(--bg-surface)',
+                    border: '1px solid var(--border-sub)',
+                    borderRadius: 7,
+                    padding: '7px 10px',
+                  }}>
+                    <div style={{ color: 'var(--text-primary)', fontSize: 11, fontWeight: 500, marginBottom: 3, wordBreak: 'break-word' }}>
+                      {t.name.slice(0, 30)}{t.name.length > 30 ? '…' : ''}
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)', fontSize: 10 }}>
+                      <span>{t.type}</span>
+                      <span>{fmtTime(t.mtime)}</span>
+                    </div>
+                  </div>
+                ))}
+                {tasks.length === 0 && (
+                  <div style={{ color: 'var(--text-muted)', fontSize: 10, padding: '8px 2px' }}>empty</div>
+                )}
+                {tasks.length > 8 && (
+                  <div style={{ color: 'var(--text-muted)', fontSize: 10, textAlign: 'center', padding: '4px 0' }}>
+                    +{tasks.length - 8} more
+                  </div>
+                )}
+              </div>
+            </div>
+          )
+        })}
       </div>
     </div>
   )
@@ -653,6 +823,7 @@ export default function Dashboard() {
   const [services,      setServices]      = useState<ServicesData | null>(null)
   const [constitution,  setConstitution]  = useState<ConstitutionData | null>(null)
   const [health,        setHealth]        = useState<HealthData | null>(null)
+  const [tasks,         setTasks]         = useState<TasksData | null>(null)
   const [lastRefresh,   setLastRefresh]   = useState<string>('')
   const [refreshing,    setRefreshing]    = useState(false)
 
@@ -666,6 +837,7 @@ export default function Dashboard() {
       fetch('/api/inbox').then(r => r.json()).then(setInbox).catch(() => {}),
       fetch('/api/constitution').then(r => r.json()).then(setConstitution).catch(() => {}),
       fetch('/api/health').then(r => r.json()).then(setHealth).catch(() => {}),
+      fetch('/api/tasks').then(r => r.json()).then(setTasks).catch(() => {}),
     ])
     setLastRefresh(new Date().toLocaleTimeString('th-TH'))
     setRefreshing(false)
@@ -693,8 +865,8 @@ export default function Dashboard() {
         {/* Header */}
         <div className="top-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <span style={{ fontSize: 16, fontWeight: 700, color: '#e2e8f7' }}>ธาม Oracle</span>
-            <span style={{ color: '#2a3a5c' }}>—</span>
+            <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)' }}>ธาม Oracle</span>
+            <span style={{ color: 'var(--border)' }}>—</span>
             <span style={{ color: '#93c5fd', fontSize: 13, fontWeight: 600 }}>
               {SECTION_LABELS[activeSection]}
             </span>
@@ -718,20 +890,33 @@ export default function Dashboard() {
         {/* Body */}
         <div style={{ padding: '16px 20px 64px' }}>
 
+          {/* Stat Cards — always visible */}
+          <StatCardsRow fleet={fleet} health={health} git={git} />
+
           {activeSection === 'fleet' && (
             <div className="card">
               <div className="card-header">
-                <span className="dot" style={{ background: '#22c55e' }} />
+                <span className="dot" style={{ background: 'var(--success)' }} />
                 Oracle Fleet
               </div>
               <FleetPanel data={fleet} />
             </div>
           )}
 
+          {activeSection === 'tasks' && (
+            <div className="card">
+              <div className="card-header">
+                <span className="dot" style={{ background: 'var(--warning)' }} />
+                Task Board (ψ Vault)
+              </div>
+              <TaskBoardPanel data={tasks} />
+            </div>
+          )}
+
           {activeSection === 'health' && (
             <div className="card">
               <div className="card-header">
-                <span className="dot" style={{ background: '#22c55e' }} />
+                <span className="dot" style={{ background: 'var(--success)' }} />
                 Status Monitor — Health Probe + Fix
               </div>
               <StatusMonitorPanel data={health} />
@@ -741,7 +926,7 @@ export default function Dashboard() {
           {activeSection === 'git' && (
             <div className="card">
               <div className="card-header">
-                <span className="dot" style={{ background: '#3b7cf4' }} />
+                <span className="dot" style={{ background: 'var(--accent)' }} />
                 Git Activity — tham-oracle
               </div>
               <GitPanel data={git} />
@@ -761,7 +946,7 @@ export default function Dashboard() {
           {activeSection === 'queue' && (
             <div className="card">
               <div className="card-header">
-                <span className="dot" style={{ background: '#f59e0b' }} />
+                <span className="dot" style={{ background: 'var(--warning)' }} />
                 Queue / ψ Vault
               </div>
               <InboxPanel data={inbox} />
@@ -771,7 +956,7 @@ export default function Dashboard() {
           {activeSection === 'services' && (
             <div className="card">
               <div className="card-header">
-                <span className="dot service-online-dot" style={{ background: '#22c55e' }} />
+                <span className="dot service-online-dot" style={{ background: 'var(--success)' }} />
                 Services Health
               </div>
               <ServicesPanel data={services} />
@@ -781,7 +966,7 @@ export default function Dashboard() {
           {activeSection === 'constitution' && (
             <div className="card">
               <div className="card-header">
-                <span className="dot" style={{ background: '#3b7cf4' }} />
+                <span className="dot" style={{ background: 'var(--accent)' }} />
                 Constitution — Immutable Core Rules
               </div>
               <ConstitutionPanel data={constitution} />
@@ -791,7 +976,7 @@ export default function Dashboard() {
           {activeSection === 'metrics' && (
             <div className="card">
               <div className="card-header">
-                <span className="dot" style={{ background: '#06b6d4' }} />
+                <span className="dot" style={{ background: 'var(--info)' }} />
                 Session Metrics
               </div>
               <MetricsPanel data={metrics} />
@@ -802,35 +987,35 @@ export default function Dashboard() {
 
         {/* Status bar */}
         <div className="statusbar">
-          <span className={refreshing ? 'pulse' : ''} style={{ color: '#22c55e' }}>●</span>
+          <span className={refreshing ? 'pulse' : ''} style={{ color: 'var(--success)' }}>●</span>
           <span>ธาม Oracle</span>
-          <span style={{ color: '#1e2d4a' }}>|</span>
+          <span style={{ color: 'var(--border)' }}>|</span>
           <span>auto-refresh 30s · services 15s</span>
-          <span style={{ color: '#1e2d4a' }}>|</span>
+          <span style={{ color: 'var(--border)' }}>|</span>
           <span>last: {lastRefresh || '—'}</span>
           {git?.branch && (
             <>
-              <span style={{ color: '#1e2d4a' }}>|</span>
+              <span style={{ color: 'var(--border)' }}>|</span>
               <span>⎇ {git.branch}</span>
             </>
           )}
           {services?.services && (
             <>
-              <span style={{ color: '#1e2d4a' }}>|</span>
-              <span style={{ color: services.services.every(s => s.status === 'online') ? '#4ade80' : '#f87171' }}>
+              <span style={{ color: 'var(--border)' }}>|</span>
+              <span style={{ color: services.services.every(s => s.status === 'online') ? 'var(--success)' : 'var(--danger)' }}>
                 {services.services.filter(s => s.status === 'online').length}/{services.services.length} services
               </span>
             </>
           )}
           {health?.summary && (
             <>
-              <span style={{ color: '#1e2d4a' }}>|</span>
-              <span style={{ color: health.summary.unhealthy === 0 ? '#4ade80' : '#f87171' }}>
+              <span style={{ color: 'var(--border)' }}>|</span>
+              <span style={{ color: health.summary.unhealthy === 0 ? 'var(--success)' : 'var(--danger)' }}>
                 {health.summary.healthy}/{health.summary.total} healthy
               </span>
             </>
           )}
-          <span style={{ marginLeft: 'auto', color: '#2a3a5c' }}>port 3000</span>
+          <span style={{ marginLeft: 'auto', color: 'var(--text-muted)' }}>port 3000</span>
         </div>
       </div>
     </div>
