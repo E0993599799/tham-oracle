@@ -138,3 +138,184 @@ tr:hover td { background: #111d30; }
   50% { opacity: 0.4; }
 }
 .pulse { animation: pulse 2s infinite; }
+
+/* ── Sidebar ────────────────────────────────────────────────────────────── */
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 220px;
+  background: #0a1220;
+  border-right: 1px solid #1e2d4a;
+  display: flex;
+  flex-direction: column;
+  z-index: 200;
+}
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid #1e2d4a;
+}
+.sidebar-nav {
+  flex: 1;
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow-y: auto;
+}
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  color: #8491b0;
+  cursor: pointer;
+  font-size: 12px;
+  font-family: inherit;
+  text-align: left;
+  width: 100%;
+  transition: background 0.12s, color 0.12s;
+}
+.sidebar-item:hover {
+  background: #131f35;
+  color: #c7d8ff;
+}
+.sidebar-item-active {
+  background: #1e3a8a22;
+  color: #93c5fd;
+  border: 1px solid #3b7cf433;
+}
+.sidebar-icon {
+  font-size: 14px;
+  width: 18px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.sidebar-label {
+  font-size: 12px;
+}
+.sidebar-footer {
+  padding: 10px 16px;
+  border-top: 1px solid #1e2d4a;
+  font-size: 10px;
+  color: #2a3a5c;
+}
+
+/* ── Main content area (offset for sidebar) ─────────────────────────────── */
+.main-content {
+  margin-left: 220px;
+  min-height: 100vh;
+}
+
+/* ── Top header ─────────────────────────────────────────────────────────── */
+.top-header {
+  background: #0a1220;
+  border-bottom: 1px solid #1e2d4a;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+/* ── Status bar (offset for sidebar) ───────────────────────────────────── */
+.statusbar {
+  background: #0a1220;
+  border-top: 1px solid #1e2d4a;
+  padding: 6px 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-size: 11px;
+  color: var(--muted);
+  position: fixed;
+  bottom: 0;
+  left: 220px;
+  right: 0;
+  z-index: 100;
+}
+
+/* ── Filter buttons ─────────────────────────────────────────────────────── */
+.filter-btn {
+  padding: 3px 12px;
+  border-radius: 999px;
+  border: 1px solid #1e2d4a;
+  background: transparent;
+  color: #8491b0;
+  cursor: pointer;
+  font-size: 11px;
+  font-family: inherit;
+  transition: border-color 0.12s, color 0.12s, background 0.12s;
+}
+.filter-btn:hover {
+  border-color: #3b7cf4;
+  color: #93c5fd;
+}
+.filter-btn-active {
+  border-color: #3b7cf4;
+  background: #1e3a8a33;
+  color: #93c5fd;
+}
+
+/* ── Refresh button ─────────────────────────────────────────────────────── */
+.refresh-btn {
+  background: #131f35;
+  border: 1px solid #1e2d4a;
+  border-radius: 6px;
+  padding: 4px 12px;
+  color: #8491b0;
+  cursor: pointer;
+  font-size: 11px;
+  font-family: inherit;
+  transition: background 0.12s, color 0.12s;
+}
+.refresh-btn:hover {
+  border-color: #3b7cf4;
+  color: #93c5fd;
+}
+.refresh-btn-active {
+  background: #1e3a8a33;
+  color: #93c5fd;
+}
+
+/* ── badge-purple ───────────────────────────────────────────────────────── */
+.badge-purple { background: #4c1d9533; color: #c084fc; border-color: #7c3aed33; }
+
+/* ── Services panel ─────────────────────────────────────────────────────── */
+.service-online {
+  position: relative;
+}
+
+/* ── Constitution panel ─────────────────────────────────────────────────── */
+.constitution-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 8px;
+}
+.constitution-card {
+  background: #0d1829;
+  border: 1px solid #1e2d4a;
+  border-radius: 8px;
+  padding: 12px 14px;
+  transition: border-color 0.15s;
+}
+.constitution-card:hover {
+  border-color: #3b7cf433;
+}
+.constitution-id {
+  font-family: monospace;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+  min-width: 42px;
+  text-align: center;
+}
