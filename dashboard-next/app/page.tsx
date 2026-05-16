@@ -23,12 +23,25 @@ interface MemFile { key: string; path: string; exists: boolean; hash: string; la
 interface MemData { files: MemFile[]; constitutionRules: string[]; error?: string }
 interface MetricRow { when: string; session: string; done: string; stuck: string; win: string; friction: string; error: string }
 interface MetricsData { rows: MetricRow[]; retrosToday: number; learningsThisMonth: number; error?: string }
-interface InboxSection { count: number; files?: string[]; recent?: string[] }
+interface FileEntry { name: string; mtime: string; sizeKB: number }
+interface InboxSection { count: number; files?: FileEntry[] | string[]; recent?: FileEntry[] | string[] }
 interface InboxData {
   inbox: InboxSection
   outbox: InboxSection
   proofs: InboxSection
   active: InboxSection
+}
+
+function fmtTime(iso: string): string {
+  if (!iso) return ''
+  const d = new Date(iso)
+  const now = Date.now()
+  const diff = now - d.getTime()
+  if (diff < 60000)  return 'just now'
+  if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`
+  if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`
+  return d.toLocaleDateString('th-TH', { day:'2-digit', month:'short' }) + ' ' +
+    d.toLocaleTimeString('th-TH', { hour:'2-digit', minute:'2-digit' })
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -285,7 +298,7 @@ function InboxPanel({ data }: { data: InboxData | null }) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
       {sections.map(({ label, icon, val, badge }) => {
-        const items = (val.files ?? val.recent ?? []).slice(0, 3)
+        const raw = (val.files ?? val.recent ?? []) as (FileEntry | string)[]
         return (
           <div key={label} style={{
             background: '#0d1829',
@@ -293,15 +306,40 @@ function InboxPanel({ data }: { data: InboxData | null }) {
             borderRadius: 8,
             padding: '10px 12px',
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
               <span style={{ color: '#c7d8ff', fontSize: 12 }}>{icon} {label}</span>
               <span className={`badge ${badge}`}>{val.count}</span>
             </div>
-            {items.map((f: string, i: number) => (
-              <div key={i} style={{ color: '#8491b0', fontSize: 10, marginTop: 2 }}>
-                · {f.slice(0, 32)}
-              </div>
-            ))}
+            {raw.length === 0 && (
+              <div style={{ color: '#4a5878', fontSize: 11 }}>empty</div>
+            )}
+            {raw.map((f, i) => {
+              const name   = typeof f === 'string' ? f : f.name
+              const mtime  = typeof f === 'string' ? '' : f.mtime
+              const sizeKB = typeof f === 'string' ? 0  : f.sizeKB
+              return (
+                <div key={i} style={{
+                  borderBottom: i < raw.length - 1 ? '1px solid #111d30' : 'none',
+                  padding: '5px 0',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'flex-start',
+                  gap: 8,
+                }}>
+                  <span style={{ color: '#93a8d8', fontSize: 11, wordBreak: 'break-all', flex: 1 }}>
+                    {name.slice(0, 36)}{name.length > 36 ? '…' : ''}
+                  </span>
+                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                    {mtime && (
+                      <div style={{ color: '#4ade80', fontSize: 10 }}>{fmtTime(mtime)}</div>
+                    )}
+                    {sizeKB > 0 && (
+                      <div style={{ color: '#4a5878', fontSize: 10 }}>{sizeKB}KB</div>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
           </div>
         )
       })}
