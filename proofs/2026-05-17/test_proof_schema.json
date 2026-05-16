@@ -1,0 +1,27 @@
+{
+  "task_id": "test_proof_schema",
+  "routed_lane": "codex_gpt55",
+  "fallback_lane": "ollama",
+  "risk_level": "low",
+  "status": "ERROR",
+  "gates_passed": [
+    "memory_gate",
+    "risk_gate",
+    "intent_gate"
+  ],
+  "gate_timeouts": {
+    "memory_gate": 5.650520324707031e-05,
+    "risk_gate": 4.76837158203125e-07,
+    "intent_gate": 9.5367431640625e-07
+  },
+  "execution_timestamp": "2026-05-16T23:00:18.957610+00:00",
+  "execution_duration_seconds": 0,
+  "lane_response": {
+    "status_code": null,
+    "response_time_ms": null,
+    "output_length": 0
+  },
+  "proof_path": null,
+  "proof_summary": "Primary codex_gpt55 failed (Lane error: HTTPConnectionPool(host='localhost', port=20128): Max retries exceeded with url: /v1/completions (Caused by NewConnectionError(\"HTTPConnection(host='localhost', port=20128): Failed to establish a new connection: [Errno 111] Connection refused\"))), fallback ollama failed (Lane returned 404). Both lanes exhausted.",
+  "next_action": ""
+}

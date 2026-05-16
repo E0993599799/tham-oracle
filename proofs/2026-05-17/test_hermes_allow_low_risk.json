@@ -1,0 +1,27 @@
+{
+  "task_id": "test_hermes_allow_low_risk",
+  "routed_lane": "powershell_sfsr",
+  "fallback_lane": null,
+  "risk_level": "low",
+  "status": "SUCCESS",
+  "gates_passed": [
+    "memory_gate",
+    "risk_gate",
+    "intent_gate"
+  ],
+  "gate_timeouts": {
+    "memory_gate": 5.698204040527344e-05,
+    "risk_gate": 7.152557373046875e-07,
+    "intent_gate": 1.1920928955078125e-06
+  },
+  "execution_timestamp": "2026-05-16T23:00:18.942086+00:00",
+  "execution_duration_seconds": 0,
+  "lane_response": {
+    "status_code": 200,
+    "response_time_ms": 500,
+    "output_length": 25
+  },
+  "proof_path": null,
+  "proof_summary": "Primary hermes failed, fallback powershell_sfsr \u2192 SUCCESS. Duration 0.0s.",
+  "next_action": ""
+}

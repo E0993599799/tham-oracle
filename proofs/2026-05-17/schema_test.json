@@ -1,0 +1,27 @@
+{
+  "task_id": "schema_test",
+  "routed_lane": "claude",
+  "fallback_lane": "codex_gpt55",
+  "risk_level": "low",
+  "status": "ERROR",
+  "gates_passed": [
+    "memory_gate",
+    "risk_gate",
+    "intent_gate"
+  ],
+  "gate_timeouts": {
+    "memory_gate": 5.53131103515625e-05,
+    "risk_gate": 7.152557373046875e-07,
+    "intent_gate": 1.1920928955078125e-06
+  },
+  "execution_timestamp": "2026-05-16T23:00:18.994243+00:00",
+  "execution_duration_seconds": 0,
+  "lane_response": {
+    "status_code": null,
+    "response_time_ms": null,
+    "output_length": 0
+  },
+  "proof_path": null,
+  "proof_summary": "Primary claude failed (Lane error: HTTPConnectionPool(host='localhost', port=20128): Max retries exceeded with url: /v1/messages (Caused by NewConnectionError(\"HTTPConnection(host='localhost', port=20128): Failed to establish a new connection: [Errno 111] Connection refused\"))), fallback codex_gpt55 failed (Lane error: HTTPConnectionPool(host='localhost', port=20128): Max retries exceeded with url: /v1/completions (Caused by NewConnectionError(\"HTTPConnection(host='localhost', port=20128): Failed to establish a new connection: [Errno 111] Connection refused\"))). Both lanes exhausted.",
+  "next_action": ""
+}
