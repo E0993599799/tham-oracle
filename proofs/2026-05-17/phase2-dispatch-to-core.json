@@ -1,0 +1,58 @@
+{
+  "task_id": "phase2-dispatch-to-core",
+  "timestamp": "2026-05-17T05:00:00+07:00",
+  "dispatcher": "tham-oracle",
+  "target_agent": "core",
+  "status": "DISPATCHED",
+  "reason": "Zeus/orca-mini dispatch failed: memory exhaustion (5.5GB needed, 4.0GB available, timeout after 600s)",
+  "previous_attempt": {
+    "agent": "zeus",
+    "model": "orca-mini",
+    "result": "FAILED — HTTPConnectionPool timeout + insufficient memory"
+  },
+  "phase_2_contract": {
+    "deliverables": [
+      "executor-lane-router.py",
+      "tests/test_router.py",
+      "proofs/2026-05-17/phase2-router-complete.json"
+    ],
+    "acceptance_criteria_count": 9,
+    "phase_1_sot_locked": true,
+    "source_files": [
+      "docs/phase-1-router/routing_decision_table.md",
+      "docs/phase-1-router/executor-lane-router.schema.json",
+      "docs/phase-1-router/runtime-flow.md",
+      "docs/phase-1-router/proof-schema.md"
+    ]
+  },
+  "parallel_subtask_plan": {
+    "A_router_implementation": {
+      "agent": "forge",
+      "effort_minutes": 30,
+      "blocking": "B,C"
+    },
+    "B_test_suite": {
+      "agent": "scribe",
+      "effort_minutes": 20,
+      "blocked_by": "A"
+    },
+    "C_proof_generation": {
+      "agent": "argus",
+      "effort_minutes": 10,
+      "blocked_by": "A"
+    },
+    "D_schema_validation": {
+      "agent": "crux",
+      "effort_minutes": 5,
+      "blocked_by": "C"
+    },
+    "E_commit_and_finalize": {
+      "agent": "hermes",
+      "effort_minutes": 5,
+      "blocked_by": "D"
+    }
+  },
+  "dispatch_method": "write to ψ/inbox/core/ + synchronous coordination",
+  "expected_completion": "2026-05-17T06:30:00+07:00",
+  "next_action_for_tham": "Monitor Core's execution, validate Phase 2 proof record against schema, commit to main, proceed to Phase 3 (lane health monitoring)"
+}
