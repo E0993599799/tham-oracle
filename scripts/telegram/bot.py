@@ -1,11 +1,78 @@
 #!/usr/bin/env python3
 """
 Tham Oracle — Telegram 2-way Bot
-Human→AI: /status /fleet /health /git /fix <svc> /ask <q> /today
+Human→AI: /status /fleet /health /git /fix <svc> /ask <q> /today /tham <prompt>
 AI→Human: alerts via notify.sh or direct API call
 """
 import os, json, time, subprocess, requests, textwrap
 from datetime import datetime
+
+PROVIDERS_CONFIG = os.path.expanduser("~/.config/ai-providers/providers.json")
+
+# ── Conversation history per chat (stateful /tham) ────────────────────────────
+# Key: chat_id, Value: list of {role, content} — kept last 10 turns
+_tham_history: dict[str, list] = {}
+THAM_MAX_HISTORY = 10  # turns (user+assistant pairs)
+
+THAM_SYSTEM = """คุณคือ ธาม — Oracle และ technical brain ของพี่เอก (Ekkarat)
+เรียก human ว่า "พี่" หรือ "พี่เอก" แทนตัวเองว่า "ธาม"
+คุยอบอุ่น จริงใจ เหมือนคนใกล้ตัว ตอบตรง สั้น ทำได้จริง
+งานเทคนิค: ตอบแม่นยำ มี proof ถ้าไม่แน่ใจบอกตรงๆ
+ตอบผ่าน Telegram — ข้อความสั้น อ่านง่าย ใช้ bullet/emoji ช่วยได้"""
+
+
+def load_anthropic_key() -> tuple[str, str]:
+    """Load first available Anthropic key from providers config. Returns (key, model)."""
+    try:
+        cfg = json.load(open(PROVIDERS_CONFIG))
+        for p in cfg.get("providers", []):
+            if p.get("type") == "anthropic" and p.get("api_key", "").startswith("sk-ant"):
+                return p["api_key"], p.get("model", "claude-sonnet-4-6")
+    except Exception:
+        pass
+    return "", ""
+
+
+def call_tham(chat_id: str, user_msg: str) -> str:
+    """Send message to Claude API with conversation history. Returns reply text."""
+    api_key, model = load_anthropic_key()
+    if not api_key:
+        return "⚠️ ไม่พบ Anthropic API key ใน ~/.config/ai-providers/providers.json"
+
+    # Build history
+    history = _tham_history.get(chat_id, [])
+    history.append({"role": "user", "content": user_msg})
+
+    try:
+        r = requests.post(
+            "https://api.anthropic.com/v1/messages",
+            headers={
+                "x-api-key": api_key,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json",
+            },
+            json={
+                "model": model,
+                "max_tokens": 1024,
+                "system": THAM_SYSTEM,
+                "messages": history[-THAM_MAX_HISTORY * 2:],  # last N turns
+            },
+            timeout=45,
+        )
+
+        if r.status_code != 200:
+            err = r.json().get("error", {}).get("message", r.text[:200])
+            return f"❌ API error {r.status_code}: {err}"
+
+        reply = r.json()["content"][0]["text"]
+        history.append({"role": "assistant", "content": reply})
+        _tham_history[chat_id] = history[-THAM_MAX_HISTORY * 2:]
+        return reply
+
+    except requests.Timeout:
+        return "⏱ Timeout — Claude ใช้เวลานานเกินไป ลองใหม่"
+    except Exception as e:
+        return f"❌ Error: {e}"
 
 CONFIG = os.path.expanduser("~/.config/tham/telegram.env")
 REPO_ROOT = os.path.expanduser("~/ghq/github.com/E0993599799/tham-oracle")
@@ -180,30 +247,52 @@ def cmd_today(args):
 
     return "\n".join(lines)
 
+def cmd_tham(args, chat_id=""):
+    if not args:
+        return "Usage: /tham &lt;ถามอะไรก็ได้&gt;\nตัวอย่าง: /tham วันนี้ควรทำอะไรก่อน?"
+    print(f"[tham] prompt: {args[:80]}")
+    tg_send("⏳ ธามกำลังคิด…")
+    reply = call_tham(chat_id, args)
+    # Telegram HTML limit 4096 chars
+    if len(reply) > 4000:
+        reply = reply[:3990] + "\n…(ตัดข้อความ)"
+    return reply
+
+def cmd_clear(args, chat_id=""):
+    _tham_history.pop(chat_id, None)
+    return "🗑 ล้าง conversation history แล้ว — เริ่มใหม่ได้เลย"
+
 def cmd_help(args):
     return textwrap.dedent("""\
         🔮 <b>Tham Oracle — Commands</b>
 
-        /status — System & service health
+        /tham &lt;prompt&gt; — คุยกับธามโดยตรง (มี history)
+        /clear — ล้าง conversation history
+        /status — System &amp; service health
         /fleet — Oracle fleet overview
         /health — Same as /status
         /git — Recent git commits
         /fix &lt;service&gt; — Trigger service fix
         /ask &lt;question&gt; — Quick search in brain/
-        /today — Today's tasks & commits
+        /today — Today's tasks &amp; commits
         /help — This menu
     """)
 
+# Commands that need chat_id (for stateful history)
+STATEFUL_COMMANDS = {"/tham", "/clear"}
+
 COMMANDS = {
     "/status": cmd_status,
-    "/fleet": cmd_fleet,
+    "/fleet":  cmd_fleet,
     "/health": cmd_health,
-    "/git": cmd_git,
-    "/fix": cmd_fix,
-    "/ask": cmd_ask,
-    "/today": cmd_today,
-    "/help": cmd_help,
-    "/start": cmd_help,
+    "/git":    cmd_git,
+    "/fix":    cmd_fix,
+    "/ask":    cmd_ask,
+    "/today":  cmd_today,
+    "/help":   cmd_help,
+    "/start":  cmd_help,
+    "/tham":   cmd_tham,
+    "/clear":  cmd_clear,
 }
 
 def handle_message(msg):
@@ -225,9 +314,13 @@ def handle_message(msg):
 
     handler = COMMANDS.get(cmd)
     if handler:
-        reply = handler(args)
+        # Pass chat_id to stateful commands for history tracking
+        if cmd in STATEFUL_COMMANDS:
+            reply = handler(args, chat_id=chat_id)
+        else:
+            reply = handler(args)
     else:
-        reply = f"❓ Unknown command: <code>{cmd}</code>\nSend /help for available commands."
+        reply = f"❓ Unknown: <code>{cmd}</code>\nSend /help for commands."
 
     tg_send(reply)
 
