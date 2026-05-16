@@ -26,10 +26,10 @@ class ProofServer:
         self.repo_root = Path(__file__).parent.parent
         self.last_checked = {}
 
-    async def handle_client(self, websocket, path):
+    async def handle_client(self, websocket):
         """Accept client connection, stream proofs"""
         self.clients.add(websocket)
-        client_addr = websocket.remote_address
+        client_addr = websocket.remote_address if websocket.remote_address else ("unknown", "unknown")
         print(f"✓ Client connected: {client_addr[0]}:{client_addr[1]}")
 
         try:
@@ -80,7 +80,7 @@ class ProofServer:
                                             "task_id": proof.get("task_id"),
                                             "routed_lane": proof.get("routed_lane"),
                                             "status": proof.get("status", "UNKNOWN"),
-                                            "timestamp": proof.get("execution_timestamp", datetime.utcnow().isoformat()),
+                                            "timestamp": proof.get("execution_timestamp", datetime.now().isoformat()),
                                             "duration": proof.get("execution_duration_seconds", 0),
                                             "source_file": json_file.name
                                         }

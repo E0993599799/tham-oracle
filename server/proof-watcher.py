@@ -111,7 +111,10 @@ class ProofWatcher:
         Returns:
             Dict with status counts, success rate, avg duration, by lane
         """
-        cutoff_time = datetime.now() - timedelta(hours=hours)
+        from datetime import timezone
+
+        # Use timezone-aware UTC for comparison
+        cutoff_time = datetime.now(timezone.utc) - timedelta(hours=hours)
         cutoff_iso = cutoff_time.isoformat()
 
         stats = {
@@ -136,11 +139,6 @@ class ProofWatcher:
 
             try:
                 ts = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
-                # Make cutoff_time aware for comparison
-                if ts.tzinfo is not None and cutoff_time.tzinfo is None:
-                    cutoff_time = cutoff_time.replace(tzinfo=None)
-                elif ts.tzinfo is None and cutoff_time.tzinfo is not None:
-                    ts = ts.replace(tzinfo=None)
             except (ValueError, AttributeError):
                 continue
 
