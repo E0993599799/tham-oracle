@@ -82,7 +82,38 @@ interface TasksData {
   total: number
 }
 
-type Section = 'fleet' | 'tasks' | 'health' | 'git' | 'memory' | 'queue' | 'services' | 'constitution' | 'metrics'
+// === Provider types ===
+interface Provider {
+  id: string; providerName: string; type: string; model: string; baseUrl: string
+  priority: number; enabled: boolean
+  status: 'available' | 'degraded' | 'unavailable' | 'unknown'
+  statusCode: number | null; latencyMs: number | null; lastCheckedAt: string
+  availableModels?: string[]
+}
+interface ProviderQuota {
+  providerId: string; providerName: string; accountLabel: string; modelOrLimitName: string
+  windowType: string; used: number | null; limit: number | null; remaining: number | null
+  percentUsed: number | null; percentRemaining: number | null
+  resetAt: string | null; resetInText: string
+  status: 'available' | 'expiring' | 'warning' | 'exhausted' | 'unknown'
+  quotaSource: string; lastCheckedAt: string
+}
+interface ProviderActivity {
+  id: string; providerId: string; providerName: string; accountLabel: string
+  eventType: string; statusCode: number | null; message: string; model: string
+  endpoint: string; latencyMs: number | null; timestamp: string; source: string
+  severity: 'info' | 'warning' | 'error' | 'critical'
+}
+interface ProvidersData {
+  providers: Provider[]; quotas: ProviderQuota[]; activity: ProviderActivity[]
+  summary: {
+    providerTotal: number; providerAvailable: number; providerWarning: number
+    providerExhausted: number; providerUnknown: number
+    activityErrorsLastHour: number; lastCheckedAt: string
+  }
+}
+
+type Section = 'fleet' | 'tasks' | 'health' | 'git' | 'memory' | 'queue' | 'services' | 'constitution' | 'metrics' | 'providers' | 'provider-activity'
 
 const SECTION_LABELS: Record<Section, string> = {
   fleet:        'Oracle Fleet',
@@ -91,9 +122,11 @@ const SECTION_LABELS: Record<Section, string> = {
   git:          'Git Activity',
   memory:       'Memory Gate',
   queue:        'Queue / ψ Vault',
-  services:     'Services Health',
-  constitution: 'Constitution',
-  metrics:      'Session Metrics',
+  services:          'Services Health',
+  constitution:      'Constitution',
+  metrics:           'Session Metrics',
+  providers:         'Quota Tracker',
+  'provider-activity': 'Provider Activity',
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -222,9 +255,11 @@ const NAV_ITEMS: { id: Section; label: string; icon: string }[] = [
   { id: 'git',          label: 'Git',            icon: '⎇' },
   { id: 'memory',       label: 'Memory Gate',    icon: '🧠' },
   { id: 'queue',        label: 'Queue / ψ',      icon: '📥' },
-  { id: 'services',     label: 'Services',       icon: '🔌' },
-  { id: 'constitution', label: 'Constitution',   icon: '📜' },
-  { id: 'metrics',      label: 'Metrics',        icon: '📊' },
+  { id: 'services',          label: 'Services',         icon: '🔌' },
+  { id: 'providers',         label: 'Quota Tracker',    icon: '🔋' },
+  { id: 'provider-activity', label: 'Provider Activity',icon: '📡' },
+  { id: 'constitution',      label: 'Constitution',     icon: '📜' },
+  { id: 'metrics',           label: 'Metrics',          icon: '📊' },
 ]
 
 function Sidebar({ active, onNav }: { active: Section; onNav: (s: Section) => void }) {
@@ -829,6 +864,206 @@ function TaskBoardPanel({ data }: { data: TasksData | null }) {
   )
 }
 
+// ── Quota Tracker Panel ────────────────────────────────────────────────────
+function ProviderStatusBadge({ status }: { status: string }) {
+  const map: Record<string, { cls: string; icon: string }> = {
+    available:   { cls: 'badge-green',  icon: '🟢' },
+    degraded:    { cls: 'badge-orange', icon: '🟠' },
+    unavailable: { cls: 'badge-red',    icon: '🔴' },
+    exhausted:   { cls: 'badge-red',    icon: '🔴' },
+    expiring:    { cls: 'badge-orange', icon: '🟠' },
+    warning:     { cls: 'badge-yellow', icon: '🟡' },
+    unknown:     { cls: 'badge-gray',   icon: '⚪' },
+  }
+  const b = map[status] ?? map.unknown
+  return <span className={`badge ${b.cls}`}>{b.icon} {status}</span>
+}
+
+function SeverityBadge({ severity }: { severity: string }) {
+  const map: Record<string, { cls: string; icon: string }> = {
+    info:     { cls: 'badge-blue',   icon: 'ℹ' },
+    warning:  { cls: 'badge-yellow', icon: '⚠' },
+    error:    { cls: 'badge-orange', icon: '✖' },
+    critical: { cls: 'badge-red',    icon: '🚨' },
+  }
+  const b = map[severity] ?? map.info
+  return <span className={`badge ${b.cls}`}>{b.icon} {severity}</span>
+}
+
+function QuotaTrackerPanel({ data }: { data: ProvidersData | null }) {
+  const [filter, setFilter] = useState<string>('all')
+  if (!data) return <div style={{ color: 'var(--text-muted)' }}>loading quota tracker…</div>
+  const { providers, quotas, summary } = data
+
+  const providerFilters = ['all', 'available', 'degraded', 'unavailable', 'unknown']
+  const visibleProviders = filter === 'all'
+    ? providers
+    : providers.filter(p => p.status === filter)
+
+  return (
+    <div>
+      {/* KPI row */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 14, flexWrap: 'wrap', alignItems: 'center' }}>
+        <span className="badge badge-blue">🔋 {summary.providerTotal} providers</span>
+        <span className="badge badge-green">🟢 {summary.providerAvailable} available</span>
+        {summary.providerWarning > 0 && <span className="badge badge-orange">🟠 {summary.providerWarning} degraded</span>}
+        {summary.providerExhausted > 0 && <span className="badge badge-red">🔴 {summary.providerExhausted} exhausted</span>}
+        {summary.providerUnknown > 0 && <span className="badge badge-gray">⚪ {summary.providerUnknown} unknown</span>}
+        <span style={{ color: 'var(--text-muted)', fontSize: 10, marginLeft: 'auto' }}>
+          checked {fmtTime(summary.lastCheckedAt)} · 30s refresh
+        </span>
+      </div>
+
+      {/* Filter */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
+        {providerFilters.map(f => (
+          <button key={f} onClick={() => setFilter(f)}
+            className={`filter-btn${filter === f ? ' filter-btn-active' : ''}`}>
+            {f}
+          </button>
+        ))}
+      </div>
+
+      {/* Provider table */}
+      <table>
+        <thead>
+          <tr>
+            <th>provider</th>
+            <th>type</th>
+            <th>model</th>
+            <th>status</th>
+            <th>latency</th>
+            <th>quota limit</th>
+            <th>quota status</th>
+            <th>source</th>
+          </tr>
+        </thead>
+        <tbody>
+          {visibleProviders.map(p => {
+            const q = quotas.find(q => q.providerId === p.id)
+            return (
+              <tr key={p.id}>
+                <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{p.providerName}</td>
+                <td><span className="badge badge-gray" style={{ fontSize: 10 }}>{p.type}</span></td>
+                <td style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{p.model}</td>
+                <td><ProviderStatusBadge status={p.status} /></td>
+                <td style={{ color: 'var(--text-muted)', fontSize: 11 }}>
+                  {p.latencyMs != null ? `${p.latencyMs}ms` : '—'}
+                </td>
+                <td style={{ fontSize: 11 }}>
+                  {q?.limit != null ? q.limit.toLocaleString() : 'unknown'}
+                </td>
+                <td>
+                  {q ? <ProviderStatusBadge status={q.status} /> : <span className="badge badge-gray">⚪ unknown</span>}
+                </td>
+                <td style={{ fontSize: 10, color: 'var(--text-muted)' }}>
+                  {q?.quotaSource ?? '—'}
+                </td>
+              </tr>
+            )
+          })}
+          {visibleProviders.length === 0 && (
+            <tr><td colSpan={8} style={{ color: 'var(--text-muted)', textAlign: 'center', padding: 16 }}>
+              No providers match filter: {filter}
+            </td></tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
+// ── Provider Activity Panel ────────────────────────────────────────────────
+function ProviderActivityPanel({ data }: { data: ProvidersData | null }) {
+  const [sevFilter, setSevFilter] = useState<string>('all')
+  if (!data) return <div style={{ color: 'var(--text-muted)' }}>loading provider activity…</div>
+  const { activity, summary } = data
+
+  const eventIcons: Record<string, string> = {
+    connected:       '🟢',
+    disconnected:    '🔴',
+    request_ok:      '✅',
+    auth_error:      '🔑',
+    rate_limited:    '⏱',
+    quota_exhausted: '🈳',
+    timeout:         '⏸',
+    unavailable:     '🔴',
+    config_changed:  '⚙',
+    probe:           '🔍',
+  }
+
+  const sevFilters = ['all', 'critical', 'error', 'warning', 'info']
+  const visible = sevFilter === 'all'
+    ? activity
+    : activity.filter(a => a.severity === sevFilter)
+
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+        {summary.activityErrorsLastHour > 0
+          ? <span className="badge badge-red">🚨 {summary.activityErrorsLastHour} errors (last hour)</span>
+          : <span className="badge badge-green">✓ no errors last hour</span>
+        }
+        <span style={{ color: 'var(--text-muted)', fontSize: 10, marginLeft: 'auto' }}>
+          {activity.length} events · auto-refresh 30s
+        </span>
+      </div>
+      <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
+        {sevFilters.map(f => (
+          <button key={f} onClick={() => setSevFilter(f)}
+            className={`filter-btn${sevFilter === f ? ' filter-btn-active' : ''}`}>
+            {f}
+          </button>
+        ))}
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>time</th>
+            <th>provider</th>
+            <th>event</th>
+            <th>code</th>
+            <th>model</th>
+            <th>latency</th>
+            <th>message</th>
+            <th>severity</th>
+          </tr>
+        </thead>
+        <tbody>
+          {visible.map(a => (
+            <tr key={a.id}>
+              <td style={{ fontSize: 10, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{fmtTime(a.timestamp)}</td>
+              <td style={{ fontWeight: 600, fontSize: 11 }}>{a.providerName}</td>
+              <td style={{ fontSize: 11 }}>
+                {eventIcons[a.eventType] ?? '•'} {a.eventType.replace(/_/g, ' ')}
+              </td>
+              <td>
+                {a.statusCode
+                  ? <span className={`hash ${a.statusCode >= 400 ? 'style={{color:"var(--danger)"}}' : ''}`}>{a.statusCode}</span>
+                  : <span style={{ color: 'var(--text-muted)' }}>—</span>
+                }
+              </td>
+              <td style={{ fontSize: 10, color: 'var(--text-secondary)' }}>{a.model?.split('/').pop() ?? '—'}</td>
+              <td style={{ fontSize: 11, color: 'var(--text-muted)' }}>
+                {a.latencyMs != null ? `${a.latencyMs}ms` : '—'}
+              </td>
+              <td style={{ fontSize: 11, color: 'var(--text-secondary)', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {a.message}
+              </td>
+              <td><SeverityBadge severity={a.severity} /></td>
+            </tr>
+          ))}
+          {visible.length === 0 && (
+            <tr><td colSpan={8} style={{ color: 'var(--text-muted)', textAlign: 'center', padding: 16 }}>
+              No activity events{sevFilter !== 'all' ? ` with severity: ${sevFilter}` : ''}
+            </td></tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
 // ── Main Page ──────────────────────────────────────────────────────────────
 export default function Dashboard() {
   const [activeSection, setActiveSection] = useState<Section>('fleet')
@@ -841,6 +1076,7 @@ export default function Dashboard() {
   const [constitution,  setConstitution]  = useState<ConstitutionData | null>(null)
   const [health,        setHealth]        = useState<HealthData | null>(null)
   const [tasks,         setTasks]         = useState<TasksData | null>(null)
+  const [providers,     setProviders]     = useState<ProvidersData | null>(null)
   const [lastRefresh,   setLastRefresh]   = useState<string>('')
   const [refreshing,    setRefreshing]    = useState(false)
 
@@ -860,17 +1096,23 @@ export default function Dashboard() {
     setRefreshing(false)
   }, [])
 
+  const refreshProviders = useCallback(async () => {
+    fetch('/api/forge-omega/providers/status').then(r => r.json()).then(setProviders).catch(() => {})
+  }, [])
+
   const refreshServices = useCallback(async () => {
     fetch('/api/services').then(r => r.json()).then(setServices).catch(() => {})
-  }, [])
+}, [])
 
   useEffect(() => {
     refresh()
     refreshServices()
+    refreshProviders()
     const timer = setInterval(refresh, 30000)
     const svcTimer = setInterval(refreshServices, 15000)
-    return () => { clearInterval(timer); clearInterval(svcTimer) }
-  }, [refresh, refreshServices])
+    const provTimer = setInterval(refreshProviders, 30000)
+    return () => { clearInterval(timer); clearInterval(svcTimer); clearInterval(provTimer) }
+  }, [refresh, refreshServices, refreshProviders])
 
   return (
     <div style={{ minHeight: '100vh' }}>
@@ -997,6 +1239,28 @@ export default function Dashboard() {
                 Session Metrics
               </div>
               <MetricsPanel data={metrics} />
+            </div>
+          )}
+
+          {activeSection === 'providers' && (
+            <div className="card">
+              <div className="card-header">
+                <span className="dot" style={{ background: 'var(--accent2)' }} />
+                🔋 Quota Tracker
+                <button onClick={refreshProviders} className="refresh-btn" style={{ marginLeft: 'auto' }}>↻ refresh</button>
+              </div>
+              <QuotaTrackerPanel data={providers} />
+            </div>
+          )}
+
+          {activeSection === 'provider-activity' && (
+            <div className="card">
+              <div className="card-header">
+                <span className="dot" style={{ background: 'var(--info)' }} />
+                📡 API Provider Connection Activity
+                <button onClick={refreshProviders} className="refresh-btn" style={{ marginLeft: 'auto' }}>↻ refresh</button>
+              </div>
+              <ProviderActivityPanel data={providers} />
             </div>
           )}
 
