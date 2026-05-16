@@ -1,0 +1,160 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Executor Lane Router Configuration",
+  "description": "Schema for Phase 2 router implementation. Defines task input, routing logic, and proof output.",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "string",
+      "default": "1.0.0",
+      "description": "Router version (semantic)"
+    },
+    "router_metadata": {
+      "type": "object",
+      "properties": {
+        "phase": { "const": "1C", "description": "Spec phase" },
+        "sot_path": { "type": "string", "default": "docs/phase-1-router/routing_decision_table.md" },
+        "approved_date": { "type": "string", "format": "date" },
+        "gates": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": ["memory_gate", "risk_gate", "intent_gate"]
+        }
+      },
+      "required": ["phase"]
+    },
+    "task_input": {
+      "type": "object",
+      "description": "Task structure from inbox or queue",
+      "properties": {
+        "task_id": { "type": "string", "pattern": "^[a-zA-Z0-9_-]{8,}$" },
+        "intent": { "type": "string", "description": "Intent signal from glossary" },
+        "prompt": { "type": "string", "description": "Raw or semi-parsed prompt" },
+        "risk_classification": {
+          "enum": ["low", "medium", "high", "unknown"],
+          "default": "unknown"
+        },
+        "explicit_lane": {
+          "type": ["string", "null"],
+          "description": "Force-route to lane if set (bypass normal routing)"
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": true,
+          "description": "Optional context: repo, file, module, etc."
+        }
+      },
+      "required": ["task_id", "intent", "prompt"]
+    },
+    "routing_logic": {
+      "type": "object",
+      "description": "Decision engine (executable during Phase 2)",
+      "properties": {
+        "algorithm": {
+          "enum": ["decision_table", "llm_classify", "hybrid"],
+          "default": "decision_table"
+        },
+        "table_source": {
+          "type": "string",
+          "default": "routing_decision_table.md"
+        },
+        "fallback_policy": {
+          "enum": ["sequential", "random", "weighted"],
+          "default": "sequential"
+        },
+        "gate_timeout_seconds": {
+          "type": "object",
+          "properties": {
+            "memory_gate": { "type": "integer", "default": 5, "minimum": 1 },
+            "risk_gate": { "type": "integer", "default": 10, "minimum": 1 },
+            "intent_gate": { "type": "integer", "default": 30, "minimum": 1 }
+          }
+        },
+        "risk_gate_rules": {
+          "type": "object",
+          "description": "Risk escalation & timeout triggers",
+          "properties": {
+            "high_risk_block_hermes": { "type": "boolean", "default": true },
+            "timeout_escalates_risk": { "type": "boolean", "default": true },
+            "timeout_risk_level": { "enum": ["medium", "high"], "default": "medium" }
+          }
+        },
+        "hermes_trigger_conditions": {
+          "type": "array",
+          "description": "Conditions that allow Hermes lane",
+          "items": {
+            "type": "string",
+            "enum": [
+              "explicit_lane_request",
+              "allowlist_tool_call",
+              "legacy_sfsr_task",
+              "risk_level_low",
+              "risk_level_medium"
+            ]
+          },
+          "default": ["explicit_lane_request", "allowlist_tool_call", "legacy_sfsr_task"]
+        }
+      }
+    },
+    "proof_schema": {
+      "type": "object",
+      "description": "Output proof format for task completion",
+      "properties": {
+        "proof_required": { "type": "boolean", "default": true },
+        "required_fields": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": ["task_id", "routed_lane", "status", "timestamp", "proof_path"]
+        },
+        "completion_criteria": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [
+            "schema validates",
+            "sample route passes gates",
+            "proof file exists + readable",
+            "proof_path linked in summary"
+          ]
+        }
+      }
+    },
+    "task_output": {
+      "type": "object",
+      "description": "Proof record written after task execution",
+      "properties": {
+        "task_id": { "type": "string" },
+        "routed_lane": { "type": "string", "enum": ["codex_gpt55", "claude", "gemini", "ollama", "hermes", "powershell_sfsr"] },
+        "fallback_lane": { "type": ["string", "null"] },
+        "risk_level": { "enum": ["low", "medium", "high"] },
+        "status": { "enum": ["SUCCESS", "BLOCKED", "TIMEOUT", "ERROR"] },
+        "gates_passed": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "gate_timeouts": {
+          "type": "object",
+          "additionalProperties": { "type": "number" },
+          "description": "{ gate_name: elapsed_seconds }"
+        },
+        "execution_timestamp": { "type": "string", "format": "date-time" },
+        "proof_path": { "type": "string", "description": "File path to proof artifact" },
+        "proof_summary": { "type": "string" },
+        "next_action": { "type": "string" }
+      },
+      "required": ["task_id", "routed_lane", "status", "execution_timestamp", "proof_path"]
+    },
+    "health_check": {
+      "type": "object",
+      "description": "Lane availability status (polled before routing)",
+      "properties": {
+        "lane": { "type": "string" },
+        "endpoint": { "type": "string" },
+        "status": { "enum": ["ok", "degraded", "down"] },
+        "last_check": { "type": "string", "format": "date-time" },
+        "response_time_ms": { "type": "integer", "minimum": 0 }
+      }
+    }
+  },
+  "required": ["version", "task_input", "routing_logic", "task_output"],
+  "additionalProperties": false
+}
