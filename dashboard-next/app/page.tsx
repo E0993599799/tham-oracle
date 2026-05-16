@@ -33,15 +33,20 @@ interface InboxData {
 }
 interface ServiceResult {
   name: string
-  port: number
-  url: string
-  status: 'online' | 'offline'
-  latency_ms: number | null
-  checked_at: string
+  label: string
+  port: number | null
+  category: string
+  status: 'online' | 'offline' | 'degraded' | 'unknown'
+  latencyMs: number | null
+  checkedAt: string
+  detail: string
+  source: string
+  fix: string
 }
 interface ServicesData {
   services: ServiceResult[]
   checked_at: string
+  summary: { total: number; online: number; offline: number; unknown: number; attention: number }
 }
 interface ConstitutionRule {
   id: string
@@ -128,11 +133,12 @@ function ago(days: number): string {
 }
 
 // ── Stat Cards Row ─────────────────────────────────────────────────────────
-function StatCardsRow({ fleet, health, git }: {
+function StatCardsRow({ fleet, services, git }: {
   fleet: FleetData | null
-  health: HealthData | null
+  services: ServicesData | null
   git: GitData | null
 }) {
+  const svcSummary = services?.summary
   const stats = [
     {
       label: 'Total Oracles',
@@ -152,11 +158,11 @@ function StatCardsRow({ fleet, health, git }: {
     },
     {
       label: 'Services',
-      value: health ? `${health.summary.healthy}/${health.summary.total}` : '—',
-      sub: health?.summary.unhealthy
-        ? `${health.summary.unhealthy} need attention`
-        : 'all healthy',
-      color: health?.summary.unhealthy ? 'var(--danger)' : 'var(--success)',
+      value: svcSummary ? `${svcSummary.online}/${svcSummary.total}` : '—',
+      sub: svcSummary?.attention
+        ? `${svcSummary.attention} need attention`
+        : 'all online',
+      color: svcSummary?.attention ? 'var(--danger)' : 'var(--success)',
       icon: '◈',
     },
     {
@@ -525,41 +531,52 @@ function InboxPanel({ data }: { data: InboxData | null }) {
 }
 
 // ── Services Panel ─────────────────────────────────────────────────────────
+function StatusBadge({ status }: { status: string }) {
+  const map: Record<string, { cls: string; icon: string; label: string }> = {
+    online:   { cls: 'badge-green',  icon: '🟢', label: 'online'   },
+    offline:  { cls: 'badge-red',    icon: '🔴', label: 'offline'  },
+    degraded: { cls: 'badge-orange', icon: '🟠', label: 'degraded' },
+    unknown:  { cls: 'badge-gray',   icon: '⚪', label: 'unknown'  },
+  }
+  const b = map[status] ?? map.unknown
+  return <span className={`badge ${b.cls}`}>{b.icon} {b.label}</span>
+}
+
 function ServicesPanel({ data }: { data: ServicesData | null }) {
   if (!data) return <div style={{ color: 'var(--text-muted)' }}>loading services…</div>
-
+  const s = data.summary
   return (
     <div>
-      <div style={{ marginBottom: 10, fontSize: 10, color: 'var(--text-muted)' }}>
-        Probed at: {data.checked_at ? fmtTime(data.checked_at) : '—'} · auto-refresh 15s
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+        <span className="badge badge-green">🟢 {s.online} online</span>
+        {s.offline > 0 && <span className="badge badge-red">🔴 {s.offline} offline</span>}
+        {s.unknown > 0 && <span className="badge badge-gray">⚪ {s.unknown} unknown</span>}
+        <span style={{ color: 'var(--text-muted)', fontSize: 10, marginLeft: 'auto' }}>
+          probed {data.checked_at ? fmtTime(data.checked_at) : '—'} · auto-refresh 15s
+        </span>
       </div>
       <table>
         <thead>
           <tr>
             <th>service</th>
+            <th>category</th>
             <th>port</th>
             <th>status</th>
             <th>latency</th>
-            <th>checked</th>
+            <th>detail</th>
           </tr>
         </thead>
         <tbody>
           {data.services.map(svc => (
             <tr key={svc.name}>
-              <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{svc.name}</td>
-              <td><span className="hash">{svc.port}</span></td>
-              <td>
-                {svc.status === 'online'
-                  ? <span className="badge badge-green service-online">🟢 online</span>
-                  : <span className="badge badge-red">🔴 offline</span>
-                }
+              <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{svc.label}</td>
+              <td><span className="badge badge-gray" style={{ fontSize: 10 }}>{svc.category}</span></td>
+              <td><span className="hash">{svc.port ?? '—'}</span></td>
+              <td><StatusBadge status={svc.status} /></td>
+              <td style={{ color: svc.latencyMs != null && svc.latencyMs < 200 ? 'var(--success)' : 'var(--text-muted)' }}>
+                {svc.latencyMs != null ? `${svc.latencyMs}ms` : '—'}
               </td>
-              <td style={{ color: svc.latency_ms && svc.latency_ms < 200 ? 'var(--success)' : 'var(--warning)' }}>
-                {svc.latency_ms != null ? `${svc.latency_ms}ms` : '—'}
-              </td>
-              <td style={{ color: 'var(--text-muted)', fontSize: 11 }}>
-                {svc.checked_at ? fmtTime(svc.checked_at) : '—'}
-              </td>
+              <td style={{ color: 'var(--text-muted)', fontSize: 11 }}>{svc.detail ?? '—'}</td>
             </tr>
           ))}
         </tbody>
@@ -891,7 +908,7 @@ export default function Dashboard() {
         <div style={{ padding: '16px 20px 64px' }}>
 
           {/* Stat Cards — always visible */}
-          <StatCardsRow fleet={fleet} health={health} git={git} />
+          <StatCardsRow fleet={fleet} services={services} git={git} />
 
           {activeSection === 'fleet' && (
             <div className="card">
@@ -999,19 +1016,11 @@ export default function Dashboard() {
               <span>⎇ {git.branch}</span>
             </>
           )}
-          {services?.services && (
+          {services?.summary && (
             <>
               <span style={{ color: 'var(--border)' }}>|</span>
-              <span style={{ color: services.services.every(s => s.status === 'online') ? 'var(--success)' : 'var(--danger)' }}>
-                {services.services.filter(s => s.status === 'online').length}/{services.services.length} services
-              </span>
-            </>
-          )}
-          {health?.summary && (
-            <>
-              <span style={{ color: 'var(--border)' }}>|</span>
-              <span style={{ color: health.summary.unhealthy === 0 ? 'var(--success)' : 'var(--danger)' }}>
-                {health.summary.healthy}/{health.summary.total} healthy
+              <span style={{ color: services.summary.attention === 0 ? 'var(--success)' : 'var(--danger)' }}>
+                {services.summary.online}/{services.summary.total} services
               </span>
             </>
           )}
