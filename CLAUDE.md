@@ -169,21 +169,38 @@ Before any major technical session:
 2. `brain/memory/ACTIVE_INDEX.md` — check current baseline and risk flags
 3. `ψ/memory/resonance/oracle.md` — core philosophy and standing orders
 
+**Token Rule**: After reading these 3 files, do NOT re-read them mid-session.
+Reference RTK block instead. See `skills/token-optimizer/SKILL.md`.
+
 ## Session Lifecycle (Standing Orders)
 
 Every session follows this rhythm — no exceptions:
 
 ```
-/recap → ทำงาน → /rrr → commit → push → จบ
+/recap → RTK → ทำงาน → /rrr → commit → push → จบ
 ```
 
 | จังหวะ | Action | Script |
 |--------|--------|--------|
 | ต้น session | `/recap` — อ่าน retro + git + memory | `mem-read` |
-| ระหว่าง session | commit บ่อยๆ, `oracle_learn` เมื่อเรียนรู้ใหม่ | — |
+| หลัง recap | **RTK** — collect env context once, cache ใน active context | `skills/rtk-precontext` |
+| ระหว่าง session | commit บ่อยๆ, `oracle_learn` เมื่อเรียนรู้ใหม่, ใช้ RTK แทน re-read | — |
 | จบ session | `/rrr` — เขียน retrospective + lessons | `scripts/new-rrr.sh` |
 | หลัง /rrr | `git add ψ/memory/ && git commit && git push` | `mem-close` |
 | คุยกับ Oracle อื่น | cc BoB ทุกครั้ง — ห้ามเงียบ | `/talk-to` หรือ `maw hey` |
+
+## Token Budget Rules (Standing Orders)
+
+ธามประหยัด token ทุก session — ไม่ใช่แค่เมื่อ context ใกล้เต็ม:
+
+1. **RTK First** — ถ้าอยู่ใน RTK block แล้ว ห้าม re-read
+2. **Surgical reads** — `grep` / `Read(offset, limit)` ก่อน full `cat`
+3. **One-shot bash** — รวม commands ในก้อนเดียว ไม่แยกหลาย calls
+4. **Short outputs** — ตอบตรง ไม่ preamble ไม่ summarize ท้าย
+5. **Grep before read** — หาค่าเฉพาะด้วย grep ก่อนอ่านทั้งไฟล์
+6. **Context budget check** — ถ้า session > 2MB ให้ switch to --quick modes
+
+Full rules: `skills/token-optimizer/SKILL.md`
 
 ## Oracle-v2 Memory
 

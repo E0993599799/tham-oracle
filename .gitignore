@@ -6,6 +6,7 @@
 *.p12
 *.pfx
 *token*
+!skills/token-optimizer/
 *secret*
 *credential*
 
