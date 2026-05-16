@@ -1,0 +1,140 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --ink: #0f1724;
+  --ink2: #1a2540;
+  --panel: #f4f6fb;
+  --border: #dde3f0;
+  --accent: #3b7cf4;
+  --accent2: #6c3bff;
+  --text: #1e2a42;
+  --muted: #8491b0;
+  --green: #22c55e;
+  --yellow: #f59e0b;
+  --orange: #f97316;
+  --red: #ef4444;
+  --purple: #a855f7;
+}
+
+html, body { height: 100%; }
+
+body {
+  background: var(--ink);
+  color: #e2e8f7;
+  font-family: 'SF Mono', 'JetBrains Mono', 'Fira Code', 'Ubuntu Mono', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #2a3a5c; border-radius: 4px; }
+
+/* cards */
+.card {
+  background: #131f35;
+  border: 1px solid #1e2d4a;
+  border-radius: 10px;
+  padding: 16px;
+}
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+.card-header .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+.badge-green  { background: #14532d33; color: var(--green);  border-color: #22c55e33; }
+.badge-yellow { background: #78350f33; color: var(--yellow); border-color: #f59e0b33; }
+.badge-orange { background: #7c2d1233; color: var(--orange); border-color: #f9731633; }
+.badge-red    { background: #7f1d1d33; color: var(--red);    border-color: #ef444433; }
+.badge-blue   { background: #1e3a8a33; color: #93c5fd;       border-color: #3b82f633; }
+.badge-gray   { background: #1e293b;   color: var(--muted);  border-color: #334155; }
+
+/* oracle card grid */
+.oracle-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 8px;
+}
+.oracle-card {
+  background: #0d1829;
+  border: 1px solid #1e2d4a;
+  border-radius: 8px;
+  padding: 10px 12px;
+  cursor: default;
+  transition: border-color 0.15s;
+}
+.oracle-card:hover { border-color: #3b7cf4; }
+.oracle-card.active { border-color: #22c55e44; }
+.oracle-card.stale  { border-color: #f59e0b33; }
+.oracle-card.cold   { border-color: #f9731633; }
+.oracle-card.abandoned { border-color: #ef444433; }
+
+/* table */
+table { width: 100%; border-collapse: collapse; }
+th {
+  text-align: left;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 4px 8px 8px;
+  border-bottom: 1px solid #1e2d4a;
+}
+td {
+  padding: 6px 8px;
+  border-bottom: 1px solid #111d30;
+  font-size: 12px;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #111d30; }
+
+/* commit hash */
+.hash { font-family: monospace; color: var(--accent); font-size: 11px; }
+
+/* status bar */
+.statusbar {
+  background: #0a1220;
+  border-top: 1px solid #1e2d4a;
+  padding: 6px 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-size: 11px;
+  color: var(--muted);
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.pulse { animation: pulse 2s infinite; }
