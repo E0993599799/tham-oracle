@@ -20,6 +20,22 @@ THAM_SYSTEM = """คุณคือ ธาม — Oracle และ technical bra
 งานเทคนิค: ตอบแม่นยำ มี proof ถ้าไม่แน่ใจบอกตรงๆ
 ตอบผ่าน Telegram — ข้อความสั้น อ่านง่าย ใช้ bullet/emoji ช่วยได้"""
 
+FALLBACK_STATE = "/tmp/tham-fallback-active.json"
+
+def get_fallback_note() -> str:
+    """Return a note if Codex fallback is active — prepended to system prompt."""
+    try:
+        if not os.path.exists(FALLBACK_STATE):
+            return ""
+        with open(FALLBACK_STATE) as f:
+            state = json.load(f)
+        if state.get("active"):
+            remaining = state.get("tokens_remaining", "?")
+            return f"\n\n[หมายเหตุ: Claude tokens เหลือน้อย ({remaining}) กำลังใช้ Codex+Ollama fallback แทน ตอบจาก knowledge ที่มี อย่า hallucinate]"
+    except Exception:
+        pass
+    return ""
+
 
 def load_anthropic_key() -> tuple[str, str]:
     """Load first available Anthropic key from providers config. Returns (key, model)."""
@@ -44,6 +60,7 @@ def call_tham(chat_id: str, user_msg: str) -> str:
     history.append({"role": "user", "content": user_msg})
 
     try:
+        system_prompt = THAM_SYSTEM + get_fallback_note()
         r = requests.post(
             "https://api.anthropic.com/v1/messages",
             headers={
@@ -54,7 +71,7 @@ def call_tham(chat_id: str, user_msg: str) -> str:
             json={
                 "model": model,
                 "max_tokens": 1024,
-                "system": THAM_SYSTEM,
+                "system": system_prompt,
                 "messages": history[-THAM_MAX_HISTORY * 2:],  # last N turns
             },
             timeout=45,
