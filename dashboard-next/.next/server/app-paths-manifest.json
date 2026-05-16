@@ -1,9 +1,0 @@
-{
-  "/_not-found/page": "app/_not-found/page.js",
-  "/page": "app/page.js",
-  "/api/git/route": "app/api/git/route.js",
-  "/api/inbox/route": "app/api/inbox/route.js",
-  "/api/fleet/route": "app/api/fleet/route.js",
-  "/api/memory/route": "app/api/memory/route.js",
-  "/api/metrics/route": "app/api/metrics/route.js"
-}
