@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash",
+      "Any Bash command",
+      "Use skill",
+      "Any use of skill tools"
+    ]
+  }
+}
