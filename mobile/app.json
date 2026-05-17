@@ -1,0 +1,44 @@
+{
+  "name": "OmegaOS",
+  "displayName": "Omega OS",
+  "version": "0.1.0",
+  "platforms": ["ios", "android"],
+  "icon": {
+    "ios": "./assets/icon-ios.png",
+    "android": "./assets/icon-android.png"
+  },
+  "splash": {
+    "image": "./assets/splash.png",
+    "resizeMode": "contain",
+    "backgroundColor": "#007AFF"
+  },
+  "ios": {
+    "supportsTabletMode": true,
+    "bundleIdentifier": "com.tham.omegaos",
+    "buildNumber": "1"
+  },
+  "android": {
+    "package": "com.tham.omegaos",
+    "versionCode": 1,
+    "permissions": [
+      "INTERNET",
+      "ACCESS_NETWORK_STATE",
+      "RECEIVE_BOOT_COMPLETED"
+    ]
+  },
+  "plugins": [
+    [
+      "@react-native-firebase/app",
+      {
+        "googleServicesFile": "./google-services.json",
+        "googleServicesPlistPath": "./GoogleService-Info.plist"
+      }
+    ],
+    [
+      "@react-native-firebase/messaging",
+      {
+        "registerTaskHeadless": true
+      }
+    ]
+  ]
+}
