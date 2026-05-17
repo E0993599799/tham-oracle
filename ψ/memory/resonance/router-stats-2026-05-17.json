@@ -1,23 +1,68 @@
 {
-  "total_tasks": 35,
-  "success": 2,
-  "success_rate_pct": 5.71,
-  "blocked": 0,
-  "timeout": 0,
-  "error": 31,
-  "avg_duration_seconds": 0.15,
-  "risk_distribution": {
-    "low": 16,
-    "medium": 17,
-    "high": 2
+  "date": "2026-05-17",
+  "generated": "2026-05-17T13:31:07.931492",
+  "stats": {
+    "task_count": 43,
+    "success_rate_pct": 7.0,
+    "avg_duration_seconds": 0.05,
+    "total_duration_seconds": 2.25,
+    "risk_distribution": {
+      "medium": 18,
+      "low": 18,
+      "unknown": 5,
+      "high": 2
+    },
+    "status_distribution": {
+      "ERROR": 35,
+      "unknown": 3,
+      "SUCCESS": 3,
+      "DISPATCHED": 2
+    }
   },
-  "lane_distribution": {
-    "ollama": 4,
-    "codex_gpt55": 18,
-    "unknown": 2,
-    "claude": 8,
-    "gemini": 2,
-    "powershell_sfsr": 1
+  "by_intent": {
+    "unknown": {
+      "count": 43,
+      "successful": 3,
+      "avg_duration": 0.05,
+      "success_pct": 7.0
+    }
   },
-  "anomalies_detected": 27
+  "by_lane": {
+    "codex_gpt55": {
+      "count": 22,
+      "successful": 2,
+      "avg_duration": 0.1,
+      "success_pct": 9.1
+    },
+    "claude": {
+      "count": 9,
+      "successful": 0,
+      "avg_duration": 0.0,
+      "success_pct": 0.0
+    },
+    "gemini": {
+      "count": 2,
+      "successful": 0,
+      "avg_duration": 0.0,
+      "success_pct": 0.0
+    },
+    "unknown": {
+      "count": 5,
+      "successful": 0,
+      "avg_duration": 0.0,
+      "success_pct": 0.0
+    },
+    "ollama": {
+      "count": 4,
+      "successful": 0,
+      "avg_duration": 0.0,
+      "success_pct": 0.0
+    },
+    "powershell_sfsr": {
+      "count": 1,
+      "successful": 1,
+      "avg_duration": 0.0,
+      "success_pct": 100.0
+    }
+  }
 }
