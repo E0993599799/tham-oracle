@@ -1,0 +1,68 @@
+{
+  "task_id": "TASK-002",
+  "title": "Test Suite — Phase 4 APIs & Components",
+  "lane": "claude",
+  "status": "DISPATCHED",
+  "created_at": "2026-05-17T07:01:00+07:00",
+  "priority": "HIGH",
+
+  "goal": "Build comprehensive unit + integration tests for Phase 4 WebSocket APIs and dashboard components",
+
+  "scope": {
+    "test_targets": [
+      "src/api/streaming.ts",
+      "src/api/proof-watcher.ts",
+      "src/dashboard/components/",
+      "src/services/websocket.ts"
+    ],
+    "test_types": [
+      "Unit tests (Jest)",
+      "Integration tests (API + DB)",
+      "Component tests (React Testing Library)",
+      "E2E critical paths (if framework available)"
+    ]
+  },
+
+  "constraints": [
+    "All tests must pass",
+    "Coverage ≥80% for critical paths",
+    "Tests document behavior, not implementation",
+    "No flaky/timing-dependent tests",
+    "Mock external services (DB, WebSocket) appropriately"
+  ],
+
+  "proof_required": {
+    "type": "test_suite",
+    "checklist": [
+      "Test file count + test case count",
+      "Jest coverage report (≥80% critical)",
+      "All tests passing (green CI)",
+      "Test documentation (what each tests + why)",
+      "Setup instructions for running tests"
+    ]
+  },
+
+  "deliverables": {
+    "test_files": "tests/ directory with organized test suites",
+    "coverage_report": "Coverage report showing ≥80%",
+    "test_results": "CI output showing all tests passing",
+    "readme": "tests/README.md — how to run tests",
+    "log_file": "TASK-002-tests.log"
+  },
+
+  "context": {
+    "project_root": "/root/ghq/github.com/E0993599799/tham-oracle",
+    "phase": 4,
+    "framework": "Jest + React Testing Library (if UI)",
+    "read_first": [
+      "CLAUDE.md",
+      "EXECUTOR_LANES_v1.md",
+      "src/ structure"
+    ]
+  },
+
+  "estimated_time": "1.5 hours",
+  "deadline": "2026-05-17T09:00:00+07:00",
+
+  "approval_gate": "THAM verification + coverage check required before merge"
+}

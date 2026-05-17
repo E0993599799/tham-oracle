@@ -1,0 +1,68 @@
+{
+  "task_id": "TASK-003",
+  "title": "Documentation — Phase 4 Feature Docs + API Reference",
+  "lane": "claude",
+  "status": "DISPATCHED",
+  "created_at": "2026-05-17T07:01:00+07:00",
+  "priority": "MEDIUM",
+
+  "goal": "Write clear, concise Phase 4 documentation: feature overview, API reference, usage examples",
+
+  "scope": {
+    "doc_sections": [
+      "Phase 4 Overview (what was built, why)",
+      "Architecture Diagram (WebSocket flow, dashboard, APIs)",
+      "API Reference (endpoints, payloads, errors)",
+      "WebSocket Streaming (usage examples)",
+      "Proof Watcher (how it works)",
+      "Dashboard Components (usage + customization)",
+      "Deployment Guide (how to run Phase 4)"
+    ]
+  },
+
+  "constraints": [
+    "Clear, concise language (no jargon without explanation)",
+    "Include code examples where relevant",
+    "Include diagrams (ASCII OK, or Mermaid)",
+    "Document actual behavior, not aspirational",
+    "Include troubleshooting section"
+  ],
+
+  "proof_required": {
+    "type": "documentation",
+    "checklist": [
+      "docs/phase-4/ directory created",
+      "README.md (overview + quick start)",
+      "api-reference.md (endpoints + examples)",
+      "architecture.md (diagrams + flow)",
+      "deployment.md (setup + run instructions)",
+      "troubleshooting.md (common issues + fixes)",
+      "Table of contents + navigation"
+    ]
+  },
+
+  "deliverables": {
+    "docs_directory": "docs/phase-4/",
+    "file_structure": "README.md, api-reference.md, architecture.md, deployment.md, troubleshooting.md",
+    "diagrams": "ASCII or Mermaid diagrams for flows",
+    "examples": "Code snippets showing usage",
+    "log_file": "TASK-003-docs.log"
+  },
+
+  "context": {
+    "project_root": "/root/ghq/github.com/E0993599799/tham-oracle",
+    "phase": 4,
+    "existing_docs": "README.md (high-level), CLAUDE.md (identity/skills)",
+    "read_first": [
+      "CLAUDE.md",
+      "EXECUTOR_LANES_v1.md",
+      "Recent commits (Phase 4 features)",
+      "src/ code (for accurate documentation)"
+    ]
+  },
+
+  "estimated_time": "45 minutes",
+  "deadline": "2026-05-17T09:30:00+07:00",
+
+  "approval_gate": "THAM review + clarity check required before merge"
+}
