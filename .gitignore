@@ -58,3 +58,4 @@ tools/logs/
 ψ/inbox/
 dashboard/data.json
 .telegram-config
+scripts/__pycache__/
