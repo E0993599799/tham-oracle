@@ -1,0 +1,62 @@
+{
+  "task_id": "TASK-PHASE1",
+  "title": "Phase 1: Executor Router Docs + Schema",
+  "lane": "codex-a",
+  "status": "DISPATCHED",
+  "priority": "CRITICAL",
+  "created_at": "2026-05-17T07:15:00+07:00",
+
+  "goal": "Create architecture docs + route schema + decision table for Core executor-lane-router module",
+
+  "scope": {
+    "repo": "D:/Git/omega-oracle (Core)",
+    "output_directory": "docs/executor-lane-router/",
+    "deliverables": [
+      "architecture.md — router flow + gates + lanes",
+      "route-schema.json — JSON schema for task → lane routing",
+      "routing-decision-table.md — task type → primary/fallback lane mapping",
+      "completion-criteria.json — proof requirements per lane"
+    ]
+  },
+
+  "constraints": [
+    "Base on tham-oracle PATCH_SPEC_executor-lane-router.md",
+    "Include memory/risk gate timeout handling",
+    "Document hermes trigger conditions explicitly",
+    "Include rollback path in docs",
+    "Proof spec must match Phase 4 expectations"
+  ],
+
+  "deliverables": {
+    "docs_phase1": {
+      "1_architecture_doc": "docs/executor-lane-router/architecture.md",
+      "2_route_schema": "docs/executor-lane-router/route-schema.json",
+      "3_decision_table": "docs/executor-lane-router/routing-decision-table.md",
+      "4_completion_spec": "docs/executor-lane-router/completion-criteria.json"
+    },
+    "proof_required": [
+      "All 4 files created + committed",
+      "JSON schemas validate (jsonschema or similar)",
+      "Decision table covers: codex, gemini, ollama, hermes-legacy, hermes-optional",
+      "Timeout policies documented (memory gate 20s, risk gate 20s)",
+      "Rollback instructions clear"
+    ]
+  },
+
+  "spec_reference": {
+    "spec_file": "/root/ghq/github.com/E0993599799/tham-oracle/PATCH_SPEC_executor-lane-router.md",
+    "core_module": "executor-lane-router",
+    "core_location": "D:/Git/omega-oracle"
+  },
+
+  "context": {
+    "previous_context": "Phase 4 Real-time dashboard complete, 5-lane orchestration active",
+    "next_phase": "Phase 2 — Core module implementation",
+    "dependencies": []
+  },
+
+  "estimated_time": "2 hours",
+  "deadline": "2026-05-17T11:00:00+07:00",
+
+  "approval_gate": "THAM — all files exist + schemas valid + rollback clear"
+}
