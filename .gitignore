@@ -8,6 +8,7 @@
 *token*
 !skills/token-optimizer/
 *secret*
+!skills/security-secret-hygiene/
 *credential*
 
 # OS
