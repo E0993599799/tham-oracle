@@ -6,6 +6,10 @@ on:
       - 'inbox/*.json'
   workflow_dispatch:
 
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   chatgpt-connector:
     runs-on: ubuntu-latest
