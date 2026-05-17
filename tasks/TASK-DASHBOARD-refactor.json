@@ -1,0 +1,75 @@
+{
+  "task_id": "TASK-DASHBOARD",
+  "title": "Dashboard Refactor — tham-control-center UI beautify",
+  "lane": "claude",
+  "status": "DISPATCHED",
+  "priority": "HIGH",
+  "created_at": "2026-05-17T07:20:00+07:00",
+
+  "goal": "Refactor tham-control-center dashboard (http://127.0.0.1:3005/forge-omega/tham-control-center) — make it beautiful, functional, responsive",
+
+  "scope": {
+    "url": "http://127.0.0.1:3005/forge-omega/tham-control-center",
+    "target": "React component + styling (Tailwind)",
+    "improvements": [
+      "Modern UI design (clean, spacious, professional)",
+      "Real-time agent status display (LANE-1, LANE-2, LANE-3, LANE-4)",
+      "Task queue visualization (progress bars, ETA)",
+      "Proof status indicator (passed/pending/failed)",
+      "Scout 1 watchdog status",
+      "Core connection indicator",
+      "Mobile responsive (375px, 1920px)",
+      "Dark mode friendly",
+      "Accessibility (WCAG AA)"
+    ]
+  },
+
+  "constraints": [
+    "Tailwind CSS only (no external UI libraries unless approved)",
+    "Real-time if possible (WebSocket/polling from API)",
+    "Fallback to static snapshot if no API",
+    "Performance: <3s load time",
+    "Mobile-first responsive design",
+    "No behavior change — UI refactor only"
+  ],
+
+  "deliverables": {
+    "1_visual_design": "Before/after screenshots",
+    "2_component_source": "React component file (refactored)",
+    "3_styles": "Tailwind CSS classes (new/updated)",
+    "4_responsive_test": "Screenshots at 375px, 768px, 1920px",
+    "5_accessibility_check": "Lighthouse ≥85 (performance/a11y/best-practices)"
+  },
+
+  "proof_required": {
+    "type": "ui_refactor",
+    "checklist": [
+      "Visual screenshot shows improvement (professional, clean, spacious)",
+      "All lanes visible + status clear",
+      "Task queue displays with progress",
+      "Proof status indicators working",
+      "Mobile responsive (375px check + screenshot)",
+      "Desktop responsive (1920px check + screenshot)",
+      "Lighthouse ≥85",
+      "No TypeScript errors",
+      "Git diff shows only UI changes (no logic)"
+    ]
+  },
+
+  "context": {
+    "current_url": "http://127.0.0.1:3005/forge-omega/tham-control-center",
+    "dev_server": "Must be running on port 3005",
+    "component_path": "TBD (scout or ask CLAUDE to find)",
+    "styling_framework": "Tailwind CSS",
+    "read_first": [
+      "CLAUDE.md",
+      "EXECUTOR_LANES_v1.md",
+      "TASK_BROADCAST.md"
+    ]
+  },
+
+  "estimated_time": "1.5 hours",
+  "deadline": "2026-05-17T10:00:00+07:00",
+
+  "approval_gate": "THAM — visual proof + Lighthouse check"
+}
