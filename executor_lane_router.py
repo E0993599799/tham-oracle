@@ -298,6 +298,8 @@ class ExecutorLaneRouter:
                     self.logger.error(f"[{task_id}] Execution failed, no fallback")
 
             # Proof validation + write
+            # Add intent_signal before writing (Phase 8A fix)
+            proof["intent_signal"] = intent
             if self._validate_proof(proof):
                 proof_path = self._write_proof(proof)
                 proof["proof_path"] = str(proof_path)
