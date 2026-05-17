@@ -1,0 +1,67 @@
+{
+  "timestamp": "2026-05-17T14:54:51.983001",
+  "date": "2026-05-17",
+  "total_candidates": 3,
+  "by_type": {
+    "lane_blocklist": 3
+  },
+  "candidates": [
+    {
+      "rule_id": "rule-network_error-codex_gpt55",
+      "rule_type": "lane_blocklist",
+      "condition": "network_error on codex_gpt55",
+      "action": "Block codex_gpt55 for problematic intent signals",
+      "failure_type": "network_error",
+      "lane": "codex_gpt55",
+      "affected_intents": [
+        "unknown"
+      ],
+      "confidence": 1.0,
+      "evidence_count": 20,
+      "created_timestamp": "2026-05-17T14:54:51.982790",
+      "implementation": {
+        "target": "executor-lane-router.py",
+        "section": "LANE_BLOCKLIST",
+        "code": "LANE_BLOCKLIST['codex_gpt55'] = True  # network_error"
+      }
+    },
+    {
+      "rule_id": "rule-network_error-claude",
+      "rule_type": "lane_blocklist",
+      "condition": "network_error on claude",
+      "action": "Block claude for problematic intent signals",
+      "failure_type": "network_error",
+      "lane": "claude",
+      "affected_intents": [
+        "unknown"
+      ],
+      "confidence": 1.0,
+      "evidence_count": 9,
+      "created_timestamp": "2026-05-17T14:54:51.982829",
+      "implementation": {
+        "target": "executor-lane-router.py",
+        "section": "LANE_BLOCKLIST",
+        "code": "LANE_BLOCKLIST['claude'] = True  # network_error"
+      }
+    },
+    {
+      "rule_id": "rule-other-ollama",
+      "rule_type": "lane_blocklist",
+      "condition": "other on ollama",
+      "action": "Block ollama for problematic intent signals",
+      "failure_type": "other",
+      "lane": "ollama",
+      "affected_intents": [
+        "unknown"
+      ],
+      "confidence": 0.9,
+      "evidence_count": 4,
+      "created_timestamp": "2026-05-17T14:54:51.982840",
+      "implementation": {
+        "target": "executor-lane-router.py",
+        "section": "LANE_BLOCKLIST",
+        "code": "LANE_BLOCKLIST['ollama'] = True  # other"
+      }
+    }
+  ]
+}

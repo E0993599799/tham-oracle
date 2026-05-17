@@ -1,0 +1,97 @@
+{
+  "timestamp": "2026-05-17",
+  "tests": [
+    {
+      "name": "Syntax: failure-classifier.py",
+      "passed": true,
+      "return_code": 0,
+      "expected_code": 0,
+      "stdout_lines": 1,
+      "stderr_lines": 1
+    },
+    {
+      "name": "Syntax: rule-generator.py",
+      "passed": true,
+      "return_code": 0,
+      "expected_code": 0,
+      "stdout_lines": 1,
+      "stderr_lines": 1
+    },
+    {
+      "name": "Syntax: rule-validator.py",
+      "passed": true,
+      "return_code": 0,
+      "expected_code": 0,
+      "stdout_lines": 1,
+      "stderr_lines": 1
+    },
+    {
+      "name": "Syntax: rule-promoter.py",
+      "passed": true,
+      "return_code": 0,
+      "expected_code": 0,
+      "stdout_lines": 1,
+      "stderr_lines": 1
+    },
+    {
+      "name": "Syntax: confidence-scorer.py",
+      "passed": true,
+      "return_code": 0,
+      "expected_code": 0,
+      "stdout_lines": 1,
+      "stderr_lines": 1
+    },
+    {
+      "name": "Syntax: performance-tracker.py",
+      "passed": true,
+      "return_code": 0,
+      "expected_code": 0,
+      "stdout_lines": 1,
+      "stderr_lines": 1
+    },
+    {
+      "name": "Syntax: skill-gap-detector.py",
+      "passed": true,
+      "return_code": 0,
+      "expected_code": 0,
+      "stdout_lines": 1,
+      "stderr_lines": 1
+    },
+    {
+      "name": "Syntax: metrics-api.py",
+      "passed": true,
+      "return_code": 0,
+      "expected_code": 0,
+      "stdout_lines": 1,
+      "stderr_lines": 1
+    },
+    {
+      "name": "File exists: Resonance directory",
+      "passed": true,
+      "path": "/root/ghq/github.com/E0993599799/tham-oracle/\u03c8/memory/resonance"
+    },
+    {
+      "name": "File exists: Learning engine",
+      "passed": true,
+      "path": "/root/ghq/github.com/E0993599799/tham-oracle/scripts/learning-engine.py"
+    },
+    {
+      "name": "File exists: Pipeline runner",
+      "passed": true,
+      "path": "/root/ghq/github.com/E0993599799/tham-oracle/scripts/run-learning-pipeline.sh"
+    },
+    {
+      "name": "File exists: Dashboard",
+      "passed": true,
+      "path": "/root/ghq/github.com/E0993599799/tham-oracle/scripts/metrics-dashboard.html"
+    },
+    {
+      "name": "Git modified files",
+      "count": 0
+    }
+  ],
+  "passed": 13,
+  "failed": 0,
+  "total": 13,
+  "success_rate": 100.0
+}

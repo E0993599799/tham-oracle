@@ -1,0 +1,35 @@
+{
+  "timestamp": "2026-05-17T14:54:52.046561",
+  "date": "2026-05-17",
+  "total_validated": 3,
+  "ready_to_promote": 0,
+  "promotion_rate_pct": 0.0,
+  "validations": [
+    {
+      "rule_id": "rule-network_error-codex_gpt55",
+      "precision": 0.0,
+      "recall": 0.0,
+      "false_positive_rate": 0.0,
+      "evidence_count": 20,
+      "ready_to_promote": false,
+      "reason": "Precision too low (0.00 < 0.95)"
+    },
+    {
+      "rule_id": "rule-network_error-claude",
+      "precision": 0.0,
+      "recall": 0.0,
+      "false_positive_rate": 0.0,
+      "evidence_count": 9,
+      "ready_to_promote": false,
+      "reason": "Precision too low (0.00 < 0.95)"
+    },
+    {
+      "rule_id": "rule-other-ollama",
+      "ready_to_promote": false,
+      "reason": "Insufficient evidence (only 4 failures)",
+      "precision": 0.0,
+      "recall": 0.0,
+      "false_positive_rate": 0.0
+    }
+  ]
+}

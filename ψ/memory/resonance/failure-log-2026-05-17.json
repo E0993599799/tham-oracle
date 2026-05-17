@@ -1,0 +1,720 @@
+{
+  "timestamp": "2026-05-17T14:54:51.936123",
+  "date": "2026-05-17",
+  "total_failures": 35,
+  "by_type": {
+    "network_error": 31,
+    "other": 4
+  },
+  "by_lane": {
+    "codex_gpt55": 20,
+    "claude": 9,
+    "gemini": 2,
+    "ollama": 4
+  },
+  "by_intent": {
+    "unknown": 35
+  },
+  "failures": [
+    {
+      "failure_id": "fail-sample_write_code_00",
+      "task_id": "sample_write_code_001",
+      "lane": "codex_gpt55",
+      "intent": "unknown",
+      "risk_level": "medium",
+      "failure_type": "network_error",
+      "confidence": 0.9,
+      "status": "ERROR",
+      "execution_timestamp": "2026-05-16T23:00:18.804003+00:00",
+      "response_time_ms": null,
+      "context": {
+        "summary": "Primary codex_gpt55 failed (Lane error: HTTPConnectionPool(host='localhost', port=20128): Max retrie",
+        "gates_passed": [
+          "memory_gate",
+          "risk_gate",
+          "intent_gate"
+        ]
+      }
+    },
+    {
+      "failure_id": "fail-e2e-review",
+      "task_id": "e2e-review",
+      "lane": "claude",
+      "intent": "unknown",
+      "risk_level": "low",
+      "failure_type": "network_error",
+      "confidence": 0.9,
+      "status": "ERROR",
+      "execution_timestamp": "2026-05-17T06:27:40.115376+00:00",
+      "response_time_ms": null,
+      "context": {
+        "summary": "Primary claude failed (Lane error: HTTPConnectionPool(host='localhost', port=20128): Max retries exc",
+        "gates_passed": [
+          "memory_gate",
+          "risk_gate",
+          "intent_gate"
+        ]
+      }
+    },
+    {
+      "failure_id": "fail-complete_cycle_test",
+      "task_id": "complete_cycle_test",
+      "lane": "codex_gpt55",
+      "intent": "unknown",
+      "risk_level": "medium",
+      "failure_type": "network_error",
+      "confidence": 0.9,
+      "status": "ERROR",
+      "execution_timestamp": "2026-05-16T23:00:18.988192+00:00",
+      "response_time_ms": null,
+      "context": {
+        "summary": "Primary codex_gpt55 failed (Lane error: HTTPConnectionPool(host='localhost', port=20128): Max retrie",
+        "gates_passed": [
+          "memory_gate",
+          "risk_gate",
+          "intent_gate"
+        ]
+      }
+    },
+    {
+      "failure_id": "fail-search_intent",
+      "task_id": "search_intent",
+      "lane": "gemini",
+      "intent": "unknown",
+      "risk_level": "low",
+      "failure_type": "network_error",
+      "confidence": 0.9,
+      "status": "ERROR",
+      "execution_timestamp": "2026-05-16T23:00:18.925011+00:00",
+      "response_time_ms": null,
+      "context": {
+        "summary": "Primary gemini failed (Lane error: HTTPConnectionPool(host='localhost', port=20128): Max retries exc",
+        "gates_passed": [
+          "memory_gate",
+          "risk_gate",
+          "intent_gate"
+        ]
+      }
+    },
+    {
+      "failure_id": "fail-test_intent_fix",
+      "task_id": "test_intent_fix",
+      "lane": "codex_gpt55",
+      "intent": "unknown",
+      "risk_level": "medium",
+      "failure_type": "network_error",
+      "confidence": 0.9,
+      "status": "ERROR",
+      "execution_timestamp": "2026-05-16T23:00:18.895053+00:00",
+      "response_time_ms": null,
+      "context": {
+        "summary": "Primary codex_gpt55 failed (Lane error: HTTPConnectionPool(host='localhost', port=20128): Max retrie",
+        "gates_passed": [
+          "memory_gate",
+          "risk_gate",
+          "intent_gate"
+        ]
+      }
+    },
+    {
+      "failure_id": "fail-test_proof_schema",
+      "task_id": "test_proof_schema",
+      "lane": "codex_gpt55",
+      "intent": "unknown",
+      "risk_level": "low",
+      "failure_type": "network_error",
+      "confidence": 0.9,
+      "status": "ERROR",
+      "execution_timestamp": "2026-05-16T23:00:18.957610+00:00",
+      "response_time_ms": null,
+      "context": {
+        "summary": "Primary codex_gpt55 failed (Lane error: HTTPConnectionPool(host='localhost', port=20128): Max retrie",
+        "gates_passed": [
+          "memory_gate",
+          "risk_gate",
+          "intent_gate"
+        ]
+      }
+    },
+    {
+      "failure_id": "fail-sample_patch_001",
+      "task_id": "sample_patch_001",
+      "lane": "codex_gpt55",
+      "intent": "unknown",
+      "risk_level": "medium",
+      "failure_type": "network_error",
+      "confidence": 0.9,
+      "status": "ERROR",
+      "execution_timestamp": "2026-05-16T23:00:18.843599+00:00",
+      "response_time_ms": null,
+      "context": {
+        "summary": "Primary codex_gpt55 failed (Lane error: HTTPConnectionPool(host='localhost', port=20128): Max retrie",
+        "gates_passed": [
+          "memory_gate",
+          "risk_gate",
+          "intent_gate"
+        ]
+      }
+    },
+    {
+      "failure_id": "fail-e2e-write-code",
+      "task_id": "e2e-write-code",
+      "lane": "codex_gpt55",
+      "intent": "unknown",
+      "risk_level": "medium",
+      "failure_type": "network_error",
+      "confidence": 0.9,
+      "status": "ERROR",
+      "execution_timestamp": "2026-05-17T06:27:40.119826+00:00",
+      "response_time_ms": null,
+      "context": {
+        "summary": "Primary codex_gpt55 failed (Lane error: HTTPConnectionPool(host='localhost', port=20128): Max retrie",
+        "gates_passed": [
+          "memory_gate",
+          "risk_gate",
+          "intent_gate"
+        ]
+      }
+    },
+    {
+      "failure_id": "fail-test_fallback_chain",
+      "task_id": "test_fallback_chain",
+      "lane": "codex_gpt55",
+      "intent": "unknown",
+      "risk_level": "medium",
+      "failure_type": "network_error",
+      "confidence": 0.9,
+      "status": "ERROR",
+      "execution_timestamp": "2026-05-16T23:00:18.950477+00:00",
+      "response_time_ms": null,
+      "context": {
+        "summary": "Primary codex_gpt55 failed (Lane error: HTTPConnectionPool(host='localhost', port=20128): Max retrie",
+        "gates_passed": [
+          "memory_gate",
+          "risk_gate",
+          "intent_gate"
+        ]
+      }
+    },
+    {
+      "failure_id": "fail-test-proof-file",
+      "task_id": "test-proof-file",
+      "lane": "codex_gpt55",
+      "intent": "unknown",
+      "risk_level": "low",
+      "failure_type": "network_error",
+      "confidence": 0.9,
+      "status": "ERROR",
+      "execution_timestamp": "2026-05-17T06:27:40.109356+00:00",
+      "response_time_ms": null,
+      "context": {
+        "summary": "Primary codex_gpt55 failed (Lane error: HTTPConnectionPool(host='localhost', port=20128): Max retrie",
+        "gates_passed": [
+          "memory_gate",
+          "risk_gate",
+          "intent_gate"
+        ]
+      }
+    },
+    {
+      "failure_id": "fail-test_risk_high",
+      "task_id": "test_risk_high",
+      "lane": "codex_gpt55",
+      "intent": "unknown",
+      "risk_level": "high",
+      "failure_type": "network_error",
+      "confidence": 0.9,
+      "status": "ERROR",
+      "execution_timestamp": "2026-05-16T23:00:18.879193+00:00",
+      "response_time_ms": null,
+      "context": {
+        "summary": "Primary codex_gpt55 failed (Lane error: HTTPConnectionPool(host='localhost', port=20128): Max retrie",
+        "gates_passed": [
+          "memory_gate",
+          "risk_gate",
+          "intent_gate"
+        ]
+      }
+    },
+    {
+      "failure_id": "fail-e2e-test-001",
+      "task_id": "e2e-test-001",
+      "lane": "codex_gpt55",
+      "intent": "unknown",
+      "risk_level": "medium",
+      "failure_type": "network_error",
+      "confidence": 0.9,
+      "status": "ERROR",
+      "execution_timestamp": "2026-05-17T06:26:38.654175+00:00",
+      "response_time_ms": null,
+      "context": {
+        "summary": "Primary codex_gpt55 failed (Lane error: HTTPConnectionPool(host='localhost', port=20128): Max retrie",
+        "gates_passed": [
+          "memory_gate",
+          "risk_gate",
+          "intent_gate"
+        ]
+      }
+    },
+    {
+      "failure_id": "fail-test_hermes_block_hi",
+      "task_id": "test_hermes_block_high_risk",
+      "lane": "codex_gpt55",
+      "intent": "unknown",
+      "risk_level": "high",
+      "failure_type": "network_error",
+      "confidence": 0.9,
+      "status": "ERROR",
+      "execution_timestamp": "2026-05-16T23:00:18.935810+00:00",
+      "response_time_ms": null,
+      "context": {
+        "summary": "Primary codex_gpt55 failed (Lane error: HTTPConnectionPool(host='localhost', port=20128): Max retrie",
+        "gates_passed": [
+          "memory_gate",
+          "risk_gate",
+          "intent_gate"
+        ]
+      }
+    },
+    {
+      "failure_id": "fail-sample_performance_0",
+      "task_id": "sample_performance_001",
+      "lane": "claude",
+      "intent": "unknown",
+      "risk_level": "medium",
+      "failure_type": "network_error",
+      "confidence": 0.9,
+      "status": "ERROR",
+      "execution_timestamp": "2026-05-16T23:00:18.856903+00:00",
+      "response_time_ms": null,
+      "context": {
+        "summary": "Primary claude failed (Lane error: HTTPConnectionPool(host='localhost', port=20128): Max retries exc",
+        "gates_passed": [
+          "memory_gate",
+          "risk_gate",
+          "intent_gate"
+        ]
+      }
+    },
+    {
+      "failure_id": "fail-test_gate_timeouts",
+      "task_id": "test_gate_timeouts",
+      "lane": "codex_gpt55",
+      "intent": "unknown",
+      "risk_level": "medium",
+      "failure_type": "network_error",
+      "confidence": 0.9,
+      "status": "ERROR",
+      "execution_timestamp": "2026-05-16T23:00:18.968798+00:00",
+      "response_time_ms": null,
+      "context": {
+        "summary": "Primary codex_gpt55 failed (Lane error: HTTPConnectionPool(host='localhost', port=20128): Max retrie",
+        "gates_passed": [
+          "memory_gate",
+          "risk_gate",
+          "intent_gate"
+        ]
+      }
+    },
+    {
+      "failure_id": "fail-test_gates_passed",
+      "task_id": "test_gates_passed",
+      "lane": "claude",
+      "intent": "unknown",
+      "risk_level": "low",
+      "failure_type": "network_error",
+      "confidence": 0.9,
+      "status": "ERROR",
+      "execution_timestamp": "2026-05-16T23:00:18.975020+00:00",
+      "response_time_ms": null,
+      "context": {
+        "summary": "Primary claude failed (Lane error: HTTPConnectionPool(host='localhost', port=20128): Max retries exc",
+        "gates_passed": [
+          "memory_gate",
+          "risk_gate",
+          "intent_gate"
+        ]
+      }
+    },
+    {
+      "failure_id": "fail-sample_classify_001",
+      "task_id": "sample_classify_001",
+      "lane": "ollama",
+      "intent": "unknown",
+      "risk_level": "low",
+      "failure_type": "other",
+      "confidence": 0.5,
+      "status": "ERROR",
+      "execution_timestamp": "2026-05-16T23:00:18.838592+00:00",
+      "response_time_ms": null,
+      "context": {
+        "summary": "Primary ollama failed (Lane returned 404). No fallback available.",
+        "gates_passed": [
+          "memory_gate",
+          "risk_gate",
+          "intent_gate"
+        ]
+      }
+    },
+    {
+      "failure_id": "fail-schema_test",
+      "task_id": "schema_test",
+      "lane": "claude",
+      "intent": "unknown",
+      "risk_level": "low",
+      "failure_type": "network_error",
+      "confidence": 0.9,
+      "status": "ERROR",
+      "execution_timestamp": "2026-05-16T23:00:18.994243+00:00",
+      "response_time_ms": null,
+      "context": {
+        "summary": "Primary claude failed (Lane error: HTTPConnectionPool(host='localhost', port=20128): Max retries exc",
+        "gates_passed": [
+          "memory_gate",
+          "risk_gate",
+          "intent_gate"
+        ]
+      }
+    },
+    {
+      "failure_id": "fail-test_proof_file_writ",
+      "task_id": "test_proof_file_write",
+      "lane": "ollama",
+      "intent": "unknown",
+      "risk_level": "low",
+      "failure_type": "other",
+      "confidence": 0.5,
+      "status": "ERROR",
+      "execution_timestamp": "2026-05-16T23:00:18.964040+00:00",
+      "response_time_ms": null,
+      "context": {
+        "summary": "Primary ollama failed (Lane returned 404). No fallback available.",
+        "gates_passed": [
+          "memory_gate",
+          "risk_gate",
+          "intent_gate"
+        ]
+      }
+    },
+    {
+      "failure_id": "fail-sample_search_001",
+      "task_id": "sample_search_001",
+      "lane": "gemini",
+      "intent": "unknown",
+      "risk_level": "low",
+      "failure_type": "network_error",
+      "confidence": 0.9,
+      "status": "ERROR",
+      "execution_timestamp": "2026-05-16T23:00:18.832696+00:00",
+      "response_time_ms": null,
+      "context": {
+        "summary": "Primary gemini failed (Lane error: HTTPConnectionPool(host='localhost', port=20128): Max retries exc",
+        "gates_passed": [
+          "memory_gate",
+          "risk_gate",
+          "intent_gate"
+        ]
+      }
+    },
+    {
+      "failure_id": "fail-coding_intent",
+      "task_id": "coding_intent",
+      "lane": "codex_gpt55",
+      "intent": "unknown",
+      "risk_level": "low",
+      "failure_type": "network_error",
+      "confidence": 0.9,
+      "status": "ERROR",
+      "execution_timestamp": "2026-05-16T23:00:18.915512+00:00",
+      "response_time_ms": null,
+      "context": {
+        "summary": "Primary codex_gpt55 failed (Lane error: HTTPConnectionPool(host='localhost', port=20128): Max retrie",
+        "gates_passed": [
+          "memory_gate",
+          "risk_gate",
+          "intent_gate"
+        ]
+      }
+    },
+    {
+      "failure_id": "fail-test_risk_medium",
+      "task_id": "test_risk_medium",
+      "lane": "codex_gpt55",
+      "intent": "unknown",
+      "risk_level": "medium",
+      "failure_type": "network_error",
+      "confidence": 0.9,
+      "status": "ERROR",
+      "execution_timestamp": "2026-05-16T23:00:18.871894+00:00",
+      "response_time_ms": null,
+      "context": {
+        "summary": "Primary codex_gpt55 failed (Lane error: HTTPConnectionPool(host='localhost', port=20128): Max retrie",
+        "gates_passed": [
+          "memory_gate",
+          "risk_gate",
+          "intent_gate"
+        ]
+      }
+    },
+    {
+      "failure_id": "fail-sample_design_001",
+      "task_id": "sample_design_001",
+      "lane": "claude",
+      "intent": "unknown",
+      "risk_level": "medium",
+      "failure_type": "network_error",
+      "confidence": 0.9,
+      "status": "ERROR",
+      "execution_timestamp": "2026-05-16T23:00:18.828880+00:00",
+      "response_time_ms": null,
+      "context": {
+        "summary": "Primary claude failed (Lane error: HTTPConnectionPool(host='localhost', port=20128): Max retries exc",
+        "gates_passed": [
+          "memory_gate",
+          "risk_gate",
+          "intent_gate"
+        ]
+      }
+    },
+    {
+      "failure_id": "fail-sample_fix_bug_001",
+      "task_id": "sample_fix_bug_001",
+      "lane": "codex_gpt55",
+      "intent": "unknown",
+      "risk_level": "medium",
+      "failure_type": "network_error",
+      "confidence": 0.9,
+      "status": "ERROR",
+      "execution_timestamp": "2026-05-16T23:00:18.817239+00:00",
+      "response_time_ms": null,
+      "context": {
+        "summary": "Primary codex_gpt55 failed (Lane error: HTTPConnectionPool(host='localhost', port=20128): Max retrie",
+        "gates_passed": [
+          "memory_gate",
+          "risk_gate",
+          "intent_gate"
+        ]
+      }
+    },
+    {
+      "failure_id": "fail-test_intent_review",
+      "task_id": "test_intent_review",
+      "lane": "codex_gpt55",
+      "intent": "unknown",
+      "risk_level": "medium",
+      "failure_type": "network_error",
+      "confidence": 0.9,
+      "status": "ERROR",
+      "execution_timestamp": "2026-05-16T23:00:18.901082+00:00",
+      "response_time_ms": null,
+      "context": {
+        "summary": "Primary codex_gpt55 failed (Lane error: HTTPConnectionPool(host='localhost', port=20128): Max retrie",
+        "gates_passed": [
+          "memory_gate",
+          "risk_gate",
+          "intent_gate"
+        ]
+      }
+    },
+    {
+      "failure_id": "fail-test_memory_timeout",
+      "task_id": "test_memory_timeout",
+      "lane": "codex_gpt55",
+      "intent": "unknown",
+      "risk_level": "low",
+      "failure_type": "network_error",
+      "confidence": 0.9,
+      "status": "ERROR",
+      "execution_timestamp": "2026-05-16T23:00:18.860673+00:00",
+      "response_time_ms": null,
+      "context": {
+        "summary": "Primary codex_gpt55 failed (Lane error: HTTPConnectionPool(host='localhost', port=20128): Max retrie",
+        "gates_passed": [
+          "memory_gate",
+          "risk_gate",
+          "intent_gate"
+        ]
+      }
+    },
+    {
+      "failure_id": "fail-classify_intent",
+      "task_id": "classify_intent",
+      "lane": "ollama",
+      "intent": "unknown",
+      "risk_level": "low",
+      "failure_type": "other",
+      "confidence": 0.5,
+      "status": "ERROR",
+      "execution_timestamp": "2026-05-16T23:00:18.931418+00:00",
+      "response_time_ms": null,
+      "context": {
+        "summary": "Primary ollama failed (Lane returned 404). No fallback available.",
+        "gates_passed": [
+          "memory_gate",
+          "risk_gate",
+          "intent_gate"
+        ]
+      }
+    },
+    {
+      "failure_id": "fail-test_intent_write",
+      "task_id": "test_intent_write",
+      "lane": "codex_gpt55",
+      "intent": "unknown",
+      "risk_level": "medium",
+      "failure_type": "network_error",
+      "confidence": 0.9,
+      "status": "ERROR",
+      "execution_timestamp": "2026-05-16T23:00:18.886770+00:00",
+      "response_time_ms": null,
+      "context": {
+        "summary": "Primary codex_gpt55 failed (Lane error: HTTPConnectionPool(host='localhost', port=20128): Max retrie",
+        "gates_passed": [
+          "memory_gate",
+          "risk_gate",
+          "intent_gate"
+        ]
+      }
+    },
+    {
+      "failure_id": "fail-test_risk_low",
+      "task_id": "test_risk_low",
+      "lane": "ollama",
+      "intent": "unknown",
+      "risk_level": "low",
+      "failure_type": "other",
+      "confidence": 0.5,
+      "status": "ERROR",
+      "execution_timestamp": "2026-05-16T23:00:18.867807+00:00",
+      "response_time_ms": null,
+      "context": {
+        "summary": "Primary ollama failed (Lane returned 404). No fallback available.",
+        "gates_passed": [
+          "memory_gate",
+          "risk_gate",
+          "intent_gate"
+        ]
+      }
+    },
+    {
+      "failure_id": "fail-sample_security_audi",
+      "task_id": "sample_security_audit_001",
+      "lane": "claude",
+      "intent": "unknown",
+      "risk_level": "low",
+      "failure_type": "network_error",
+      "confidence": 0.9,
+      "status": "ERROR",
+      "execution_timestamp": "2026-05-16T23:00:18.853198+00:00",
+      "response_time_ms": null,
+      "context": {
+        "summary": "Primary claude failed (Lane error: HTTPConnectionPool(host='localhost', port=20128): Max retries exc",
+        "gates_passed": [
+          "memory_gate",
+          "risk_gate",
+          "intent_gate"
+        ]
+      }
+    },
+    {
+      "failure_id": "fail-sample_refactor_001",
+      "task_id": "sample_refactor_001",
+      "lane": "claude",
+      "intent": "unknown",
+      "risk_level": "medium",
+      "failure_type": "network_error",
+      "confidence": 0.9,
+      "status": "ERROR",
+      "execution_timestamp": "2026-05-16T23:00:18.849132+00:00",
+      "response_time_ms": null,
+      "context": {
+        "summary": "Primary claude failed (Lane error: HTTPConnectionPool(host='localhost', port=20128): Max retries exc",
+        "gates_passed": [
+          "memory_gate",
+          "risk_gate",
+          "intent_gate"
+        ]
+      }
+    },
+    {
+      "failure_id": "fail-test_intent_classify",
+      "task_id": "test_intent_classify",
+      "lane": "codex_gpt55",
+      "intent": "unknown",
+      "risk_level": "medium",
+      "failure_type": "network_error",
+      "confidence": 0.9,
+      "status": "ERROR",
+      "execution_timestamp": "2026-05-16T23:00:18.907620+00:00",
+      "response_time_ms": null,
+      "context": {
+        "summary": "Primary codex_gpt55 failed (Lane error: HTTPConnectionPool(host='localhost', port=20128): Max retrie",
+        "gates_passed": [
+          "memory_gate",
+          "risk_gate",
+          "intent_gate"
+        ]
+      }
+    },
+    {
+      "failure_id": "fail-sample_review_001",
+      "task_id": "sample_review_001",
+      "lane": "claude",
+      "intent": "unknown",
+      "risk_level": "low",
+      "failure_type": "network_error",
+      "confidence": 0.9,
+      "status": "ERROR",
+      "execution_timestamp": "2026-05-16T23:00:18.824828+00:00",
+      "response_time_ms": null,
+      "context": {
+        "summary": "Primary claude failed (Lane error: HTTPConnectionPool(host='localhost', port=20128): Max retries exc",
+        "gates_passed": [
+          "memory_gate",
+          "risk_gate",
+          "intent_gate"
+        ]
+      }
+    },
+    {
+      "failure_id": "fail-review_intent",
+      "task_id": "review_intent",
+      "lane": "claude",
+      "intent": "unknown",
+      "risk_level": "low",
+      "failure_type": "network_error",
+      "confidence": 0.9,
+      "status": "ERROR",
+      "execution_timestamp": "2026-05-16T23:00:18.920989+00:00",
+      "response_time_ms": null,
+      "context": {
+        "summary": "Primary claude failed (Lane error: HTTPConnectionPool(host='localhost', port=20128): Max retries exc",
+        "gates_passed": [
+          "memory_gate",
+          "risk_gate",
+          "intent_gate"
+        ]
+      }
+    },
+    {
+      "failure_id": "fail-test_risk_escalation",
+      "task_id": "test_risk_escalation",
+      "lane": "codex_gpt55",
+      "intent": "unknown",
+      "risk_level": "low",
+      "failure_type": "network_error",
+      "confidence": 0.9,
+      "status": "ERROR",
+      "execution_timestamp": "2026-05-16T23:00:18.979381+00:00",
+      "response_time_ms": null,
+      "context": {
+        "summary": "Primary codex_gpt55 failed (Lane error: HTTPConnectionPool(host='localhost', port=20128): Max retrie",
+        "gates_passed": [
+          "memory_gate",
+          "risk_gate",
+          "intent_gate"
+        ]
+      }
+    }
+  ]
+}
