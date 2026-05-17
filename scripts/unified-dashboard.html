@@ -25,6 +25,7 @@
             padding: 20px;
             overflow-y: auto;
             box-shadow: 2px 0 10px rgba(0,0,0,0.3);
+            transition: width 0.3s ease;
         }
 
         .logo {
@@ -55,18 +56,20 @@
             margin: 5px 0;
             border-radius: 6px;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             border-left: 3px solid transparent;
             font-size: 14px;
             display: flex;
             align-items: center;
             gap: 10px;
+            position: relative;
         }
 
         .menu-item:hover {
             background: rgba(74, 222, 128, 0.1);
             border-left-color: #4ade80;
             color: #4ade80;
+            transform: translateX(4px);
         }
 
         .menu-item.active {
@@ -90,6 +93,29 @@
             color: #666;
         }
 
+        .api-status-dot {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            margin-right: 6px;
+            animation: pulse-status 2s infinite;
+        }
+
+        .api-status-dot.online {
+            background: #4ade80;
+        }
+
+        .api-status-dot.offline {
+            background: #ef4444;
+            animation: none;
+        }
+
+        @keyframes pulse-status {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
         /* MAIN CONTENT */
         .main-content {
             flex: 1;
@@ -105,6 +131,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
         }
 
         .header h1 {
@@ -122,6 +149,14 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            padding: 6px 12px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 4px;
+            transition: all 0.3s;
+        }
+
+        .status-item:hover {
+            background: rgba(255,255,255,0.1);
         }
 
         .status-dot {
@@ -129,40 +164,181 @@
             height: 8px;
             border-radius: 50%;
             background: #4ade80;
+            animation: pulse-dot 2s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.4); }
+            50% { box-shadow: 0 0 0 6px rgba(74, 222, 128, 0); }
         }
 
         .content {
             flex: 1;
             overflow-y: auto;
             padding: 30px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         .page {
             display: none;
-            height: 100%;
+            animation: pageSlideIn 0.3s ease;
         }
 
         .page.active {
             display: block;
         }
 
+        @keyframes pageSlideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         /* METRICS PANELS */
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
         .card {
             background: #2d2d44;
             border: 1px solid #3d3d5c;
             border-radius: 8px;
             padding: 20px;
-            transition: all 0.3s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
         }
-        .card:hover { border-color: #5d5d7d; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
-        .card h3 { font-size: 12px; color: #888; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px; }
-        .card .value { font-size: 32px; font-weight: 600; color: #fff; margin-bottom: 5px; }
-        .card .subtext { font-size: 12px; color: #666; }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(74,222,128,0) 0%, rgba(74,222,128,0.05) 100%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card:hover {
+            border-color: #5d5d7d;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(74, 222, 128, 0.1);
+        }
+
+        .card h3 {
+            font-size: 12px;
+            color: #888;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        .card .value {
+            font-size: 32px;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 5px;
+            animation: slideInValue 0.4s ease;
+        }
+
+        @keyframes slideInValue {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .card .subtext {
+            font-size: 12px;
+            color: #666;
+        }
 
         .status-good { color: #4ade80; }
         .status-warn { color: #facc15; }
         .status-bad { color: #ef4444; }
+
+        /* LOADING SKELETON */
+        .skeleton {
+            background: linear-gradient(90deg, #3d3d5c 25%, #4d4d6c 50%, #3d3d5c 75%);
+            background-size: 200% 100%;
+            animation: skeletonLoading 1.5s infinite;
+        }
+
+        @keyframes skeletonLoading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .skeleton-value {
+            height: 32px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        .skeleton-text {
+            height: 12px;
+            border-radius: 2px;
+            margin-bottom: 8px;
+        }
+
+        /* EMPTY STATE */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .empty-state-title {
+            font-size: 16px;
+            color: #888;
+            margin-bottom: 8px;
+        }
+
+        .empty-state-message {
+            font-size: 12px;
+            color: #555;
+        }
+
+        /* TOAST NOTIFICATION */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            background: #2d2d44;
+            border: 1px solid #3d3d5c;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 12px;
+            animation: slideInToast 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 1000;
+        }
+
+        @keyframes slideInToast {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .toast.success { border-color: #4ade80; }
+        .toast.error { border-color: #ef4444; }
 
         .table-container {
             background: #2d2d44;
@@ -171,6 +347,43 @@
             padding: 20px;
             margin-bottom: 20px;
             overflow-x: auto;
+            transition: all 0.3s;
+        }
+
+        .table-container:hover {
+            border-color: #5d5d7d;
+        }
+
+        .table-container h3 {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        .refresh-btn {
+            margin-left: auto;
+            padding: 6px 12px;
+            background: rgba(74, 222, 128, 0.1);
+            border: 1px solid #4ade80;
+            color: #4ade80;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.3s;
+        }
+
+        .refresh-btn:hover {
+            background: rgba(74, 222, 128, 0.2);
+        }
+
+        .refresh-btn.loading {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
 
         table {
@@ -179,9 +392,24 @@
             font-size: 12px;
         }
 
-        th { text-align: left; padding: 12px; border-bottom: 1px solid #3d3d5c; color: #888; text-transform: uppercase; }
-        td { padding: 12px; border-bottom: 1px solid #1d1d2e; }
-        tr:hover { background: #3d3d5c; }
+        th {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #3d3d5c;
+            color: #888;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #1d1d2e;
+            transition: background 0.2s;
+        }
+
+        tr:hover {
+            background: rgba(74, 222, 128, 0.05);
+        }
 
         .emoji { margin-right: 8px; }
         .loading { color: #666; font-style: italic; }
@@ -189,13 +417,51 @@
         /* SCROLLBAR */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #1a1a2e; }
-        ::-webkit-scrollbar-thumb { background: #3d3d5c; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb {
+            background: #3d3d5c;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
         ::-webkit-scrollbar-thumb:hover { background: #5d5d7d; }
 
+        /* RESPONSIVE DESIGN */
+        @media (max-width: 1024px) {
+            .grid { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+            .content { padding: 20px; }
+        }
+
         @media (max-width: 768px) {
-            .sidebar { width: 60px; }
-            .menu-item { padding: 12px; justify-content: center; }
+            body { flex-direction: column; }
+            .sidebar {
+                width: 100%;
+                height: auto;
+                flex-direction: row;
+                padding: 12px;
+                border-right: none;
+                border-bottom: 1px solid #2d3561;
+                overflow-x: auto;
+                overflow-y: visible;
+            }
+            .logo { margin-bottom: 0; margin-right: 20px; }
+            .menu-section { margin-bottom: 0; display: flex; gap: 10px; }
             .menu-title { display: none; }
+            .menu-item { padding: 8px 12px; font-size: 12px; }
+            .sidebar-footer { display: none; }
+            .main-content { height: 100%; }
+            .content { padding: 15px; }
+            .grid { grid-template-columns: 1fr; }
+            .header { flex-direction: column; gap: 10px; align-items: flex-start; }
+            .header-status { flex-direction: column; }
+            table { font-size: 11px; }
+            th, td { padding: 8px; }
+            .toast { bottom: 10px; right: 10px; left: 10px; }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 { font-size: 18px; }
+            .card .value { font-size: 24px; }
+            .menu-item { padding: 6px 10px; }
+            .card { padding: 15px; }
         }
     </style>
 </head>
@@ -265,7 +531,10 @@
         </div>
 
         <div class="sidebar-footer">
-            <div id="api-status">🟢 API Connected</div>
+            <div id="api-status">
+                <span class="api-status-dot online"></span>
+                <span>API Connected</span>
+            </div>
             <div style="margin-top: 8px; color: #555;">Last update: <span id="last-update">—</span></div>
         </div>
     </div>
@@ -314,7 +583,9 @@
                 </div>
 
                 <div class="table-container">
-                    <h3 style="margin-bottom: 15px;">🟢 Top Lanes (by health)</h3>
+                    <h3>🟢 Top Lanes (by health)
+                        <button class="refresh-btn" onclick="loadMetrics('overview')" title="Refresh data (Ctrl+R)">⟳ Refresh</button>
+                    </h3>
                     <table>
                         <thead>
                             <tr>
@@ -358,7 +629,9 @@
                 </div>
 
                 <div class="table-container">
-                    <h3 style="margin-bottom: 15px;">📊 Learning Pipeline</h3>
+                    <h3>📊 Learning Pipeline
+                        <button class="refresh-btn" onclick="loadMetrics('learning')" title="Refresh data (Ctrl+R)">⟳ Refresh</button>
+                    </h3>
                     <table>
                         <thead>
                             <tr>
@@ -401,7 +674,9 @@
             <!-- PAGE: LANES -->
             <div id="lanes" class="page">
                 <div class="table-container">
-                    <h3 style="margin-bottom: 15px;">🛣️ Lane Performance (7-day)</h3>
+                    <h3>🛣️ Lane Performance (7-day)
+                        <button class="refresh-btn" onclick="loadMetrics('lanes')" title="Refresh data (Ctrl+R)">⟳ Refresh</button>
+                    </h3>
                     <table>
                         <thead>
                             <tr>
@@ -446,7 +721,9 @@
                 </div>
 
                 <div class="table-container">
-                    <h3 style="margin-bottom: 15px;">📊 Intent Performance</h3>
+                    <h3>📊 Intent Performance
+                        <button class="refresh-btn" onclick="loadMetrics('performance')" title="Refresh data (Ctrl+R)">⟳ Refresh</button>
+                    </h3>
                     <table>
                         <thead>
                             <tr>
@@ -495,7 +772,9 @@
                 </div>
 
                 <div class="table-container">
-                    <h3 style="margin-bottom: 15px;">🏥 System Health</h3>
+                    <h3>🏥 System Health
+                        <button class="refresh-btn" onclick="loadMetrics('health')" title="Refresh data (Ctrl+R)">⟳ Refresh</button>
+                    </h3>
                     <table>
                         <thead>
                             <tr>
@@ -531,7 +810,9 @@
                     </div>
                 </div>
                 <div class="table-container">
-                    <h3 style="margin-bottom: 15px;">🔌 Circuit Breaker States</h3>
+                    <h3>🔌 Circuit Breaker States
+                        <button class="refresh-btn" onclick="loadMetrics('circuit-breaker')" title="Refresh data (Ctrl+R)">⟳ Refresh</button>
+                    </h3>
                     <table>
                         <thead><tr><th>Lane</th><th>State</th><th>Failures</th><th>Last Failure</th></tr></thead>
                         <tbody id="cb-table"><tr><td colspan="4" class="loading">Loading...</td></tr></tbody>
@@ -564,7 +845,9 @@
                     </div>
                 </div>
                 <div class="table-container">
-                    <h3 style="margin-bottom: 15px;">🛡️ Rules Enforced</h3>
+                    <h3>🛡️ Rules Enforced
+                        <button class="refresh-btn" onclick="loadMetrics('constitution')" title="Refresh data (Ctrl+R)">⟳ Refresh</button>
+                    </h3>
                     <table>
                         <thead><tr><th>Rule</th><th>Description</th><th>Status</th></tr></thead>
                         <tbody id="const-rules-table">
@@ -599,7 +882,9 @@
                     </div>
                 </div>
                 <div class="table-container">
-                    <h3 style="margin-bottom: 15px;">🤝 Agent Status</h3>
+                    <h3>🤝 Agent Status
+                        <button class="refresh-btn" onclick="loadMetrics('fleet')" title="Refresh data (Ctrl+R)">⟳ Refresh</button>
+                    </h3>
                     <table>
                         <thead><tr><th>Agent</th><th>Status</th><th>Last Heartbeat</th><th>Tasks</th></tr></thead>
                         <tbody id="fleet-agents-table"><tr><td colspan="4" class="loading">Loading...</td></tr></tbody>
@@ -627,7 +912,9 @@
                     </div>
                 </div>
                 <div class="table-container">
-                    <h3 style="margin-bottom: 15px;">🏆 Benchmark Results</h3>
+                    <h3>🏆 Benchmark Results
+                        <button class="refresh-btn" onclick="loadMetrics('benchmarks')" title="Refresh data (Ctrl+R)">⟳ Refresh</button>
+                    </h3>
                     <table>
                         <thead><tr><th>Benchmark</th><th>Result</th><th>Details</th></tr></thead>
                         <tbody id="bench-results-table"><tr><td colspan="3" class="loading">Loading...</td></tr></tbody>
@@ -660,15 +947,48 @@
         const API_BASE = 'http://localhost:8768';
         let refreshInterval = 30000;
         let autoRefreshTimer;
+        let currentPage = 'overview';
+        let isLoading = false;
+
+        // Toast notification system
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // Show loading state on cards
+        function showLoadingState(elementId) {
+            const el = document.getElementById(elementId);
+            if (el) {
+                el.innerHTML = '<div class="skeleton skeleton-value"></div>';
+                el.style.minHeight = '40px';
+            }
+        }
+
+        // Show empty state
+        function showEmptyState(elementId, message = 'No data available') {
+            const el = document.getElementById(elementId);
+            if (el && el.tagName === 'TBODY') {
+                el.innerHTML = `<tr><td colspan="100%" style="padding: 40px 20px;"><div class="empty-state"><div class="empty-state-icon">📭</div><div class="empty-state-message">${message}</div></div></td></tr>`;
+            }
+        }
 
         function showPage(page) {
+            if (isLoading) return;
+
             // Hide all pages
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             // Show selected page
-            document.getElementById(page).classList.add('active');
+            const pageEl = document.getElementById(page);
+            if (pageEl) pageEl.classList.add('active');
+
             // Update menu
             document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
             event.target.closest('.menu-item').classList.add('active');
+
             // Update title
             const titles = {
                 overview: 'Overview',
@@ -684,11 +1004,18 @@
                 settings: 'Settings'
             };
             document.getElementById('page-title').textContent = titles[page];
+            currentPage = page;
+
             // Load data
-            loadMetrics(page);
+            if (page !== 'settings') {
+                loadMetrics(page);
+            }
         }
 
-        async function loadMetrics(page) {
+        async function loadMetrics(page = currentPage) {
+            if (isLoading) return;
+            isLoading = true;
+
             try {
                 let endpoint = '/metrics/learning';
                 if (page === 'circuit-breaker') endpoint = '/metrics/circuit-breaker';
@@ -696,149 +1023,271 @@
                 else if (page === 'fleet') endpoint = '/metrics/fleet';
                 else if (page === 'benchmarks') endpoint = '/metrics/benchmarks';
 
-                const resp = await fetch(`${API_BASE}${endpoint}`);
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
+                const resp = await fetch(`${API_BASE}${endpoint}`, { signal: controller.signal });
+                clearTimeout(timeout);
+
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+
                 const data = await resp.json();
                 renderMetrics(data, page);
-                updateStatus('🟢 Connected', true);
+                updateStatus(true);
+                showToast('Data updated successfully', 'success');
             } catch (e) {
                 console.error('Failed to fetch metrics:', e);
-                updateStatus('🔴 Disconnected', false);
+                updateStatus(false);
+                showToast('Failed to load data: ' + e.message, 'error');
+            } finally {
+                isLoading = false;
+                document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
             }
         }
 
         function renderMetrics(data, page) {
+            if (!data) return;
+
             const overall = data.performance?.overall_metrics || {};
             const learning = data.learning || {};
             const lanes = data.performance?.lane_metrics || [];
 
-            // Overview
-            document.getElementById('success-rate').textContent = `${(overall.overall_success_rate * 100).toFixed(1)}%`;
-            document.getElementById('total-exec').textContent = overall.total_executions || '—';
-            document.getElementById('avg-response').textContent = `${overall.avg_response_time_ms?.toFixed(0) || '—'}ms`;
-            document.getElementById('throughput').textContent = `${overall.daily_throughput?.toFixed(1) || '—'}`;
+            if (page === 'overview' || page === 'learning') {
+                // Overview cards
+                renderCardValue('success-rate', overall.overall_success_rate ? `${(overall.overall_success_rate * 100).toFixed(1)}%` : '—');
+                renderCardValue('total-exec', overall.total_executions || '—');
+                renderCardValue('avg-response', overall.avg_response_time_ms ? `${overall.avg_response_time_ms.toFixed(0)}ms` : '—');
+                renderCardValue('throughput', overall.daily_throughput ? `${overall.daily_throughput.toFixed(1)}` : '—');
 
-            // Learning
-            document.getElementById('failures-found').textContent = learning.failures_found || '—';
-            document.getElementById('rules-gen').textContent = learning.rules_generated || '—';
-            document.getElementById('rules-val').textContent = learning.rules_validated || '—';
-            document.getElementById('learning-rate').textContent = `${learning.promotion_success_rate?.toFixed(1) || 0}%`;
+                // Learning cards
+                renderCardValue('failures-found', learning.failures_found || '—');
+                renderCardValue('rules-gen', learning.rules_generated || '—');
+                renderCardValue('rules-val', learning.rules_validated || '—');
+                renderCardValue('learning-rate', learning.promotion_success_rate ? `${learning.promotion_success_rate.toFixed(1)}%` : '—');
 
-            document.getElementById('stage-7a').textContent = `${learning.failures_found || 0} failures`;
-            document.getElementById('stage-7b').textContent = `${learning.rules_generated || 0} rules`;
-            document.getElementById('stage-7c').textContent = `${learning.rules_validated || 0} valid`;
-            document.getElementById('stage-7d').textContent = `${learning.rules_promoted || 0} promoted`;
+                // Learning pipeline stages
+                renderCardValue('stage-7a', `${learning.failures_found || 0} failures`);
+                renderCardValue('stage-7b', `${learning.rules_generated || 0} rules`);
+                renderCardValue('stage-7c', `${learning.rules_validated || 0} valid`);
+                renderCardValue('stage-7d', `${learning.rules_promoted || 0} promoted`);
+            }
 
-            // Lanes
-            const laneHtml = lanes.length > 0
-                ? lanes.map(lane => `
-                    <tr>
-                        <td>${lane.lane}</td>
-                        <td class="${lane.success_rate >= 0.95 ? 'status-good' : lane.success_rate >= 0.85 ? 'status-warn' : 'status-bad'}">
-                            ${(lane.success_rate * 100).toFixed(1)}%
-                        </td>
-                        <td>${lane.total_executions}</td>
-                        <td>${lane.avg_response_time_ms?.toFixed(0) || '—'}ms</td>
-                        <td>${lane.throughput_per_day?.toFixed(1) || '—'}</td>
-                        <td>${lane.sla_status}</td>
-                    </tr>
-                `).join('')
-                : '<tr><td colspan="6" class="loading">No data</td></tr>';
+            if (page === 'overview' || page === 'lanes') {
+                // Lanes table
+                renderLanesTable(lanes, 'overview-lanes');
+                renderLanesTable(lanes, 'lanes-detail');
+            }
 
-            document.getElementById('overview-lanes').innerHTML = laneHtml;
-            document.getElementById('lanes-detail').innerHTML = laneHtml;
+            if (page === 'performance') {
+                renderCardValue('perf-exec', overall.total_executions || '—');
+                renderCardValue('perf-success', overall.overall_success_rate ? `${(overall.overall_success_rate * 100).toFixed(1)}%` : '—');
+                renderCardValue('perf-p95', overall.p95_response_time_ms ? `${overall.p95_response_time_ms.toFixed(0)}ms` : '—');
+                renderCardValue('perf-gaps', '0');
+            }
 
-            // Performance
-            document.getElementById('perf-exec').textContent = overall.total_executions || '—';
-            document.getElementById('perf-success').textContent = `${(overall.overall_success_rate * 100).toFixed(1)}%`;
-            document.getElementById('perf-p95').textContent = `${overall.p95_response_time_ms?.toFixed(0) || '—'}ms`;
-            document.getElementById('perf-gaps').textContent = '0';
-
-            // Health
-            document.getElementById('health-update').textContent = new Date().toLocaleTimeString();
-            document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
+            // Health status
+            renderCardValue('health-update', new Date().toLocaleTimeString());
 
             // Circuit Breaker
             if (page === 'circuit-breaker' && data.summary) {
-                document.getElementById('cb-closed').textContent = data.summary.closed;
-                document.getElementById('cb-half').textContent = data.summary.half_open;
-                document.getElementById('cb-open').textContent = data.summary.open;
-                const cbHtml = Object.entries(data.lanes || {})
-                    .map(([lane, state]) => `
-                        <tr>
-                            <td>${lane}</td>
-                            <td class="${state.state === 'CLOSED' ? 'status-good' : state.state === 'HALF_OPEN' ? 'status-warn' : 'status-bad'}">${state.state}</td>
-                            <td>${state.failure_count || 0}</td>
-                            <td>${state.last_failure_time ? new Date(state.last_failure_time).toLocaleTimeString() : '—'}</td>
-                        </tr>
-                    `).join('') || '<tr><td colspan="4" class="loading">No data</td></tr>';
-                document.getElementById('cb-table').innerHTML = cbHtml;
+                renderCardValue('cb-closed', data.summary.closed || 0);
+                renderCardValue('cb-half', data.summary.half_open || 0);
+                renderCardValue('cb-open', data.summary.open || 0);
+                renderCircuitBreakerTable(data.lanes || {});
             }
 
             // Constitution
             if (page === 'constitution' && data.compliance_score !== undefined) {
-                document.getElementById('const-score').textContent = `${data.compliance_score.toFixed(1)}%`;
-                document.getElementById('const-rules').textContent = data.rules_enforced.length;
-                document.getElementById('const-violations').textContent = data.violations.length;
-                document.getElementById('const-hitl').textContent = data.hitl_queue.length;
+                renderCardValue('const-score', `${data.compliance_score.toFixed(1)}%`);
+                renderCardValue('const-rules', data.rules_enforced?.length || 0);
+                renderCardValue('const-violations', data.violations?.length || 0);
+                renderCardValue('const-hitl', data.hitl_queue?.length || 0);
             }
 
             // Fleet
             if (page === 'fleet') {
                 const fleetAgents = data.agents || [];
-                document.getElementById('fleet-online').textContent = fleetAgents.filter(a => a.available).length;
-                document.getElementById('fleet-relayed').textContent = (data.relay_log || []).length;
-                document.getElementById('fleet-queue').textContent = (data.message_queue || []).length;
-                const fleetHtml = fleetAgents.length > 0
-                    ? fleetAgents.map(agent => `
-                        <tr>
-                            <td>${agent.name}</td>
-                            <td class="${agent.available ? 'status-good' : 'status-bad'}">${agent.available ? 'Online' : 'Offline'}</td>
-                            <td>${agent.last_heartbeat ? new Date(agent.last_heartbeat).toLocaleTimeString() : '—'}</td>
-                            <td>${agent.task_count || 0}</td>
-                        </tr>
-                    `).join('')
-                    : '<tr><td colspan="4" class="loading">No agents</td></tr>';
-                document.getElementById('fleet-agents-table').innerHTML = fleetHtml;
+                renderCardValue('fleet-online', fleetAgents.filter(a => a.available).length);
+                renderCardValue('fleet-relayed', (data.relay_log || []).length);
+                renderCardValue('fleet-queue', (data.message_queue || []).length);
+                renderFleetTable(fleetAgents);
             }
 
             // Benchmarks
-            if (page === 'benchmarks' && data.benchmarks !== undefined) {
-                document.getElementById('bench-status').textContent = data.world_class ? '✓ World-Class' : '✗ Not Yet';
-                document.getElementById('bench-passing').textContent = `${data.pass_count}/${data.total}`;
-                document.getElementById('bench-score').textContent = `${((data.pass_count / data.total) * 100).toFixed(1)}%`;
-                const benchHtml = (data.benchmarks || []).length > 0
-                    ? data.benchmarks.map(bench => `
-                        <tr>
-                            <td>${bench.name}</td>
-                            <td class="${bench.status === 'pass' ? 'status-good' : 'status-bad'}">${bench.status.toUpperCase()}</td>
-                            <td>${bench.details || '—'}</td>
-                        </tr>
-                    `).join('')
-                    : '<tr><td colspan="3" class="loading">No results</td></tr>';
-                document.getElementById('bench-results-table').innerHTML = benchHtml;
+            if (page === 'benchmarks') {
+                const benchmarks = data.benchmarks || [];
+                renderCardValue('bench-status', data.world_class ? '✓ World-Class' : '✗ Not Yet');
+                renderCardValue('bench-passing', `${data.pass_count || 0}/${data.total || 12}`);
+                renderCardValue('bench-score', `${((data.pass_count || 0) / (data.total || 12) * 100).toFixed(1)}%`);
+                renderBenchmarksTable(benchmarks);
             }
         }
 
-        function updateStatus(status, ok) {
-            document.getElementById('api-status').textContent = status;
-            document.getElementById('api-health').textContent = ok ? 'Connected' : 'Disconnected';
-            document.getElementById('sys-status').textContent = ok ? 'Healthy' : 'Error';
+        function renderCardValue(elementId, value) {
+            const el = document.getElementById(elementId);
+            if (el) {
+                el.textContent = value;
+                el.style.animation = 'none';
+                setTimeout(() => { el.style.animation = 'slideInValue 0.4s ease'; }, 10);
+            }
+        }
+
+        function renderLanesTable(lanes, tableId) {
+            const tbody = document.getElementById(tableId);
+            if (!tbody) return;
+
+            if (!lanes || lanes.length === 0) {
+                showEmptyState(tableId, 'No lane data available');
+                return;
+            }
+
+            const html = lanes.map(lane => `
+                <tr>
+                    <td><strong>${lane.lane || '—'}</strong></td>
+                    <td class="${(lane.success_rate || 0) >= 0.95 ? 'status-good' : (lane.success_rate || 0) >= 0.85 ? 'status-warn' : 'status-bad'}">
+                        ${lane.success_rate ? `${(lane.success_rate * 100).toFixed(1)}%` : '—'}
+                    </td>
+                    <td>${lane.total_executions || 0}</td>
+                    <td>${lane.avg_response_time_ms ? `${lane.avg_response_time_ms.toFixed(0)}ms` : '—'}</td>
+                    <td>${lane.throughput_per_day ? `${lane.throughput_per_day.toFixed(1)}` : '—'}</td>
+                    <td><span class="status-good">${lane.sla_status || '✓'}</span></td>
+                </tr>
+            `).join('');
+
+            tbody.innerHTML = html || '<tr><td colspan="6" class="loading">No data</td></tr>';
+        }
+
+        function renderCircuitBreakerTable(lanes) {
+            const tbody = document.getElementById('cb-table');
+            if (!tbody) return;
+
+            const entries = Object.entries(lanes);
+            if (entries.length === 0) {
+                showEmptyState('cb-table', 'No circuit breaker data');
+                return;
+            }
+
+            const html = entries.map(([lane, state]) => `
+                <tr>
+                    <td><strong>${lane}</strong></td>
+                    <td class="${state.state === 'CLOSED' ? 'status-good' : state.state === 'HALF_OPEN' ? 'status-warn' : 'status-bad'}">
+                        ${state.state || 'UNKNOWN'}
+                    </td>
+                    <td>${state.failure_count || 0}</td>
+                    <td>${state.last_failure_time ? new Date(state.last_failure_time).toLocaleTimeString() : '—'}</td>
+                </tr>
+            `).join('');
+
+            tbody.innerHTML = html;
+        }
+
+        function renderFleetTable(agents) {
+            const tbody = document.getElementById('fleet-agents-table');
+            if (!tbody) return;
+
+            if (!agents || agents.length === 0) {
+                showEmptyState('fleet-agents-table', 'No agents online');
+                return;
+            }
+
+            const html = agents.map(agent => `
+                <tr>
+                    <td><strong>${agent.name || 'Unknown'}</strong></td>
+                    <td class="${agent.available ? 'status-good' : 'status-bad'}">
+                        ${agent.available ? '🟢 Online' : '🔴 Offline'}
+                    </td>
+                    <td>${agent.last_heartbeat ? new Date(agent.last_heartbeat).toLocaleTimeString() : '—'}</td>
+                    <td>${agent.task_count || 0}</td>
+                </tr>
+            `).join('');
+
+            tbody.innerHTML = html;
+        }
+
+        function renderBenchmarksTable(benchmarks) {
+            const tbody = document.getElementById('bench-results-table');
+            if (!tbody) return;
+
+            if (!benchmarks || benchmarks.length === 0) {
+                showEmptyState('bench-results-table', 'No benchmark results');
+                return;
+            }
+
+            const html = benchmarks.map(bench => `
+                <tr>
+                    <td><strong>${bench.name || 'Unknown'}</strong></td>
+                    <td class="${(bench.status || '').toLowerCase() === 'pass' ? 'status-good' : 'status-bad'}">
+                        ${(bench.status || 'UNKNOWN').toUpperCase()}
+                    </td>
+                    <td>${bench.details || '—'}</td>
+                </tr>
+            `).join('');
+
+            tbody.innerHTML = html;
+        }
+
+        function updateStatus(ok) {
+            const statusEl = document.querySelector('.api-status-dot');
+            const statusText = document.getElementById('api-health');
+            const sysStatus = document.getElementById('sys-status');
+
+            if (statusEl) {
+                statusEl.classList.toggle('online', ok);
+                statusEl.classList.toggle('offline', !ok);
+            }
+            if (statusText) statusText.textContent = ok ? 'Connected' : 'Disconnected';
+            if (sysStatus) sysStatus.textContent = ok ? 'Healthy' : 'Error';
         }
 
         function saveSettings() {
             const endpoint = document.getElementById('api-endpoint').value;
             const interval = parseInt(document.getElementById('refresh-interval').value) * 1000;
+
+            if (!endpoint || isNaN(interval) || interval < 5000) {
+                showToast('Invalid settings', 'error');
+                return;
+            }
+
             localStorage.setItem('api_endpoint', endpoint);
             localStorage.setItem('refresh_interval', interval);
-            alert('Settings saved!');
+            refreshInterval = interval;
+            clearInterval(autoRefreshTimer);
+            autoRefreshTimer = setInterval(() => loadMetrics(currentPage), refreshInterval);
+            showToast('Settings saved and applied', 'success');
+        }
+
+        // Load saved settings
+        function loadSettings() {
+            const saved_endpoint = localStorage.getItem('api_endpoint');
+            const saved_interval = localStorage.getItem('refresh_interval');
+
+            if (saved_endpoint) {
+                document.getElementById('api-endpoint').value = saved_endpoint;
+            }
+            if (saved_interval) {
+                refreshInterval = parseInt(saved_interval);
+                document.getElementById('refresh-interval').value = refreshInterval / 1000;
+            }
         }
 
         // Initial load
-        loadMetrics();
-        autoRefreshTimer = setInterval(loadMetrics, refreshInterval);
+        loadSettings();
+        loadMetrics(currentPage);
+        autoRefreshTimer = setInterval(() => loadMetrics(currentPage), refreshInterval);
 
+        // Refresh when page becomes visible
         document.addEventListener('visibilitychange', () => {
-            if (!document.hidden) loadMetrics();
+            if (!document.hidden) {
+                loadMetrics(currentPage);
+            }
+        });
+
+        // Keyboard shortcut: R to refresh
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
+                e.preventDefault();
+                loadMetrics(currentPage);
+            }
         });
     </script>
 </body>
