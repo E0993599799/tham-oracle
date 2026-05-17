@@ -1,0 +1,34 @@
+# Telegram Bot Configuration Template
+#
+# HOW TO GET THESE VALUES:
+#
+# 1. TELEGRAM_BOT_TOKEN
+#    - Open Telegram app
+#    - Search for @BotFather
+#    - Send /newbot
+#    - Follow instructions
+#    - Copy the HTTP API token (format: 123456:ABC-DEF1234...)
+#
+# 2. TELEGRAM_CHAT_ID
+#    - Option A: Search @userinfobot and send any message
+#    - Option B: Message your bot, then visit:
+#      https://api.telegram.org/bot{TOKEN}/getUpdates
+#      Look for "chat":{"id": YOUR_CHAT_ID}
+#
+# SETUP:
+# 1. Replace VALUES below with your actual credentials
+# 2. Save as: .telegram-config (in project root)
+# 3. Add to .gitignore: echo ".telegram-config" >> .gitignore
+# 4. Run: bash scripts/telegram-bot-setup.sh
+#
+# SECURITY:
+# - Never commit .telegram-config to git
+# - Keep bot token confidential
+# - Only share chat ID if needed
+
+export TELEGRAM_BOT_TOKEN='YOUR_BOT_TOKEN_HERE'
+export TELEGRAM_CHAT_ID='YOUR_CHAT_ID_HERE'
+
+# Optional: Set message format preference
+export TELEGRAM_COMPACT_MODE='true'
+export TELEGRAM_USE_EMOJI='true'
