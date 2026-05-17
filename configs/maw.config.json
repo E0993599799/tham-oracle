@@ -1,0 +1,67 @@
+{
+  "name": "tham-node",
+  "version": "1.0.0",
+  "fleet": {
+    "lineage": [
+      {
+        "name": "tham",
+        "repo": "E0993599799/tham-oracle",
+        "role": "brain-orchestrator",
+        "description": "Personal Oracle for พี่เอก"
+      },
+      {
+        "name": "core",
+        "repo": "E0993599799/tham-oracle",
+        "role": "bridge-gate",
+        "description": "Omega Core Bridge/Gate/Proof Writer"
+      },
+      {
+        "name": "bob",
+        "role": "coordinator",
+        "description": "BoB — Inter-Oracle Coordinator"
+      },
+      {
+        "name": "codex",
+        "role": "code-builder",
+        "description": "Codex — Code Builder Agent",
+        "port": 20128
+      },
+      {
+        "name": "gemini",
+        "role": "research-inspector",
+        "description": "Gemini — Research Inspector Agent",
+        "port": 20128
+      },
+      {
+        "name": "watchdog",
+        "role": "system-monitor",
+        "description": "Watchdog — System Monitor Agent"
+      },
+      {
+        "name": "hermes",
+        "role": "specialist-legacy",
+        "description": "Hermes — Legacy/Specialist Adapter"
+      },
+      {
+        "name": "housekeeper",
+        "role": "maintenance",
+        "description": "Housekeeper — Forge/Omega Maintenance"
+      }
+    ]
+  },
+  "triggers": [
+    {
+      "on": "agent-crash",
+      "action": "python3 scripts/agent-coordinator.py",
+      "name": "re-probe-on-crash",
+      "timeout": 30
+    },
+    {
+      "on": "agent-wake",
+      "action": "python3 scripts/message-router.py --once",
+      "name": "route-on-wake",
+      "timeout": 30
+    }
+  ],
+  "peers": []
+}

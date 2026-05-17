@@ -1,25 +1,25 @@
 {
-  "timestamp": "2026-05-17T15:57:16.663047",
+  "timestamp": "2026-05-17T16:22:21.095060",
   "overall_level": "CRITICAL",
   "probes": {
     "codex_inference": {
       "reachable": false,
-      "latency_ms": 0.12946128845214844,
+      "latency_ms": 0.19168853759765625,
       "circuit_state": "UNKNOWN"
     },
     "tham_orchestrator": {
       "reachable": true,
-      "latency_ms": 2.2373199462890625,
+      "latency_ms": 0.12254714965820312,
       "circuit_state": "UNKNOWN"
     },
     "core_bridge": {
       "reachable": false,
-      "latency_ms": 0.1354217529296875,
+      "latency_ms": 0.08034706115722656,
       "circuit_state": "UNKNOWN"
     },
     "ollama": {
       "reachable": false,
-      "latency_ms": 0.07843971252441406,
+      "latency_ms": 0.027418136596679688,
       "circuit_state": "UNKNOWN"
     }
   },

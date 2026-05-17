@@ -1,0 +1,27 @@
+{
+  "name": "omega-maw",
+  "version": "0.1.0",
+  "sdk": "^1.0.0",
+  "target": "js",
+  "entry": "./src/index.ts",
+  "tier": "standard",
+  "weight": 50,
+  "description": "Omega OS integration with maw — fleet orchestration, message relay, provider tracking",
+  "author": "Soul-Brews-Studio + ธาม",
+  "capabilities": ["peer", "sdk", "fs", "proc"],
+  "cli": {
+    "command": "omega",
+    "aliases": ["om"],
+    "help": "maw omega <fleet|relay|wake|alert|providers> [--agent <id>]"
+  },
+  "hooks": {
+    "on": ["SessionStart", "SessionEnd", "MessageSend"]
+  },
+  "cron": {
+    "schedule": "* * * * *",
+    "handler": "onTick"
+  },
+  "transport": {
+    "peer": true
+  }
+}

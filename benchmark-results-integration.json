@@ -14,7 +14,7 @@
         "Threshold: \u226595%",
         "Result: PASS"
       ],
-      "timestamp": "2026-05-17T09:03:12.972204"
+      "timestamp": "2026-05-17T09:23:30.055153"
     },
     {
       "name": "Proof Completeness",
@@ -29,7 +29,7 @@
         "Invalid: 0",
         "Required fields: proof_id, contract_id, status, evidence"
       ],
-      "timestamp": "2026-05-17T09:03:12.972204"
+      "timestamp": "2026-05-17T09:23:30.055153"
     },
     {
       "name": "Independent Verification",
@@ -46,7 +46,7 @@
         "JSON validity check",
         "git history check"
       ],
-      "timestamp": "2026-05-17T09:03:12.972204"
+      "timestamp": "2026-05-17T09:23:30.055153"
     },
     {
       "name": "Constitution Compliance",
@@ -61,7 +61,7 @@
         "Rule count: 28",
         "Sources: constitution.md, CLAUDE.md"
       ],
-      "timestamp": "2026-05-17T09:03:12.972204"
+      "timestamp": "2026-05-17T09:23:30.055153"
     },
     {
       "name": "Memory Freshness",
@@ -69,14 +69,14 @@
       "description": "All context < 60 min old; mandatory re-read if stale",
       "status": "PASS",
       "score": 100,
-      "details": "ACTIVE_INDEX age: -65.4 min (threshold: < 60 min)",
+      "details": "ACTIVE_INDEX age: -45.1 min (threshold: < 60 min)",
       "evidence": [
         "ACTIVE_INDEX exists: True",
-        "Age: -65.4 min",
+        "Age: -45.1 min",
         "Threshold: < 60 min (soft: < 120 min in CI)",
         "Status: Fresh"
       ],
-      "timestamp": "2026-05-17T09:03:12.972204"
+      "timestamp": "2026-05-17T09:23:30.055153"
     },
     {
       "name": "Confidence Threshold Enforcement",
@@ -91,7 +91,7 @@
         "Threshold: 0.7",
         "Implementation: intent-decode skill"
       ],
-      "timestamp": "2026-05-17T09:03:12.972204"
+      "timestamp": "2026-05-17T09:23:30.055153"
     },
     {
       "name": "Fallback Coverage & Speed",
@@ -111,7 +111,7 @@
         "blocklist enforcement",
         "timeout handling"
       ],
-      "timestamp": "2026-05-17T09:03:12.972204"
+      "timestamp": "2026-05-17T09:23:30.055153"
     },
     {
       "name": "Token Budget Enforcement",
@@ -126,7 +126,7 @@
         "Threshold: >10% overflow triggers warning",
         "Implementation: token-optimizer skill"
       ],
-      "timestamp": "2026-05-17T09:03:12.972204"
+      "timestamp": "2026-05-17T09:23:30.055153"
     },
     {
       "name": "Self-Improvement Engine",
@@ -141,7 +141,7 @@
         "Expected: \u22651 per 10 failures",
         "Location: \u03c8/memory/learnings/"
       ],
-      "timestamp": "2026-05-17T09:03:12.972204"
+      "timestamp": "2026-05-17T09:23:30.055153"
     },
     {
       "name": "HITL Reachability (CRITICAL)",
@@ -156,7 +156,7 @@
         "SLA: < 30 seconds for CRITICAL",
         "Implementation: human-feedback-hitl skill"
       ],
-      "timestamp": "2026-05-17T09:03:12.972204"
+      "timestamp": "2026-05-17T09:23:30.055153"
     },
     {
       "name": "Observability & Tracing",
@@ -171,7 +171,7 @@
         "Event coverage: intent \u2192 memory \u2192 risk \u2192 contract \u2192 proof",
         "Visibility: real-time in Oracle Studio"
       ],
-      "timestamp": "2026-05-17T09:03:12.972204"
+      "timestamp": "2026-05-17T09:23:30.055153"
     },
     {
       "name": "Failure Recovery Time",
@@ -186,12 +186,12 @@
         "Target MTTR: < 3 minutes",
         "Detection: component health checks + circuit breaker"
       ],
-      "timestamp": "2026-05-17T09:03:12.972204"
+      "timestamp": "2026-05-17T09:23:30.055153"
     }
   ],
   "overall_score": 100,
   "world_class": true,
   "pass_count": 12,
   "total_benchmarks": 12,
-  "timestamp": "2026-05-17T09:03:12.972204"
+  "timestamp": "2026-05-17T09:23:30.055153"
 }

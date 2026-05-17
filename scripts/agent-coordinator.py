@@ -8,12 +8,29 @@ Integrates with circuit-breaker.py state for health assessment.
 import json
 import socket
 import time
+import subprocess
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Optional
 import sys
 
 REPO_ROOT = Path(__file__).parent.parent
+
+
+class MawSessionProber:
+    """Query maw sessions via maw ls --json."""
+
+    @staticmethod
+    def get_sessions() -> Dict[str, bool]:
+        """Return {agent_id: is_active}."""
+        try:
+            result = subprocess.run(["maw", "ls", "--json"], capture_output=True, text=True, timeout=5)
+            if result.returncode != 0:
+                return {}
+            sessions = json.loads(result.stdout)
+            return {s.get("name"): True for s in sessions if isinstance(s, dict) and s.get("name")}
+        except Exception:
+            return {}
 
 
 class AgentCoordinator:
@@ -27,6 +44,7 @@ class AgentCoordinator:
 
         self.registry = self._load_registry()
         self.circuit_states = self._load_circuit_states()
+        self.maw_sessions = MawSessionProber.get_sessions()
         self.timestamp = datetime.now().isoformat()
 
     def _load_registry(self) -> Dict:
@@ -62,121 +80,128 @@ class AgentCoordinator:
             return False
 
     def _probe_agent(self, agent: Dict) -> Dict:
-        """Probe a single agent and return status."""
+        """Probe a single agent and return status (Format B with soul/specialty/capabilities)."""
         agent_id = agent.get("id")
         port = agent.get("port")
+        has_maw_session = agent_id in self.maw_sessions
+
         status_obj = {
-            "id": agent_id,
-            "role": agent.get("role"),
+            "name": agent_id,
+            "soul": agent.get("soul", "No soul"),
+            "role": agent.get("role", "unknown"),
+            "specialty": agent.get("specialty", "General"),
+            "capabilities": agent.get("capabilities", []),
             "port": port,
-            "availability": "unknown",
-            "port_reachable": None,
-            "circuit_state": self.circuit_states.get(agent_id, {}).get("state", "UNKNOWN"),
-            "last_probed": datetime.now().isoformat(),
+            "status": "unknown",
+            "available": False,
+            "maw_session_active": has_maw_session,
+            "last_heartbeat": datetime.now().isoformat(),
+            "task_count": 0,
         }
 
         # Probe port if specified
+        port_reachable = False
         if port:
-            reachable = self._probe_port("127.0.0.1", port, timeout=1.0)
-            status_obj["port_reachable"] = reachable
-            status_obj["availability"] = "available" if reachable else "unavailable"
+            port_reachable = self._probe_port("127.0.0.1", port, timeout=1.0)
+
+        # Enhanced availability: port open OR maw session active
+        if port_reachable:
+            status_obj["status"] = "connected"
+            status_obj["available"] = True
+        elif has_maw_session:
+            status_obj["status"] = "session-only"
+            status_obj["available"] = True
         else:
-            # Port-less agents (bob, housekeeper, watchdog) check circuit state
-            circuit_state = self.circuit_states.get(agent_id, {}).get("state", "UNKNOWN")
-            if circuit_state == "OPEN":
-                status_obj["availability"] = "unavailable"
-            elif circuit_state == "HALF_OPEN":
-                status_obj["availability"] = "degraded"
-            else:
-                status_obj["availability"] = "available"
+            status_obj["status"] = "offline"
+            status_obj["available"] = False
 
         return status_obj
 
     def query_fleet(self) -> Dict:
-        """Query all agents and return fleet status."""
+        """Query all agents and return unified Format B fleet status."""
         agents_status = []
         available_count = 0
-        degraded_count = 0
-        unavailable_count = 0
 
         for agent in self.registry.get("agents", []):
             status = self._probe_agent(agent)
             agents_status.append(status)
 
-            if status["availability"] == "available":
+            if status["available"]:
                 available_count += 1
-            elif status["availability"] == "degraded":
-                degraded_count += 1
-            else:
-                unavailable_count += 1
 
         total = len(agents_status)
-        health_overall = "healthy"
-        if unavailable_count > 0:
-            health_overall = "degraded" if total - unavailable_count > 0 else "critical"
-        elif degraded_count > 0:
-            health_overall = "degraded"
+        health_overall = "healthy" if available_count == total else "degraded" if available_count > 0 else "critical"
+
+        # Load relay log from file if it exists
+        relay_log = []
+        relay_log_file = self.output_dir / "relay-log.jsonl"
+        if relay_log_file.exists():
+            lines = relay_log_file.read_text().strip().split("\n")
+            for line in lines:
+                if line:
+                    try:
+                        relay_log.append(json.loads(line))
+                    except:
+                        pass
 
         return {
             "timestamp": self.timestamp,
-            "health_overall": health_overall,
-            "summary": {
-                "total_agents": total,
-                "available": available_count,
-                "degraded": degraded_count,
-                "unavailable": unavailable_count,
-            },
             "agents": agents_status,
+            "relay_log": relay_log[-50:] if relay_log else [],  # Last 50 entries
+            "message_queue": [],
+            "health_overall": health_overall,
         }
 
     def save_fleet_status(self, fleet_status: Dict) -> Path:
-        """Save fleet status to output file."""
-        date_str = datetime.now().strftime("%Y%m%d")
-        output_file = self.output_dir / f"fleet-status-{date_str}.json"
+        """Save fleet status to output file (both formats)."""
+        date_str_compact = datetime.now().strftime("%Y%m%d")
+        date_str_hyphen = datetime.now().strftime("%Y-%m-%d")
+
+        files = [
+            self.output_dir / f"fleet-status-{date_str_compact}.json",
+            self.output_dir / f"fleet-status-{date_str_hyphen}.json",
+        ]
 
         try:
-            with open(output_file, "w") as f:
-                json.dump(fleet_status, f, indent=2)
-            return output_file
+            for output_file in files:
+                with open(output_file, "w") as f:
+                    json.dump(fleet_status, f, indent=2)
+            return files[1]  # Return hyphen-date version
         except Exception as e:
             print(f"Error saving fleet status: {e}")
             return None
 
     def print_status(self, fleet_status: Dict) -> None:
-        """Pretty-print fleet status."""
-        summary = fleet_status.get("summary", {})
+        """Pretty-print fleet status (Format B)."""
+        agents = fleet_status.get("agents", [])
         health = fleet_status.get("health_overall", "unknown")
+        available = sum(1 for a in agents if a.get("available"))
+        total = len(agents)
 
         emoji = {"healthy": "🟢", "degraded": "🟡", "critical": "🔴"}
         print("\n" + "=" * 70)
         print(f"FLEET STATUS  {emoji.get(health, '⚪')} {health.upper()}")
         print("=" * 70)
         print(f"Timestamp:    {fleet_status.get('timestamp')}")
-        print(f"Total:        {summary.get('total_agents')} agents")
-        print(f"  Available:  {summary.get('available')}")
-        print(f"  Degraded:   {summary.get('degraded')}")
-        print(f"  Unavailable: {summary.get('unavailable')}")
-        print("\nDETAILS:")
+        print(f"Total:        {total} agents, {available} available")
+        print("\nAGENTS:")
         print("-" * 70)
 
-        for agent in fleet_status.get("agents", []):
-            agent_id = agent["id"]
-            role = agent["role"]
-            avail = agent["availability"]
-            circuit = agent["circuit_state"]
-            port = agent["port"]
+        for agent in agents:
+            name = agent.get("name", "?")
+            role = agent.get("role", "?")
+            status = agent.get("status", "unknown")
+            available = agent.get("available", False)
+            maw_active = agent.get("maw_session_active", False)
 
-            emoji_avail = {
-                "available": "🟢",
-                "degraded": "🟡",
-                "unavailable": "🔴",
-                "unknown": "⚪",
-            }
+            emoji_status = "🟢" if available else "🔴"
+            maw_indicator = " [maw]" if maw_active else ""
 
-            port_str = f":{port}" if port else "(no port)"
-            print(
-                f"  {emoji_avail.get(avail, '⚪')} {agent_id:15} {role:20} {avail:12} [circuit: {circuit}] {port_str}"
-            )
+            print(f"  {emoji_status} {name:15} {role:20} {status:15}{maw_indicator}")
+
+        relay_log = fleet_status.get("relay_log", [])
+        if relay_log:
+            print(f"\nRELAY LOG: {len(relay_log)} recent entries")
 
         print("=" * 70 + "\n")
 

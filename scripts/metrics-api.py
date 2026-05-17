@@ -46,6 +46,8 @@ class MetricsHandler(BaseHTTPRequestHandler):
                 data = self.get_fleet_metrics()
             elif path == '/metrics/benchmarks':
                 data = self.get_benchmarks_metrics()
+            elif path == '/metrics/providers':
+                data = self.get_provider_metrics()
             elif path == '/health':
                 data = self.get_health()
             else:
@@ -59,6 +61,7 @@ class MetricsHandler(BaseHTTPRequestHandler):
                     '/metrics/constitution',
                     '/metrics/fleet',
                     '/metrics/benchmarks',
+                    '/metrics/providers',
                     '/health'
                 ]}
         except Exception as e:
@@ -233,6 +236,36 @@ class MetricsHandler(BaseHTTPRequestHandler):
             'world_class': False,
             'pass_count': 0,
             'total': 12
+        }
+
+    def get_provider_metrics(self):
+        """Get API provider status and per-agent quotas."""
+        today = date.today().isoformat()
+        provider_file = REPO_ROOT / "ψ" / "memory" / "resonance" / f"provider-status-{today}.json"
+
+        if provider_file.exists():
+            try:
+                with open(provider_file) as f:
+                    providers = json.load(f)
+                return providers
+            except:
+                pass
+
+        # If not generated yet, run provider-tracker
+        try:
+            import subprocess
+            subprocess.run([sys.executable, str(REPO_ROOT / "scripts" / "provider-tracker.py")],
+                         timeout=10, capture_output=True)
+            if provider_file.exists():
+                with open(provider_file) as f:
+                    return json.load(f)
+        except:
+            pass
+
+        return {
+            'timestamp': datetime.now().isoformat(),
+            'providers': [],
+            'agent_quotas': []
         }
 
     def get_health(self):

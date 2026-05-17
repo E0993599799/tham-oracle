@@ -10,11 +10,12 @@ import socket
 import time
 import subprocess
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 import sys
 
 REPO_ROOT = Path(__file__).parent.parent
+ALERT_COOLDOWN_SECS = 300  # 5-minute cooldown per alert type
 
 
 class FleetMonitor:
@@ -48,10 +49,16 @@ class FleetMonitor:
         self.registry = self._load_registry()
         self.circuit_states = self._load_circuit_states()
 
+        # Alert cooldown tracking: {alert_key: last_timestamp}
+        self.alert_cooldown: Dict[str, float] = {}
+
         # Config
         self.poll_interval = 60  # seconds
         self.latency_threshold_low = 500  # ms
         self.latency_threshold_high = 2000  # ms
+
+        # Auto-clean old alerts on startup
+        self._cleanup_old_alerts()
 
     def _load_registry(self) -> Dict:
         """Load agent registry."""
@@ -72,6 +79,30 @@ class FleetMonitor:
         except:
             pass
         return {}
+
+    def _cleanup_old_alerts(self) -> None:
+        """Delete alert files older than 1 hour from tham inbox."""
+        try:
+            tham_inbox = self.inbox_root / "tham"
+            if not tham_inbox.exists():
+                return
+
+            cutoff_time = datetime.now() - timedelta(hours=1)
+            deleted_count = 0
+
+            for alert_file in tham_inbox.glob("*_fleet-alert-*.txt"):
+                try:
+                    file_mtime = datetime.fromtimestamp(alert_file.stat().st_mtime)
+                    if file_mtime < cutoff_time:
+                        alert_file.unlink()
+                        deleted_count += 1
+                except:
+                    pass
+
+            if deleted_count > 0:
+                print(f"Cleaned up {deleted_count} old alert files")
+        except Exception as e:
+            print(f"Warning: Could not cleanup old alerts: {e}")
 
     def _probe_port(self, host: str, port: int, timeout: float = 2.0) -> tuple[bool, float]:
         """Probe port and return (reachable, latency_ms)."""
@@ -192,8 +223,21 @@ class FleetMonitor:
             print(f"Warning: Failed to log monitoring event: {e}")
 
     def _write_alert_to_inbox(self, alert_level: str, alert_text: str) -> bool:
-        """Write alert to tham's inbox."""
+        """Write alert to tham's inbox with deduplication (5-min cooldown)."""
         try:
+            # Check cooldown for this alert level
+            cooldown_key = f"alert_{alert_level}"
+            now = time.time()
+
+            if cooldown_key in self.alert_cooldown:
+                last_alert = self.alert_cooldown[cooldown_key]
+                if now - last_alert < ALERT_COOLDOWN_SECS:
+                    # Still in cooldown, skip writing
+                    return False
+
+            # Update cooldown
+            self.alert_cooldown[cooldown_key] = now
+
             inbox_dir = self.inbox_root / "tham"
             inbox_dir.mkdir(parents=True, exist_ok=True)
 
@@ -207,6 +251,15 @@ class FleetMonitor:
             return True
         except Exception as e:
             print(f"Warning: Failed to write alert to inbox: {e}")
+            return False
+
+    def _trigger_maw_wake(self, agent_id: str) -> bool:
+        """Trigger maw wake for an offline agent (recovery action)."""
+        try:
+            subprocess.Popen(["maw", "wake", agent_id], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            return True
+        except Exception as e:
+            print(f"Warning: Could not trigger maw wake for {agent_id}: {e}")
             return False
 
     def _send_telegram_alert(self, alert_level: str, alert_text: str) -> bool:
@@ -238,7 +291,7 @@ class FleetMonitor:
         return False
 
     def handle_alerts(self, snapshot: Dict) -> None:
-        """Handle alerts based on level and route appropriately."""
+        """Handle alerts based on level, route, and trigger recovery."""
         alerts = snapshot.get("alerts", [])
         overall_level = snapshot.get("overall_level")
 
@@ -256,27 +309,56 @@ class FleetMonitor:
 
         alert_text = "\n".join(alert_lines)
 
+        # Extract agent names from port keys and trigger maw wake
+        maw_config = self._load_maw_config()
+        agents_to_wake = set()
+
+        for alert in alerts:
+            port_key = alert.get("port", "")
+            # Map port keys to agent names
+            for agent in maw_config.get("fleet", {}).get("lineage", []):
+                if agent.get("port") and str(agent["port"]) in port_key:
+                    agents_to_wake.add(agent["name"])
+                    break
+
         # Route based on level
         if overall_level == "LOW":
             # Just log
             print(f"LOW: {alerts[0]['issue'] if alerts else 'unknown'}")
 
         elif overall_level == "MEDIUM":
-            # Write to tham's inbox
+            # Write to tham's inbox + try maw wake
             self._write_alert_to_inbox("MEDIUM", alert_text)
-            print(f"MEDIUM: Alert written to ψ/inbox/tham/")
+            for agent in agents_to_wake:
+                self._trigger_maw_wake(agent)
+            print(f"MEDIUM: Alert written to ψ/inbox/tham/" + (f" (waking {len(agents_to_wake)} agents)" if agents_to_wake else ""))
 
         elif overall_level == "HIGH":
-            # Write to inbox + try Telegram
+            # Write to inbox + try Telegram + maw wake
             self._write_alert_to_inbox("HIGH", alert_text)
             self._send_telegram_alert("HIGH", alert_text)
-            print(f"HIGH: Alert to inbox + Telegram")
+            for agent in agents_to_wake:
+                self._trigger_maw_wake(agent)
+            print(f"HIGH: Alert to inbox + Telegram" + (f" (waking {len(agents_to_wake)} agents)" if agents_to_wake else ""))
 
         elif overall_level == "CRITICAL":
-            # Write to inbox + Telegram + log prominently
+            # Write to inbox + Telegram + log prominently + maw wake
             self._write_alert_to_inbox("CRITICAL", alert_text)
             self._send_telegram_alert("CRITICAL", alert_text)
-            print(f"CRITICAL: {alert_text}")
+            for agent in agents_to_wake:
+                self._trigger_maw_wake(agent)
+            print(f"CRITICAL: {alert_text}" + (f" (waking {len(agents_to_wake)} agents)" if agents_to_wake else ""))
+
+    def _load_maw_config(self) -> Dict:
+        """Load maw configuration for agent info."""
+        try:
+            maw_config_file = REPO_ROOT / "configs/maw.config.json"
+            if maw_config_file.exists():
+                with open(maw_config_file) as f:
+                    return json.load(f)
+        except:
+            pass
+        return {"fleet": {"lineage": []}}
 
     def save_snapshot(self, snapshot: Dict) -> Path:
         """Save snapshot to fleet-monitor-{date}.json."""

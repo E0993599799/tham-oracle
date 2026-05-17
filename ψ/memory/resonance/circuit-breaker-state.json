@@ -1,8 +1,38 @@
 {
   "codex_gpt55": {
-    "state": "OPEN",
-    "failure_count": 5,
-    "last_failure_time": "2026-05-17T15:52:29.564701",
-    "opened_at": "2026-05-17T15:52:29.563398"
+    "state": "CLOSED",
+    "failure_count": 0,
+    "last_failure_time": null,
+    "opened_at": null
+  },
+  "claude": {
+    "state": "CLOSED",
+    "failure_count": 0,
+    "last_failure_time": null,
+    "opened_at": null
+  },
+  "gemini": {
+    "state": "CLOSED",
+    "failure_count": 0,
+    "last_failure_time": null,
+    "opened_at": null
+  },
+  "ollama": {
+    "state": "CLOSED",
+    "failure_count": 0,
+    "last_failure_time": null,
+    "opened_at": null
+  },
+  "hermes": {
+    "state": "CLOSED",
+    "failure_count": 0,
+    "last_failure_time": null,
+    "opened_at": null
+  },
+  "powershell_sfsr": {
+    "state": "CLOSED",
+    "failure_count": 0,
+    "last_failure_time": null,
+    "opened_at": null
   }
 }

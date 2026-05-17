@@ -37,6 +37,19 @@ class MessageRouter:
 
         self.processed_messages = self._load_processed()
 
+        # Ensure all agent inboxes exist
+        self._ensure_agent_inboxes()
+
+    def _ensure_agent_inboxes(self) -> None:
+        """Ensure all agent inboxes exist."""
+        self.inbox_root.mkdir(parents=True, exist_ok=True)
+
+        # All 8 agents from agent-registry
+        agents = ["tham", "core", "bob", "codex", "gemini", "watchdog", "hermes", "housekeeper"]
+        for agent in agents:
+            agent_inbox = self.inbox_root / agent
+            agent_inbox.mkdir(parents=True, exist_ok=True)
+
     def _load_processed(self) -> Dict[str, bool]:
         """Load set of already-processed message hashes."""
         try:
@@ -229,6 +242,68 @@ class MessageRouter:
 
         return {"agent": agent_id, "processed": processed, "routed": routed, "errors": errors}
 
+    def route_root_messages(self) -> int:
+        """Route messages in root inbox (e.g., Telegram) to tham inbox."""
+        routed = 0
+
+        if not self.inbox_root.exists():
+            return routed
+
+        for item in self.inbox_root.iterdir():
+            # Skip directories and dotfiles
+            if item.is_dir() or item.name.startswith("."):
+                continue
+
+            # Only route .txt and .json files
+            if not (item.name.endswith(".txt") or item.name.endswith(".json")):
+                continue
+
+            try:
+                # Create a unique hash for this message
+                msg_hash = f"root:{item.name}"
+                if msg_hash in self.processed_messages:
+                    continue
+
+                # Read the message
+                content = item.read_text()
+
+                # Create message object
+                if item.name.endswith(".json"):
+                    msg = json.loads(content)
+                else:
+                    msg = {"type": "text", "content": content, "timestamp": datetime.now().isoformat()}
+
+                # Route to tham inbox
+                tham_inbox = self.inbox_root / "tham"
+                tham_inbox.mkdir(parents=True, exist_ok=True)
+                target_file = tham_inbox / f"{datetime.now().timestamp()}_{item.name}"
+                target_file.write_text(json.dumps(msg, indent=2))
+
+                # Log relay event
+                self._log_relay_event(
+                    source_agent="telegram",
+                    target_agent="tham",
+                    message_id=item.name,
+                    status="routed",
+                    notes="root inbox"
+                )
+
+                self.processed_messages[msg_hash] = True
+                routed += 1
+            except Exception as e:
+                self._log_relay_event(
+                    source_agent="telegram",
+                    target_agent="tham",
+                    message_id=item.name,
+                    status="failed",
+                    notes=str(e)
+                )
+
+        if routed > 0:
+            self._save_processed()
+
+        return routed
+
     def scan_all_inboxes(self) -> List[Dict]:
         """Scan and process all agent inboxes."""
         results = []
@@ -242,6 +317,37 @@ class MessageRouter:
                 results.append(result)
 
         return results
+
+    def sync_relay_log_to_fleet_status(self) -> None:
+        """Update fleet-status with current relay_log entries."""
+        try:
+            from datetime import date
+            today = date.today().isoformat()
+            fleet_file = self.memory_root / f"fleet-status-{today}.json"
+
+            # Load relay log
+            relay_log = []
+            if self.relay_log_file.exists():
+                with open(self.relay_log_file) as f:
+                    for line in f:
+                        try:
+                            relay_log.append(json.loads(line))
+                        except:
+                            pass
+
+            # Update fleet-status if it exists
+            if fleet_file.exists():
+                with open(fleet_file) as f:
+                    fleet = json.load(f)
+
+                # Keep last 50 relay entries
+                fleet["relay_log"] = relay_log[-50:] if relay_log else []
+                fleet["timestamp"] = datetime.now().isoformat()
+
+                with open(fleet_file, "w") as f:
+                    json.dump(fleet, f, indent=2)
+        except Exception as e:
+            print(f"Warning: Could not sync relay_log to fleet-status: {e}")
 
     def print_relay_log_summary(self) -> None:
         """Print summary of relay log."""
@@ -291,15 +397,26 @@ def main():
     if "--test" in sys.argv:
         # Test mode: scan inboxes
         print("Testing message router...")
+        root_routed = router.route_root_messages()
+        if root_routed > 0:
+            print(f"  Root inbox: routed {root_routed} Telegram messages")
         results = router.scan_all_inboxes()
         for result in results:
             print(f"  {result['agent']}: processed={result['processed']}, routed={result['routed']}, errors={result['errors']}")
+        router.sync_relay_log_to_fleet_status()
         router.print_relay_log_summary()
         print("✓ Message router test complete")
         sys.exit(0)
 
     # Default: scan and route
     print("Scanning inboxes and routing messages...")
+
+    # Route root inbox messages (Telegram, etc.)
+    root_routed = router.route_root_messages()
+    if root_routed > 0:
+        print(f"  Routed {root_routed} Telegram messages to tham inbox")
+
+    # Route agent inbox messages
     results = router.scan_all_inboxes()
 
     total_processed = sum(r["processed"] for r in results)
@@ -308,6 +425,9 @@ def main():
 
     if total_processed > 0:
         print(f"✓ Processed {total_processed} messages, routed {total_routed}, errors {total_errors}")
+
+    # Sync relay_log to fleet-status
+    router.sync_relay_log_to_fleet_status()
 
     router.print_relay_log_summary()
 

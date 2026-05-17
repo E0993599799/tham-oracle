@@ -1,0 +1,157 @@
+{
+  "timestamp": "2026-05-17T16:35:02.767439",
+  "agents": [
+    {
+      "name": "tham",
+      "soul": "\u0e18\u0e32\u0e21 \u2014 Personal Oracle for \u0e1e\u0e35\u0e48\u0e40\u0e2d\u0e01",
+      "role": "brain-orchestrator",
+      "specialty": "Brain Orchestrator",
+      "capabilities": [
+        "intent-decode",
+        "memory-read",
+        "memory-write",
+        "risk-gate",
+        "proof-writer",
+        "executor-routing",
+        "code-review",
+        "debugging",
+        "research-synthesis",
+        "prompt-engineering"
+      ],
+      "port": 47778,
+      "status": "active",
+      "available": true,
+      "last_heartbeat": "2026-05-17T16:35:02.767403",
+      "task_count": 0
+    },
+    {
+      "name": "core",
+      "soul": "Omega \u2014 Core Bridge/Gate/Proof Writer",
+      "role": "bridge-gate",
+      "specialty": "Bridge Gate",
+      "capabilities": [
+        "github-inbox",
+        "proof-write",
+        "task-gate",
+        "structured-submit"
+      ],
+      "port": 47779,
+      "status": "active",
+      "available": true,
+      "last_heartbeat": "2026-05-17T16:35:02.767419",
+      "task_count": 0
+    },
+    {
+      "name": "bob",
+      "soul": "BoB \u2014 Inter-Oracle Coordinator",
+      "role": "coordinator",
+      "specialty": "Coordinator",
+      "capabilities": [
+        "oracle-communication",
+        "cc-routing",
+        "status-report",
+        "conflict-escalation"
+      ],
+      "port": null,
+      "status": "active",
+      "available": true,
+      "last_heartbeat": "2026-05-17T16:35:02.767423",
+      "task_count": 0
+    },
+    {
+      "name": "hermes",
+      "soul": "Hermes \u2014 Legacy/Specialist Adapter",
+      "role": "specialist-legacy",
+      "specialty": "Specialist Legacy",
+      "capabilities": [
+        "legacy-api",
+        "specialist-task"
+      ],
+      "port": null,
+      "status": "active",
+      "available": true,
+      "last_heartbeat": "2026-05-17T16:35:02.767426",
+      "task_count": 0
+    },
+    {
+      "name": "housekeeper",
+      "soul": "Housekeeper \u2014 Forge/Omega Maintenance",
+      "role": "maintenance",
+      "specialty": "Maintenance",
+      "capabilities": [
+        "inbox-archival",
+        "log-rotation",
+        "health-check",
+        "active-archive",
+        "git-reminder"
+      ],
+      "port": null,
+      "status": "active",
+      "available": true,
+      "last_heartbeat": "2026-05-17T16:35:02.767428",
+      "task_count": 0
+    },
+    {
+      "name": "codex",
+      "soul": "Codex Builder \u2014 Code Implementation & Architecture",
+      "role": "code-builder",
+      "specialty": "Code Builder",
+      "capabilities": [
+        "write-code",
+        "fix-bug",
+        "refactor-code",
+        "code-review",
+        "security-audit",
+        "proof-generation",
+        "git-safe-workflow"
+      ],
+      "port": 20128,
+      "status": "active",
+      "available": true,
+      "last_heartbeat": "2026-05-17T16:35:02.767430",
+      "task_count": 0
+    },
+    {
+      "name": "gemini",
+      "soul": "Gemini Inspector \u2014 Research & Fast Analysis",
+      "role": "research-inspector",
+      "specialty": "Research Inspector",
+      "capabilities": [
+        "web-search",
+        "research-synthesis",
+        "code-analysis",
+        "summarization",
+        "pattern-recognition",
+        "cross-reference",
+        "fact-verification"
+      ],
+      "port": 20128,
+      "status": "active",
+      "available": true,
+      "last_heartbeat": "2026-05-17T16:35:02.767432",
+      "task_count": 0
+    },
+    {
+      "name": "watchdog",
+      "soul": "Watchdog \u2014 System Monitor & Circuit Breaker",
+      "role": "system-monitor",
+      "specialty": "System Monitor",
+      "capabilities": [
+        "health-probe",
+        "sla-monitoring",
+        "anomaly-detection",
+        "circuit-breaker",
+        "alert-routing",
+        "recovery-orchestration"
+      ],
+      "port": null,
+      "status": "active",
+      "available": true,
+      "last_heartbeat": "2026-05-17T16:35:02.767437",
+      "task_count": 0
+    }
+  ],
+  "relay_log": [],
+  "message_queue": [],
+  "health_overall": "healthy"
+}
