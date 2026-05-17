@@ -1,0 +1,48 @@
+{
+  "timestamp": "2026-05-17T15:52:30.354902",
+  "date": "2026-05-17",
+  "summary": {
+    "ok": 1,
+    "warn": 0,
+    "down": 5,
+    "total": 6
+  },
+  "lanes": [
+    {
+      "lane": "codex_gpt55",
+      "status": "down",
+      "latency_ms": 0.4,
+      "timestamp": "2026-05-17T15:52:30.354423"
+    },
+    {
+      "lane": "claude",
+      "status": "down",
+      "latency_ms": 0.1,
+      "timestamp": "2026-05-17T15:52:30.354501"
+    },
+    {
+      "lane": "gemini",
+      "status": "down",
+      "latency_ms": 0.0,
+      "timestamp": "2026-05-17T15:52:30.354556"
+    },
+    {
+      "lane": "ollama",
+      "status": "down",
+      "latency_ms": 0.2,
+      "timestamp": "2026-05-17T15:52:30.354713"
+    },
+    {
+      "lane": "hermes",
+      "status": "down",
+      "latency_ms": 0.1,
+      "timestamp": "2026-05-17T15:52:30.354771"
+    },
+    {
+      "lane": "powershell_sfsr",
+      "status": "ok",
+      "latency_ms": 0,
+      "timestamp": "2026-05-17T15:52:30.354775"
+    }
+  ]
+}

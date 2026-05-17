@@ -1,0 +1,16 @@
+{
+  "metrics": {
+    "p50_ms": 27.63,
+    "p95_ms": 47.51,
+    "p99_ms": 49.68,
+    "error_rate": 0.02,
+    "successful_tasks": 98,
+    "failed_tasks": 2,
+    "throughput_tasks_per_sec": 127.1
+  },
+  "status": "PASS",
+  "total_time_seconds": 0.771068811416626,
+  "tasks_completed": 100,
+  "circuit_breaker_trips": 0,
+  "timestamp": "2026-05-17T08:58:04.878956"
+}

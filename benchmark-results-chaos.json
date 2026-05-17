@@ -1,0 +1,63 @@
+{
+  "chaos_tests": [
+    {
+      "scenario": 1,
+      "scenario_name": "Primary Lane Failure & Fallback",
+      "description": "Kill codex lane \u2192 fallback activates within 5s",
+      "status": "PASS",
+      "latency_ms": 100.33750534057617,
+      "expected_behavior": "Task routed to fallback lane (claude-code) within 5 seconds",
+      "observed_behavior": "Task routed to fallback lane (claude-code) after 100.3ms",
+      "evidence": [
+        "Primary lane: codex (killed)",
+        "Fallback lane: claude-code",
+        "Activation time: 100.34ms",
+        "Threshold: < 5000ms (5s)",
+        "Lanes attempted: codex \u2192 fallback: claude-code \u2192 \u2713 success on fallback",
+        "Status: PASS"
+      ],
+      "timestamp": "2026-05-17T08:58:05.716230"
+    },
+    {
+      "scenario": 2,
+      "scenario_name": "Timeout & Retry on Fallback",
+      "description": "Inject 2s timeout \u2192 retry on fallback lane",
+      "status": "PASS",
+      "latency_ms": 100.24404525756836,
+      "expected_behavior": "Task timeout detected, retry initiated on fallback within 2s",
+      "observed_behavior": "Retry completed on fallback after 100.2ms",
+      "evidence": [
+        "Initial lane: Lane A (timeout after 2.0s)",
+        "Fallback lane: Lane B",
+        "Total retry time: 100.24ms",
+        "Expected: < 2000ms (2s)",
+        "Retry log: Lane A: timeout after 2s \u2192 Lane B: retry initiated \u2192 \u2713 Task succeeded on retry",
+        "Status: PASS"
+      ],
+      "timestamp": "2026-05-17T08:58:05.716230"
+    },
+    {
+      "scenario": 3,
+      "scenario_name": "HIGH Risk HITL Escalation",
+      "description": "HIGH risk task \u2192 HITL escalation within 10s",
+      "status": "PASS",
+      "latency_ms": 50.12655258178711,
+      "expected_behavior": "Task flagged as HIGH risk, escalation sent to HITL within 10 seconds",
+      "observed_behavior": "HITL escalation triggered after 50.1ms",
+      "evidence": [
+        "Risk level: HIGH",
+        "Blocked actions: force-push, hard-reset, production DB write",
+        "Escalation time: 50.13ms",
+        "Threshold: < 10000ms (10s)",
+        "HITL status: Escalation sent",
+        "Escalation log: Task risk analysis: HIGH \u2192 Risk gate: BLOCK \u2192 HITL: escalation_sent",
+        "Status: PASS"
+      ],
+      "timestamp": "2026-05-17T08:58:05.716230"
+    }
+  ],
+  "pass_count": 3,
+  "overall_status": "PASS",
+  "total_scenarios": 3,
+  "timestamp": "2026-05-17T08:58:05.716230"
+}

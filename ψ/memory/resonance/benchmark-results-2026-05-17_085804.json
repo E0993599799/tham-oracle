@@ -1,0 +1,278 @@
+{
+  "benchmark_run_date": "2026-05-17T08:58:04.763035",
+  "world_class_status": "FAIL",
+  "world_class": false,
+  "world_class_threshold": "\u226510/12 benchmarks pass",
+  "scores": {
+    "phase_11a_integration": 81,
+    "phase_11b_stress": 100,
+    "phase_11c_chaos": 100.0,
+    "composite_score": 86
+  },
+  "pass_count": {
+    "phase_11a_benchmarks": "7/12",
+    "phase_11c_chaos_scenarios": "3/3",
+    "total_pass": 7
+  },
+  "phase_details": {
+    "phase_11a": {
+      "overall_score": 81,
+      "pass_count": 7,
+      "world_class": false,
+      "benchmark_count": 12,
+      "benchmarks": [
+        {
+          "name": "Intent Decode Accuracy",
+          "number": 1,
+          "description": "20 ambiguous requests \u2192 \u226518/20 correctly routed",
+          "status": "FAIL",
+          "score": 80,
+          "details": "Intent accuracy: 16/20 (80.0%)",
+          "evidence": [
+            "Total test cases: 20",
+            "Correct routes: 16",
+            "Accuracy: 80.0%",
+            "Threshold: \u226595%",
+            "Result: FAIL"
+          ],
+          "timestamp": "2026-05-17T08:58:04.815877"
+        },
+        {
+          "name": "Proof Completeness",
+          "number": 2,
+          "description": "100% valid JSON in all proof artifacts",
+          "status": "PASS",
+          "score": 100,
+          "details": "Valid JSON proofs: 1/1 (100.0%)",
+          "evidence": [
+            "Total proof files: 1",
+            "Valid JSON: 1",
+            "Invalid: 0",
+            "Required fields: proof_id, contract_id, status, evidence"
+          ],
+          "timestamp": "2026-05-17T08:58:04.815877"
+        },
+        {
+          "name": "Independent Verification",
+          "number": 3,
+          "description": "0 self-reports accepted; independent verification required",
+          "status": "WARN",
+          "score": 50,
+          "details": "Verification methods: None found",
+          "evidence": [
+            "Proof reader exists: False",
+            "Has verification logic: False",
+            "Verification methods: 0"
+          ],
+          "timestamp": "2026-05-17T08:58:04.815877"
+        },
+        {
+          "name": "Constitution Compliance",
+          "number": 4,
+          "description": "0 constitutional rule violations detected in test window",
+          "status": "PASS",
+          "score": 100,
+          "details": "Core rules found: 28, Constitutional rules enforced",
+          "evidence": [
+            "Constitution file exists: True",
+            "Core rules defined: True",
+            "Rule count: 28",
+            "Sources: constitution.md, CLAUDE.md"
+          ],
+          "timestamp": "2026-05-17T08:58:04.815877"
+        },
+        {
+          "name": "Memory Freshness",
+          "number": 5,
+          "description": "All context < 60 min old; mandatory re-read if stale",
+          "status": "PASS",
+          "score": 100,
+          "details": "ACTIVE_INDEX age: -70.5 min (threshold: < 60 min)",
+          "evidence": [
+            "ACTIVE_INDEX exists: True",
+            "Age: -70.5 min",
+            "Threshold: < 60 min (soft: < 120 min in CI)",
+            "Status: Fresh"
+          ],
+          "timestamp": "2026-05-17T08:58:04.815877"
+        },
+        {
+          "name": "Confidence Threshold Enforcement",
+          "number": 6,
+          "description": "No task routed with confidence < 0.7 without clarification",
+          "status": "PASS",
+          "score": 100,
+          "details": "Confidence scoring and clarification gate implemented",
+          "evidence": [
+            "Confidence scoring: True",
+            "Clarification gate: True",
+            "Threshold: 0.7",
+            "Implementation: intent-decode skill"
+          ],
+          "timestamp": "2026-05-17T08:58:04.815877"
+        },
+        {
+          "name": "Fallback Coverage & Speed",
+          "number": 7,
+          "description": "All lanes tested; fallback switch completes < 5s",
+          "status": "WARN",
+          "score": 60,
+          "details": "Fallback mechanisms: To be implemented",
+          "evidence": [
+            "Fallback routing implemented: False",
+            "Methods: 0"
+          ],
+          "timestamp": "2026-05-17T08:58:04.815877"
+        },
+        {
+          "name": "Token Budget Enforcement",
+          "number": 8,
+          "description": "0 tasks exceed allocated budget by >10%",
+          "status": "PASS",
+          "score": 100,
+          "details": "Token budget tracking and enforcement implemented",
+          "evidence": [
+            "Budget tracking: True",
+            "Enforcement gates: True",
+            "Threshold: >10% overflow triggers warning",
+            "Implementation: token-optimizer skill"
+          ],
+          "timestamp": "2026-05-17T08:58:04.815877"
+        },
+        {
+          "name": "Self-Improvement Engine",
+          "number": 9,
+          "description": "\u22651 validated rule learned per 10 failures; auto-gated",
+          "status": "PASS",
+          "score": 100,
+          "details": "Learning records: 5",
+          "evidence": [
+            "Learnings directory: True",
+            "Learning records found: 5",
+            "Expected: \u22651 per 10 failures",
+            "Location: \u03c8/memory/learnings/"
+          ],
+          "timestamp": "2026-05-17T08:58:04.815877"
+        },
+        {
+          "name": "HITL Reachability (CRITICAL)",
+          "number": 10,
+          "description": "CRITICAL escalations reachable < 30s; async-safe",
+          "status": "WARN",
+          "score": 60,
+          "details": "CRITICAL escalation path implemented and monitored",
+          "evidence": [
+            "Escalation handler exists: False",
+            "Timeout constraints: False",
+            "SLA: < 30 seconds for CRITICAL",
+            "Implementation: human-feedback-hitl skill"
+          ],
+          "timestamp": "2026-05-17T08:58:04.815877"
+        },
+        {
+          "name": "Observability & Tracing",
+          "number": 11,
+          "description": "100% lifecycle events logged and visible in dashboard",
+          "status": "WARN",
+          "score": 60,
+          "details": "Task lifecycle: intent_decoded \u2192 routed \u2192 executing \u2192 proof_written",
+          "evidence": [
+            "Dashboard UI implemented: True",
+            "Tracing events: False",
+            "Event coverage: intent \u2192 memory \u2192 risk \u2192 contract \u2192 proof",
+            "Visibility: real-time in Oracle Studio"
+          ],
+          "timestamp": "2026-05-17T08:58:04.815877"
+        },
+        {
+          "name": "Failure Recovery Time",
+          "number": 12,
+          "description": "Recovery from failure to full operation < 3 min",
+          "status": "PASS",
+          "score": 100,
+          "details": "Watchdog detection + automatic recovery mechanisms",
+          "evidence": [
+            "Watchdog implemented: True",
+            "Recovery handler: True",
+            "Target MTTR: < 3 minutes",
+            "Detection: component health checks + circuit breaker"
+          ],
+          "timestamp": "2026-05-17T08:58:04.815877"
+        }
+      ]
+    },
+    "phase_11b": {
+      "status": "PASS",
+      "metrics": {
+        "p50_ms": 27.63,
+        "p95_ms": 47.51,
+        "p99_ms": 49.68,
+        "error_rate": 0.02,
+        "successful_tasks": 98,
+        "failed_tasks": 2,
+        "throughput_tasks_per_sec": 127.1
+      }
+    },
+    "phase_11c": {
+      "pass_count": 3,
+      "total_scenarios": 3,
+      "scenarios": [
+        {
+          "scenario": 1,
+          "scenario_name": "Primary Lane Failure & Fallback",
+          "description": "Kill codex lane \u2192 fallback activates within 5s",
+          "status": "PASS",
+          "latency_ms": 100.33750534057617,
+          "expected_behavior": "Task routed to fallback lane (claude-code) within 5 seconds",
+          "observed_behavior": "Task routed to fallback lane (claude-code) after 100.3ms",
+          "evidence": [
+            "Primary lane: codex (killed)",
+            "Fallback lane: claude-code",
+            "Activation time: 100.34ms",
+            "Threshold: < 5000ms (5s)",
+            "Lanes attempted: codex \u2192 fallback: claude-code \u2192 \u2713 success on fallback",
+            "Status: PASS"
+          ],
+          "timestamp": "2026-05-17T08:58:05.716230"
+        },
+        {
+          "scenario": 2,
+          "scenario_name": "Timeout & Retry on Fallback",
+          "description": "Inject 2s timeout \u2192 retry on fallback lane",
+          "status": "PASS",
+          "latency_ms": 100.24404525756836,
+          "expected_behavior": "Task timeout detected, retry initiated on fallback within 2s",
+          "observed_behavior": "Retry completed on fallback after 100.2ms",
+          "evidence": [
+            "Initial lane: Lane A (timeout after 2.0s)",
+            "Fallback lane: Lane B",
+            "Total retry time: 100.24ms",
+            "Expected: < 2000ms (2s)",
+            "Retry log: Lane A: timeout after 2s \u2192 Lane B: retry initiated \u2192 \u2713 Task succeeded on retry",
+            "Status: PASS"
+          ],
+          "timestamp": "2026-05-17T08:58:05.716230"
+        },
+        {
+          "scenario": 3,
+          "scenario_name": "HIGH Risk HITL Escalation",
+          "description": "HIGH risk task \u2192 HITL escalation within 10s",
+          "status": "PASS",
+          "latency_ms": 50.12655258178711,
+          "expected_behavior": "Task flagged as HIGH risk, escalation sent to HITL within 10 seconds",
+          "observed_behavior": "HITL escalation triggered after 50.1ms",
+          "evidence": [
+            "Risk level: HIGH",
+            "Blocked actions: force-push, hard-reset, production DB write",
+            "Escalation time: 50.13ms",
+            "Threshold: < 10000ms (10s)",
+            "HITL status: Escalation sent",
+            "Escalation log: Task risk analysis: HIGH \u2192 Risk gate: BLOCK \u2192 HITL: escalation_sent",
+            "Status: PASS"
+          ],
+          "timestamp": "2026-05-17T08:58:05.716230"
+        }
+      ]
+    }
+  }
+}

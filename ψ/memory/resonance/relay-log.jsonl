@@ -1,0 +1,7 @@
+{"timestamp": "2026-05-17T15:56:55.401804", "source_agent": "core", "target_agent": "core", "message_id": "task-executor-lane-router-phase2.json", "status": "routed", "notes": ""}
+{"timestamp": "2026-05-17T15:56:55.404132", "source_agent": "core", "target_agent": "core", "message_id": "task-phase-3-dashboard-writeback.json", "status": "routed", "notes": ""}
+{"timestamp": "2026-05-17T15:56:55.405951", "source_agent": "core", "target_agent": "core", "message_id": "task-phase-4-realtime-websocket.json", "status": "routed", "notes": ""}
+{"timestamp": "2026-05-17T15:56:55.407242", "source_agent": "core", "target_agent": "core", "message_id": "task-phase-5-telegram-bot-remote-ops.json", "status": "routed", "notes": ""}
+{"timestamp": "2026-05-17T15:56:55.411119", "source_agent": "core", "target_agent": "core", "message_id": "task-phase-6-mobile-dashboard.json", "status": "routed", "notes": ""}
+{"timestamp": "2026-05-17T15:56:55.414011", "source_agent": "core", "target_agent": "core", "message_id": "task-phase-7-agent-intelligence.json", "status": "routed", "notes": ""}
+{"timestamp": "2026-05-17T15:57:16.593981", "source_agent": "core", "target_agent": "core", "message_id": "20260517_155655_from-core.json", "status": "routed", "notes": ""}

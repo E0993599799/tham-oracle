@@ -1,0 +1,84 @@
+{
+  "timestamp": "2026-05-17T15:57:16.525019",
+  "health_overall": "degraded",
+  "summary": {
+    "total_agents": 8,
+    "available": 5,
+    "degraded": 0,
+    "unavailable": 3
+  },
+  "agents": [
+    {
+      "id": "tham",
+      "role": "brain-orchestrator",
+      "port": 47778,
+      "availability": "available",
+      "port_reachable": true,
+      "circuit_state": "UNKNOWN",
+      "last_probed": "2026-05-17T15:57:16.525040"
+    },
+    {
+      "id": "core",
+      "role": "bridge-gate",
+      "port": 47779,
+      "availability": "unavailable",
+      "port_reachable": false,
+      "circuit_state": "UNKNOWN",
+      "last_probed": "2026-05-17T15:57:16.525269"
+    },
+    {
+      "id": "bob",
+      "role": "coordinator",
+      "port": null,
+      "availability": "available",
+      "port_reachable": null,
+      "circuit_state": "UNKNOWN",
+      "last_probed": "2026-05-17T15:57:16.525387"
+    },
+    {
+      "id": "hermes",
+      "role": "specialist-legacy",
+      "port": null,
+      "availability": "available",
+      "port_reachable": null,
+      "circuit_state": "UNKNOWN",
+      "last_probed": "2026-05-17T15:57:16.525399"
+    },
+    {
+      "id": "housekeeper",
+      "role": "maintenance",
+      "port": null,
+      "availability": "available",
+      "port_reachable": null,
+      "circuit_state": "UNKNOWN",
+      "last_probed": "2026-05-17T15:57:16.525406"
+    },
+    {
+      "id": "codex",
+      "role": "code-builder",
+      "port": 20128,
+      "availability": "unavailable",
+      "port_reachable": false,
+      "circuit_state": "UNKNOWN",
+      "last_probed": "2026-05-17T15:57:16.525417"
+    },
+    {
+      "id": "gemini",
+      "role": "research-inspector",
+      "port": 20128,
+      "availability": "unavailable",
+      "port_reachable": false,
+      "circuit_state": "UNKNOWN",
+      "last_probed": "2026-05-17T15:57:16.525494"
+    },
+    {
+      "id": "watchdog",
+      "role": "system-monitor",
+      "port": null,
+      "availability": "available",
+      "port_reachable": null,
+      "circuit_state": "UNKNOWN",
+      "last_probed": "2026-05-17T15:57:16.525527"
+    }
+  ]
+}
