@@ -1,0 +1,192 @@
+name: GitHub Connector — ChatGPT → tham-oracle
+
+on:
+  push:
+    paths:
+      - 'inbox/*.json'
+  workflow_dispatch:
+
+jobs:
+  chatgpt-connector:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Detect changed inbox files
+        id: detect
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "files=$(ls -1 inbox/*.json 2>/dev/null | head -1)" >> $GITHUB_OUTPUT
+          else
+            echo "files=$(git diff --name-only HEAD~1 HEAD -- inbox/*.json 2>/dev/null | tr '\n' ' ')" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Parse and validate messages
+        id: parse
+        env:
+          INBOX_FILES: ${{ steps.detect.outputs.files }}
+        run: |
+          python3 << 'PYEOF'
+          import json
+          import sys
+          from datetime import datetime
+
+          files = "${{ env.INBOX_FILES }}".strip().split()
+          if not files or files == ['']:
+            print("✓ No inbox files to process")
+            sys.exit(0)
+
+          for fpath in files:
+            if not fpath.endswith('.json'):
+              continue
+
+            print(f"📄 Processing: {fpath}")
+            try:
+              with open(fpath, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+
+              # Validate required fields
+              required = ['message_id', 'created_at_bkk', 'from', 'to', 'intent', 'body']
+              for field in required:
+                if field not in data:
+                  print(f"  ❌ Missing field: {field}")
+                  sys.exit(1)
+
+              # Safety gate: foreground_allowed must be false
+              if data.get('risk_gate', {}).get('foreground_allowed', True) != False:
+                print(f"  ❌ Safety gate failed: foreground_allowed must be false")
+                sys.exit(1)
+
+              print(f"  ✓ Schema valid")
+              print(f"  ✓ Message ID: {data['message_id']}")
+              print(f"  ✓ Intent: {data['intent']}")
+
+              # Extract command if present
+              cmd = data.get('command', '').strip()
+              if cmd:
+                print(f"  → Command: {cmd}")
+
+            except json.JSONDecodeError as e:
+              print(f"  ❌ Invalid JSON: {e}")
+              sys.exit(1)
+            except Exception as e:
+              print(f"  ❌ Error: {e}")
+              sys.exit(1)
+
+          print("\n✓ All messages validated")
+          PYEOF
+
+      - name: Execute allowed commands
+        id: execute
+        env:
+          INBOX_FILES: ${{ steps.detect.outputs.files }}
+        run: |
+          mkdir -p ψ/inbox/github
+
+          python3 << 'PYEOF'
+          import json
+          import subprocess
+          from datetime import datetime
+          import os
+
+          # Allowlist of safe commands
+          ALLOWLIST = {
+            'git status': ['git', 'status'],
+            'git log --oneline -10': ['git', 'log', '--oneline', '-10'],
+            'git log': ['git', 'log'],
+            'maw ls': ['maw', 'ls'],
+            'cat brain/memory/ACTIVE_INDEX.md': ['cat', 'brain/memory/ACTIVE_INDEX.md'],
+          }
+
+          files = "${{ env.INBOX_FILES }}".strip().split()
+          if not files or files == ['']:
+            exit(0)
+
+          for fpath in files:
+            if not fpath.endswith('.json'):
+              continue
+
+            with open(fpath, 'r', encoding='utf-8') as f:
+              data = json.load(f)
+
+            message_id = data.get('message_id', 'unknown')
+            command = data.get('command', '').strip()
+            body = data.get('body', '')
+
+            # Write output file
+            now = datetime.now()
+            output_file = f"ψ/inbox/github/{now.strftime('%Y%m%d_%H%M%S')}_github.txt"
+
+            output_lines = []
+            output_lines.append(f"[Message ID: {message_id}]")
+            output_lines.append(f"[From: {data.get('from', 'unknown')}]")
+            output_lines.append(f"[Intent: {data.get('intent', 'N/A')}]")
+            output_lines.append("")
+            output_lines.append(">>> Body:")
+            output_lines.append(body)
+            output_lines.append("")
+
+            # Run command if present and in allowlist
+            if command:
+              if command in ALLOWLIST:
+                try:
+                  print(f"🔧 Running: {command}")
+                  result = subprocess.run(
+                    ALLOWLIST[command],
+                    capture_output=True,
+                    text=True,
+                    timeout=30
+                  )
+                  output_lines.append(">>> Command output:")
+                  if result.stdout:
+                    output_lines.append(result.stdout)
+                  if result.stderr:
+                    output_lines.append(f"[stderr]: {result.stderr}")
+                  print(f"✓ Command executed")
+                except subprocess.TimeoutExpired:
+                  output_lines.append("[ERROR: Command timeout (>30s)]")
+                  print(f"❌ Timeout")
+                except Exception as e:
+                  output_lines.append(f"[ERROR: {str(e)}]")
+                  print(f"❌ Error: {e}")
+              else:
+                output_lines.append(f"[ERROR: Command not in allowlist: {command}]")
+                output_lines.append(f"[Allowed: {', '.join(ALLOWLIST.keys())}]")
+                print(f"❌ Command not allowed: {command}")
+
+            # Write output file
+            output_text = '\n'.join(output_lines)
+            with open(output_file, 'w', encoding='utf-8') as f:
+              f.write(output_text)
+
+            print(f"✓ Output written to: {output_file}")
+
+          PYEOF
+
+      - name: Configure git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Commit output files
+        run: |
+          if [ -n "$(git status --porcelain ψ/inbox/github/)" ]; then
+            git add ψ/inbox/github/
+            git commit -m "chore: GitHub connector output — ChatGPT messages processed"
+            git push
+            echo "✓ Output committed"
+          else
+            echo "✓ No new output files"
+          fi
+
+      - name: Summary
+        run: |
+          echo "## GitHub Connector — Execution Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✓ Messages processed" >> $GITHUB_STEP_SUMMARY
+          echo "✓ Output written to: ψ/inbox/github/" >> $GITHUB_STEP_SUMMARY
+          echo "✓ tham-oracle polls every 30s" >> $GITHUB_STEP_SUMMARY
