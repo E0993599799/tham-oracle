@@ -1,6 +1,6 @@
 # Active Memory Index
 
-Last updated: 2026-05-14
+Last updated: 2026-05-17
 
 ## Baselines
 
@@ -48,7 +48,22 @@ Last updated: 2026-05-14
 | Tham oracle-v2 | port 47778 | — | manual start |
 | Omega oracle-v2 | port 47779 | — | manual start |
 
-Available via 9router: `cc/claude-sonnet-4-6`, `ollama/minimax-m2.5`, `ollama/qwen3.5`, `ollama/glm-4.7-flash`, `ollama/kimi-k2.5`
+Available via 9router (74+ models):
+- **Ollama**: `minimax-m2.5`, `minimax-m2.7`, `gpt-oss:120b`, `qwen3.5`, `glm-4.7-flash`, `glm-5`, `kimi-k2.5`
+- **GLM-CN**: `glm-5.1`, `glm-5`
+- **Gemini**: `gemini-3.1-pro-preview`, `gemini-3-flash-preview`
+- **Claude**: `cc/claude-sonnet-4-6`
+- **Codex**: `cx/gpt-5.5` + variants
+- **NVIDIA**: `minimaxai/minimax-m2.7`
+- **OpenRouter**: multiple providers
+- **Others**: openrouter, ollama-local
+
+## Forge Omega V2 Command Center
+- Location: `D:/Git/forge-omega-v2/` (Next.js 16 + React 19 + TypeScript 5)
+- Status: Components built ✅, dashboard ready to run
+- Run from: Windows PowerShell only (Turbopack WSL bug)
+- Command: `cd D:\Git\forge-omega-v2 && npm run dev` → port 3000
+- Hermes review contract ready at `D:/Git/forge-omega-v2/hermes-review-contract.json`
 
 ## Risk Flags
 - oracle-v2 HTTP server requires manual start (not auto-started) — `bash scripts/start-oracle-v2-http.sh`
@@ -56,6 +71,8 @@ Available via 9router: `cc/claude-sonnet-4-6`, `ollama/minimax-m2.5`, `ollama/qw
 - oracle-v2 vector search needs external embedding API (bge-m3/qwen3/nomic) — currently FTS5 only
 - Omega (Core agent) deployed + connected to Forge queue (2026-05-13)
 - Supabase credentials not yet configured
+- WSL→Windows portproxy not yet configured (blocks Hermes from WSL) — setup script ready at `scripts/setup-hermes-portproxy.ps1`
+- mission-control project has `node dev` bug (incorrect dev command caller) — investigation pending (Windows Task Scheduler check)
 - Critical safety regression recorded 2026-05-14: do not send foreground PowerShell for Core/SFSR work; previous failure split path at `D:\01` because of unsafe argument handling.
 
 ## Last Proof
@@ -67,3 +84,4 @@ Available via 9router: `cc/claude-sonnet-4-6`, `ollama/minimax-m2.5`, `ollama/qw
 - SFSR-23 COMPLETE ✅ — Hermes verdict: REQUIREMENTS_MET 1-8, VERDICT=COMPLETE (2026-05-13)
 - SFSR-24–28 pending
 - 2026-05-14 memory update: Read-memory cache rule added; foreground local runner prohibition strengthened; path-space ProcessStartInfo rule added.
+- 2026-05-17: Telegram integration pushed (18 commits), monitor script debugged + Unicode decode fixed, Hermes portproxy setup script + docs created, Forge Omega V2 dashboard components ready
