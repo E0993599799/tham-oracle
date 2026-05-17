@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Omega OS Metrics Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1e1e2e 0%, #2d2d44 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        h1 { font-size: 28px; margin-bottom: 10px; color: #fff; }
+        .subtitle { color: #888; font-size: 12px; margin-bottom: 30px; }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .card {
+            background: #2d2d44;
+            border: 1px solid #3d3d5c;
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+        .card:hover { border-color: #5d5d7d; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .card h3 { font-size: 12px; color: #888; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px; }
+        .card .value { font-size: 32px; font-weight: 600; color: #fff; margin-bottom: 5px; }
+        .card .subtext { font-size: 12px; color: #666; }
+
+        .status-good { color: #4ade80; }
+        .status-warn { color: #facc15; }
+        .status-bad { color: #ef4444; }
+
+        .wide { grid-column: span 2; }
+        @media (max-width: 800px) { .wide { grid-column: span 1; } }
+
+        .table-container {
+            background: #2d2d44;
+            border: 1px solid #3d3d5c;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        th { text-align: left; padding: 12px; border-bottom: 1px solid #3d3d5c; color: #888; text-transform: uppercase; }
+        td { padding: 12px; border-bottom: 1px solid #1d1d2e; }
+        tr:hover { background: #3d3d5c; }
+
+        .emoji { font-size: 16px; margin-right: 8px; }
+        .refresh { font-size: 12px; color: #666; margin-top: 10px; }
+        .loading { color: #666; font-style: italic; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Omega OS Metrics Dashboard</h1>
+        <div class="subtitle">Real-time system performance and learning metrics • Auto-refresh every 30s</div>
+
+        <!-- Overall Metrics -->
+        <div class="grid">
+            <div class="card">
+                <h3>Success Rate</h3>
+                <div class="value status-good" id="success-rate">—</div>
+                <div class="subtext">7-day window</div>
+            </div>
+            <div class="card">
+                <h3>Total Executions</h3>
+                <div class="value" id="total-exec">—</div>
+                <div class="subtext">Last 7 days</div>
+            </div>
+            <div class="card">
+                <h3>Avg Response Time</h3>
+                <div class="value" id="avg-response">—</div>
+                <div class="subtext">Milliseconds</div>
+            </div>
+            <div class="card">
+                <h3>Daily Throughput</h3>
+                <div class="value" id="throughput">—</div>
+                <div class="subtext">Tasks/day average</div>
+            </div>
+        </div>
+
+        <!-- Learning Pipeline -->
+        <div class="grid">
+            <div class="card">
+                <h3>Failures Classified</h3>
+                <div class="value status-warn" id="failures">—</div>
+                <div class="subtext">Today</div>
+            </div>
+            <div class="card">
+                <h3>Rules Generated</h3>
+                <div class="value" id="rules-gen">—</div>
+                <div class="subtext">Candidates</div>
+            </div>
+            <div class="card">
+                <h3>Rules Validated</h3>
+                <div class="value status-good" id="rules-val">—</div>
+                <div class="subtext">Ready to promote</div>
+            </div>
+            <div class="card">
+                <h3>Skill Gaps</h3>
+                <div class="value status-warn" id="skill-gaps">—</div>
+                <div class="subtext">Needing upgrades</div>
+            </div>
+        </div>
+
+        <!-- Lane Health -->
+        <div class="table-container">
+            <h3 style="margin-bottom: 15px; color: #fff;">🟢 Lane Health (7-day)</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Lane</th>
+                        <th>Success Rate</th>
+                        <th>Executions</th>
+                        <th>Avg Response (ms)</th>
+                        <th>Throughput/Day</th>
+                        <th>SLA Status</th>
+                    </tr>
+                </thead>
+                <tbody id="lane-health">
+                    <tr><td colspan="6" class="loading">Loading metrics...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Top Intents -->
+        <div class="table-container">
+            <h3 style="margin-bottom: 15px; color: #fff;">🎯 Top Intents (by volume)</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Intent</th>
+                        <th>Success Rate</th>
+                        <th>Attempts</th>
+                        <th>Confidence Score</th>
+                        <th>Trend</th>
+                    </tr>
+                </thead>
+                <tbody id="top-intents">
+                    <tr><td colspan="5" class="loading">Loading metrics...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="refresh">
+            ⏱️ Last updated: <span id="last-update">—</span> | Auto-refresh: enabled
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8768';
+        let autoRefreshInterval;
+
+        async function fetchMetrics() {
+            try {
+                const resp = await fetch(`${API_BASE}/metrics/learning`);
+                const data = await resp.json();
+                renderMetrics(data);
+            } catch (e) {
+                console.error('Failed to fetch metrics:', e);
+                document.getElementById('success-rate').textContent = 'Error';
+            }
+        }
+
+        function renderMetrics(data) {
+            // Overall metrics
+            const overall = data.performance?.overall_metrics || {};
+            document.getElementById('success-rate').textContent =
+                `${(overall.overall_success_rate * 100).toFixed(1)}%`;
+            document.getElementById('total-exec').textContent =
+                overall.total_executions || '—';
+            document.getElementById('avg-response').textContent =
+                `${overall.avg_response_time_ms?.toFixed(0) || '—'}ms`;
+            document.getElementById('throughput').textContent =
+                `${overall.daily_throughput?.toFixed(1) || '—'}`;
+
+            // Learning metrics
+            const learning = data.learning || {};
+            document.getElementById('failures').textContent =
+                learning.failures_found || '—';
+            document.getElementById('rules-gen').textContent =
+                learning.rules_generated || '—';
+            document.getElementById('rules-val').textContent =
+                learning.rules_validated || '—';
+            document.getElementById('skill-gaps').textContent =
+                learning.skill_gaps_detected || '—';
+
+            // Lane health
+            const lanes = data.performance?.lane_metrics || [];
+            const laneHtml = lanes.length > 0
+                ? lanes.map(lane => `
+                    <tr>
+                        <td>${lane.lane}</td>
+                        <td class="${lane.success_rate >= 0.95 ? 'status-good' : lane.success_rate >= 0.85 ? 'status-warn' : 'status-bad'}">
+                            ${(lane.success_rate * 100).toFixed(1)}%
+                        </td>
+                        <td>${lane.total_executions}</td>
+                        <td>${lane.avg_response_time_ms?.toFixed(0) || '—'}ms</td>
+                        <td>${lane.throughput_per_day?.toFixed(1) || '—'}</td>
+                        <td>${lane.sla_status}</td>
+                    </tr>
+                `).join('')
+                : '<tr><td colspan="6" class="loading">No lane data</td></tr>';
+            document.getElementById('lane-health').innerHTML = laneHtml;
+
+            // Top intents
+            const intents = data.performance?.intent_metrics || [];
+            const intentHtml = intents.length > 0
+                ? intents.slice(0, 8).map(intent => `
+                    <tr>
+                        <td>${intent.intent}</td>
+                        <td class="${intent.success_rate >= 0.85 ? 'status-good' : 'status-warn'}">
+                            ${(intent.success_rate * 100).toFixed(1)}%
+                        </td>
+                        <td>${intent.total_executions}</td>
+                        <td>${data.confidence?.[intent.intent]?.confidence?.toFixed(2) || '—'}</td>
+                        <td>${intent.success_rate >= 0.9 ? '📈' : intent.success_rate >= 0.7 ? '→' : '📉'}</td>
+                    </tr>
+                `).join('')
+                : '<tr><td colspan="5" class="loading">No intent data</td></tr>';
+            document.getElementById('top-intents').innerHTML = intentHtml;
+
+            // Timestamp
+            document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
+        }
+
+        // Initial load and auto-refresh
+        fetchMetrics();
+        autoRefreshInterval = setInterval(fetchMetrics, 30000);
+
+        // Handle visibility change (pause refresh if tab not visible)
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                clearInterval(autoRefreshInterval);
+            } else {
+                fetchMetrics();
+                autoRefreshInterval = setInterval(fetchMetrics, 30000);
+            }
+        });
+    </script>
+</body>
+</html>
