@@ -3,9 +3,13 @@
     "allow": [
       "Bash",
       "Any Bash command",
+      "Edit",
+      "Write",
+      "Read",
+      "Glob",
+      "Grep",
       "Use skill",
-      "Any use of skill tools",
-      "Read"
+      "Any use of skill tools"
     ]
   }
 }
