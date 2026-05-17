@@ -1,0 +1,64 @@
+{
+  "manifest_version": "1.0",
+  "timestamp": "2026-05-17T17:40:00Z",
+  "source": "arra-oracle-skills-cli",
+  "total_agents": 8,
+  "total_skills": 35,
+  "total_assignments": 39,
+  "agents": {
+    "tham": {
+      "role": "brain-orchestrator",
+      "skills": ["about-oracle", "go", "recap", "trace", "who-are-you", "learn"],
+      "skill_count": 6,
+      "focus": "Meta + Memory"
+    },
+    "core": {
+      "role": "bridge-gate",
+      "skills": ["inbox", "mailbox", "talk-to", "forward", "hey", "team-agents"],
+      "skill_count": 6,
+      "focus": "Communication + Coordination"
+    },
+    "codex": {
+      "role": "code-builder",
+      "skills": ["bud", "project", "worktree", "create-shortcut", "xray"],
+      "skill_count": 5,
+      "focus": "Code + Project Management"
+    },
+    "gemini": {
+      "role": "research-inspector",
+      "skills": ["dig", "dream", "resonance", "feel", "where-we-are"],
+      "skill_count": 5,
+      "focus": "Research + Analysis"
+    },
+    "watchdog": {
+      "role": "system-monitor",
+      "skills": ["watch", "standup", "trace", "schedule"],
+      "skill_count": 4,
+      "focus": "Monitoring + Health"
+    },
+    "bob": {
+      "role": "coordinator",
+      "skills": ["oracle-family-scan", "team-agents", "talk-to", "standup"],
+      "skill_count": 4,
+      "focus": "Fleet Coordination"
+    },
+    "hermes": {
+      "role": "specialist-legacy",
+      "skills": ["incubate", "release-alpha", "release-beta", "calver"],
+      "skill_count": 4,
+      "focus": "Release + Legacy Support"
+    },
+    "housekeeper": {
+      "role": "maintenance",
+      "skills": ["rrr", "contacts", "fyi", "awaken", "bampenpien"],
+      "skill_count": 5,
+      "focus": "Operations + Alerts"
+    }
+  },
+  "coverage": {
+    "agents_with_3plus_skills": 8,
+    "skills_with_1plus_agents": 35,
+    "requirements_met": true
+  },
+  "status": "pending_activation"
+}
