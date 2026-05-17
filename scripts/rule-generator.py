@@ -35,7 +35,7 @@ class RuleGenerator:
 
     def find_patterns(self):
         """Detect failure patterns."""
-        patterns = defaultdict(lambda: defaultdict(list))
+        patterns = defaultdict(list)
 
         # Group by (failure_type, lane)
         for failure in self.failures:
