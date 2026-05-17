@@ -79,10 +79,31 @@ class ExecutorLaneRouter:
         "risk_level_medium",
     }
 
+    # Phase 7 learned rules: lanes to blocklist (8B)
+    LANE_BLOCKLIST: Dict[str, bool] = {}
+
+    # Timeout overrides per lane (8B)
+    TIMEOUT_CONFIG: Dict[str, int] = {}
+
+    # Rate limits (8B)
+    RATE_LIMITS: Dict[str, int] = {}
+
+    # Events log for Phase 8C
+    EVENTS_FILE: Optional[Path] = None
+
     def __init__(self, logger: Optional[logging.Logger] = None):
         """Initialize router with logging."""
         self.logger = logger or self._setup_logger()
         self.schema = self._load_schema()
+
+        # Phase 8B: Load promoted rules and config (8B)
+        self._load_promoted_rules()
+
+        # Phase 8C: Initialize events log
+        today = datetime.now().strftime("%Y-%m-%d")
+        events_dir = Path("ψ/memory/resonance")
+        events_dir.mkdir(parents=True, exist_ok=True)
+        self.EVENTS_FILE = events_dir / f"events-{today}.jsonl"
 
     def _setup_logger(self) -> logging.Logger:
         """Configure logging for router."""
@@ -168,6 +189,8 @@ class ExecutorLaneRouter:
                     f"[{task_id}] Memory gate timeout ({memory_elapsed}s) "
                     "→ risk escalated to medium"
                 )
+            # Phase 8C: Emit event
+            self._emit_event("memory_gate_done", {"task_id": task_id, "passed": memory_ok, "elapsed_s": memory_elapsed})
 
             # Gate 2: Risk Gate (10s timeout)
             self.logger.info(f"[{task_id}] Starting risk gate")
@@ -191,6 +214,8 @@ class ExecutorLaneRouter:
                     f"[{task_id}] Risk gate timeout ({risk_elapsed}s) "
                     f"→ risk escalated to {risk_level}"
                 )
+            # Phase 8C: Emit event
+            self._emit_event("risk_gate_done", {"task_id": task_id, "risk_level": risk_level, "elapsed_s": risk_elapsed})
 
             # Gate 3: Intent Gate (30s timeout)
             self.logger.info(f"[{task_id}] Starting intent gate")
@@ -206,6 +231,8 @@ class ExecutorLaneRouter:
                     f"[{task_id}] Intent gate timeout ({intent_elapsed}s) "
                     "→ intent set to 'unknown'"
                 )
+            # Phase 8C: Emit intent decoded event
+            self._emit_event("intent_decoded", {"task_id": task_id, "intent": intent, "elapsed_s": intent_elapsed})
 
             # Lane selection
             primary_lane, fallback_lane = self._select_lane(
@@ -213,6 +240,8 @@ class ExecutorLaneRouter:
             )
             proof["routed_lane"] = primary_lane
             proof["fallback_lane"] = fallback_lane
+            # Phase 8C: Emit route decided event
+            self._emit_event("route_decided", {"task_id": task_id, "primary_lane": primary_lane, "fallback_lane": fallback_lane})
 
             # Block high-risk tasks from Hermes
             if risk_level == "high" and primary_lane == "hermes":
@@ -246,9 +275,13 @@ class ExecutorLaneRouter:
 
             # Execute on primary lane
             self.logger.info(f"[{task_id}] Executing on {primary_lane}")
+            # Phase 8C: Emit lane started event
+            self._emit_event("lane_started", {"task_id": task_id, "lane": primary_lane})
             execution_result = self._execute_on_lane(
                 task_input, primary_lane
             )
+            # Phase 8C: Emit lane completed event
+            self._emit_event("lane_completed", {"task_id": task_id, "lane": primary_lane, "status": execution_result.get("status")})
 
             if execution_result["status"] == "SUCCESS":
                 proof["status"] = "SUCCESS"
@@ -471,6 +504,17 @@ class ExecutorLaneRouter:
                 primary = "codex_gpt55"
             if fallback == "hermes":
                 fallback = None
+
+        # Phase 8B: Apply LANE_BLOCKLIST from Phase 7 learned rules
+        if self.LANE_BLOCKLIST.get(primary, False):
+            self.logger.warning(f"Lane {primary} is blocklisted, using fallback {fallback}")
+            if fallback and not self.LANE_BLOCKLIST.get(fallback, False):
+                primary = fallback
+                fallback = None
+            else:
+                # Both blocked, use default safe lane
+                primary = "codex_gpt55"
+                fallback = "ollama"
 
         return primary, fallback
 
@@ -739,6 +783,39 @@ class ExecutorLaneRouter:
 
         self.logger.info(f"Proof written to {proof_path}")
         return proof_path
+
+    def _load_promoted_rules(self) -> None:
+        """Phase 8B: Load promoted rules from Phase 7."""
+        try:
+            today = datetime.now().strftime("%Y-%m-%d")
+            promoted_file = Path("ψ/memory/resonance") / f"promoted-rules-{today}.json"
+            if promoted_file.exists():
+                with open(promoted_file) as f:
+                    data = json.load(f)
+                    for promo in data.get("promotions", []):
+                        rule_id = promo.get("rule_id", "")
+                        # Load rules: rule-network_error-codex_gpt55 → LANE_BLOCKLIST
+                        if "blocklist" in rule_id or "circuit_breaker" in rule_id:
+                            lane = rule_id.split("-")[-1]
+                            self.LANE_BLOCKLIST[lane] = True
+                if self.LANE_BLOCKLIST:
+                    self.logger.info(f"Loaded {len(self.LANE_BLOCKLIST)} lane blocklist rules")
+        except Exception as e:
+            self.logger.warning(f"Failed to load promoted rules: {e}")
+
+    def _emit_event(self, event_type: str, data: Dict[str, Any]) -> None:
+        """Phase 8C: Emit dashboard event to events log."""
+        try:
+            if self.EVENTS_FILE:
+                event = {
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "event_type": event_type,
+                    **data
+                }
+                with open(self.EVENTS_FILE, "a") as f:
+                    f.write(json.dumps(event) + "\n")
+        except Exception as e:
+            self.logger.warning(f"Failed to emit event {event_type}: {e}")
 
     def _finalize_proof(self, proof: Dict[str, Any], start_time: float) -> Dict[str, Any]:
         """
