@@ -3,7 +3,7 @@
 # Usage: ./scripts/oracle-session.sh [attach-only]
 
 SESSION="oracle"
-REPO="/root/repos/tham-oracle"
+REPO="/root/ghq/github.com/E0993599799/tham-oracle"
 
 if tmux has-session -t "$SESSION" 2>/dev/null; then
   echo "Session '$SESSION' already running — attaching..."
