@@ -1,0 +1,65 @@
+{
+  "task_id": "TASK-004",
+  "title": "Research — Frontend Skills + Figma Integration",
+  "lane": "claude",
+  "status": "DISPATCHED",
+  "created_at": "2026-05-17T07:05:00+07:00",
+  "priority": "MEDIUM",
+
+  "goal": "Research and document: Frontend design skills, Figma integration options, best practices for Phase 5 UI work",
+
+  "scope": {
+    "research_areas": [
+      "Frontend design skills (CSS, component patterns, accessibility)",
+      "Figma API + integration (design-to-code, auto-sync, plugins)",
+      "Figma → React component workflows",
+      "Design system best practices",
+      "Accessibility standards (WCAG, a11y testing)"
+    ]
+  },
+
+  "deliverables": {
+    "research_doc": "RESEARCH-frontend-figma.md",
+    "sections": [
+      "Executive Summary (key findings)",
+      "Frontend Skills Checklist (what to focus on)",
+      "Figma Integration Options (pros/cons for each)",
+      "Workflow Recommendations (design → code)",
+      "Phase 5 Frontend Strategy (recommendations)",
+      "References & Links"
+    ]
+  },
+
+  "constraints": [
+    "Research both current best practices AND practical for this team",
+    "Focus on what's actionable for Phase 5",
+    "Include trade-offs for each approach",
+    "Practical examples/links for tools/libraries"
+  ],
+
+  "proof_required": {
+    "type": "research",
+    "checklist": [
+      "Comprehensive markdown document",
+      "Clear findings with sources",
+      "Actionable recommendations",
+      "Decision points for Phase 5 planning",
+      "Links to resources"
+    ]
+  },
+
+  "context": {
+    "project_root": "/root/ghq/github.com/E0993599799/tham-oracle",
+    "phase": "4 → 5 planning",
+    "current_tech": "React + TypeScript + Tailwind",
+    "read_first": [
+      "CLAUDE.md",
+      "EXECUTOR_LANES_v1.md"
+    ]
+  },
+
+  "estimated_time": "45 minutes",
+  "deadline": "2026-05-17T09:30:00+07:00",
+
+  "approval_gate": "THAM review + actionability check before storing"
+}
