@@ -1,0 +1,196 @@
+{
+  "task_id": "phase-2-executor-lane-router",
+  "timestamp": "2026-05-17T15:45:00+07:00",
+  "from_agent": "tham",
+  "to_agent": "core",
+  "to_repo": "E0993599799/Omega",
+  "priority": "critical",
+  "status": "pending",
+
+  "title": "Phase 2: Implement executor-lane-router.py",
+  "description": "Implement the core routing decision engine for Omega OS. This is the critical path blocker for full system operation.",
+
+  "intent_signal": "write_code",
+  "task_type": "implementation",
+  "risk_level": "medium",
+  "confidence": 0.95,
+
+  "specification": {
+    "file": "executor_lane_router.py",
+    "location": "/root/ghq/github.com/E0993599799/tham-oracle/",
+    "target_lines": "500-800",
+    "language": "Python 3.9+",
+
+    "core_functions": [
+      {
+        "name": "route_task(contract: dict) -> dict",
+        "purpose": "Main entry point - receives contract, returns proof",
+        "steps": [
+          "Validate contract schema (required fields, enums)",
+          "Run intent gate (match intent_signal to lane)",
+          "Run health checks (probe primary + fallback)",
+          "Select lane (risk filter + health status)",
+          "Dispatch to lane",
+          "Capture proof",
+          "Validate proof schema",
+          "Return proof"
+        ]
+      },
+      {
+        "name": "health_check(lane_id: str) -> dict",
+        "purpose": "Probe lane health (< 200ms ok, 200-500ms degraded, > 500ms down)",
+        "returns": {
+          "lane_id": "string",
+          "status": "healthy|degraded|down",
+          "response_time_ms": "int",
+          "sla_ok": "bool",
+          "circuit_breaker_state": "CLOSED|OPEN|HALF_OPEN"
+        }
+      },
+      {
+        "name": "lookup_routing_table(intent_signal: str) -> tuple",
+        "purpose": "Match intent_signal to (primary_lane, fallback_lane) from decision table",
+        "source": "docs/phase-1-router/routing_decision_table.md"
+      },
+      {
+        "name": "select_lane(primary, fallback, risk_level) -> str",
+        "purpose": "Choose primary or fallback based on health + risk filters",
+        "rules": [
+          "Block Hermes if risk_level == 'high'",
+          "Prefer healthy primary over degraded fallback",
+          "Return 'BLOCKED' if no healthy lane available"
+        ]
+      },
+      {
+        "name": "dispatch(lane_id: str, contract: dict) -> dict",
+        "purpose": "Send task to lane (via 9router OpenAI-compat API)",
+        "implementation": "OpenAI Python SDK to http://127.0.0.1:20128/v1"
+      },
+      {
+        "name": "capture_proof(result: dict, lane_id: str, contract: dict) -> dict",
+        "purpose": "Create proof JSON record from execution result"
+      },
+      {
+        "name": "validate_proof(proof: dict) -> bool",
+        "purpose": "Validate proof against schema (8 checks)",
+        "checks": [
+          "JSON validity",
+          "Required fields present",
+          "Enum values valid",
+          "Timestamp ISO-8601",
+          "Non-negative duration",
+          "Fallback != primary",
+          "Proof file exists",
+          "Summary length 1-200 chars"
+        ]
+      }
+    ],
+
+    "dependencies": {
+      "stdlib": ["json", "time", "os", "datetime", "enum"],
+      "external": ["openai", "requests"],
+      "internal": ["docs/phase-1-router/routing_decision_table.md", "configs/lane-cards/*.json"]
+    },
+
+    "input_schema": {
+      "type": "object",
+      "required": ["task_id", "intent_signal", "risk_level", "confidence"],
+      "properties": {
+        "task_id": {"type": "string"},
+        "intent_signal": {"type": "string"},
+        "context": {"type": "object"},
+        "risk_level": {"enum": ["low", "medium", "high", "critical"]},
+        "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+        "memory_gate_passed": {"type": "boolean"},
+        "risk_gate_passed": {"type": "boolean"},
+        "token_budget": {"type": "integer"},
+        "timeout_seconds": {"type": "integer"}
+      }
+    },
+
+    "output_schema": {
+      "type": "object",
+      "required": ["task_id", "routed_lane", "status", "proof_path"],
+      "properties": {
+        "task_id": {"type": "string"},
+        "routed_lane": {"type": "string"},
+        "fallback_lane": {"type": ["string", "null"]},
+        "risk_level": {"type": "string"},
+        "status": {"enum": ["SUCCESS", "BLOCKED", "TIMEOUT", "ERROR"]},
+        "execution_timestamp": {"type": "string", "format": "iso8601"},
+        "execution_duration_seconds": {"type": "number"},
+        "proof_path": {"type": "string"},
+        "proof_summary": {"type": "string", "minLength": 1, "maxLength": 200},
+        "next_action": {"type": "string"}
+      }
+    }
+  },
+
+  "reference_documents": [
+    "docs/phase-2-router-implementation.md (full spec - 500+ lines)",
+    "docs/phase-1-router/routing_decision_table.md (routing rules)",
+    "configs/lane-cards/*.json (lane configurations)",
+    "docs/phase-1-router/proof-schema.md (proof record format)"
+  ],
+
+  "proof_requirements": {
+    "code_proof": {
+      "file_path": "executor_lane_router.py",
+      "requirements": [
+        "File exists at repo root",
+        "All 7 functions implemented",
+        "Python linting clean (flake8 or black compatible)",
+        "Docstrings on all functions",
+        "Type hints on all function signatures"
+      ]
+    },
+
+    "test_proof": {
+      "requirements": [
+        "Unit tests for each function",
+        "Integration test: route_task() end-to-end",
+        "Proof schema validation test (8 checks)",
+        "Lane selection test (primary/fallback logic)",
+        "All tests passing (pytest)"
+      ]
+    },
+
+    "verification": {
+      "requirements": [
+        "Code diff clean (no unrelated changes)",
+        "No secrets in code (grep for password, token, key, secret)",
+        "Function signatures match spec",
+        "Proof JSON valid against schema",
+        "Health check logic correct (< 200ms ok, > 500ms down)"
+      ]
+    }
+  },
+
+  "success_criteria": {
+    "must_have": [
+      "executor_lane_router.py created at repo root",
+      "All 7 core functions implemented",
+      "contract input validated",
+      "proof JSON generated",
+      "schema validation (8 checks)",
+      "Tests passing"
+    ],
+    "nice_to_have": [
+      "Comprehensive docstrings",
+      "Type hints",
+      "Circuit breaker logic",
+      "Performance benchmarks"
+    ]
+  },
+
+  "next_action": {
+    "after_success": "Run: bash scripts/run-world-class-benchmarks.sh",
+    "after_failure": "Return failure proof to THAM with debugging details"
+  },
+
+  "notes": {
+    "context": "This is Phase 2 of Omega OS implementation. Phase 1 spec (routing_decision_table.md) is locked and complete. Phase 2 implementation is the critical path blocker for full system operation.",
+    "routing": "Codex (via 9router, port 20128) is the primary lane for this code implementation task.",
+    "proof_archival": "Proof will be archived at: proofs/2026-05-17/phase-2-executor-lane-router.json"
+  }
+}

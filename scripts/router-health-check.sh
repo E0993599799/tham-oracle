@@ -1,237 +1,158 @@
 #!/bin/bash
-##
-## Phase 3A: Execution Lane Health Check
-## Real-time health status of all 6 execution lanes
-## Pure bash JSON generation (no jq, no python)
-##
-## Usage: ./scripts/router-health-check.sh
-## Output: JSON to stdout + proofs/YYYY-MM-DD/lane-health-*.json
-##
+# Phase 3A: Router Health Check — Poll lanes, output JSON health record
+# Usage: bash scripts/router-health-check.sh
+# Output: JSON health record → proofs/YYYY-MM-DD/lane-health-YYYY-MM-DD-HHmmss.json
 
 set -e
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-PROOFS_DIR="${PROJECT_ROOT}/proofs/$(date +%Y-%m-%d)"
+REPO_ROOT="/root/ghq/github.com/E0993599799/tham-oracle"
+PROOFS_DIR="$REPO_ROOT/proofs"
+TODAY=$(date +%Y-%m-%d)
+TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+TIMESTAMP_FILE=$(date +%s)
 
 # Ensure proofs directory exists
-mkdir -p "$PROOFS_DIR"
+mkdir -p "$PROOFS_DIR/$TODAY"
 
-# Configuration: Lane endpoints
+# ============================================================================
+# Lane Configuration
+# ============================================================================
+
 declare -A LANES=(
-    [codex_gpt55]="http://localhost:20128/v1/completions"
-    [claude]="http://localhost:20128/v1/messages"
-    [gemini]="http://localhost:20128/v1/completions"
-    [ollama]="http://localhost:11434/api/generate"
-    [hermes]="http://localhost:11434/api/generate"
+    ["codex_gpt55"]="http://127.0.0.1:20128/v1"
+    ["claude"]="http://127.0.0.1:20128/v1"
+    ["gemini"]="http://127.0.0.1:20128/v1"
+    ["ollama"]="http://127.0.0.1:20128/v1"
+    ["hermes"]="http://127.0.0.1:20128/v1"
+    ["powershell_sfsr"]="local"
 )
 
-# Persistent state file for tracking success rates (plain text format)
-STATE_FILE="/tmp/lane-health-state.txt"
-if [[ ! -f "$STATE_FILE" ]]; then
-    touch "$STATE_FILE"
-fi
+# ============================================================================
+# Helper Functions
+# ============================================================================
 
-##
-## Helper: Escape JSON string
-##
-json_escape() {
-    local s="$1"
-    s="${s//\\/\\\\}"  # backslash
-    s="${s//\"/\\\"}"  # quotes
-    s="${s//$'\t'/\\t}"  # tabs
-    s="${s//$'\n'/\\n}"  # newlines
-    s="${s//$'\r'/\\r}"  # carriage returns
-    printf '%s' "$s"
-}
-
-##
-## Helper: Probe a single lane
-##
-probe_lane() {
-    local lane=$1
-    local endpoint=$2
-    local timeout=2
-
+health_check_lane() {
+    local lane_id=$1
+    local base_url=$2
     local start_time=$(date +%s%3N)
-    local http_code
-    local response_time_ms=0
 
-    # Special case: PowerShell direct execution is always healthy
-    if [[ "$lane" == "powershell_sfsr" ]]; then
-        echo "healthy|0|200|true"
-        return 0
-    fi
-
-    # HTTP probe with timeout
-    http_code=$(curl -s -o /dev/null -w "%{http_code}" \
-        --connect-timeout "$timeout" \
-        --max-time "$timeout" \
-        "$endpoint" 2>/dev/null || echo "000")
-
-    local end_time=$(date +%s%3N)
-    response_time_ms=$((end_time - start_time))
-
-    # Determine success based on HTTP code
-    local success="false"
-    if [[ "$http_code" =~ ^[2][0-9][0-9]$ ]]; then
-        success="true"
-    fi
-
-    echo "ok|$response_time_ms|$http_code|$success"
-}
-
-##
-## Helper: Get rolling success rate (last 10 probes)
-##
-get_success_rate() {
-    local lane=$1
-
-    # Read state for this lane (format: lane:probe1,probe2,probe3,...)
-    local state_line=$(grep "^${lane}:" "$STATE_FILE" 2>/dev/null || echo "")
-    local history=""
-
-    if [[ -n "$state_line" ]]; then
-        history="${state_line#${lane}:}"
-    fi
-
-    # Parse history: count successes
-    if [[ -z "$history" ]]; then
-        echo 0
+    if [ "$base_url" = "local" ]; then
+        # Local lane always available
+        echo "HEALTHY,0,100.0,$(date -u +%Y-%m-%dT%H:%M:%SZ),CLOSED"
         return
     fi
 
-    IFS=',' read -ra probes <<< "$history"
-    local total=${#probes[@]}
-    local success_count=0
+    # HTTP health check
+    local response_time=0
+    local status="down"
+    local success_rate=50.0
+    local circuit_breaker="OPEN"
 
-    for probe in "${probes[@]}"; do
-        [[ "$probe" == "true" ]] && ((success_count++))
-    done
+    if timeout 2 curl -s -I "$base_url/models" >/dev/null 2>&1; then
+        local end_time=$(date +%s%3N)
+        response_time=$((end_time - start_time))
+        success_rate=$(get_lane_success_rate "$lane_id")
+        circuit_breaker="CLOSED"
 
-    if [[ $total -eq 0 ]]; then
-        echo 0
-    else
-        echo $((success_count * 100 / total))
-    fi
-}
-
-##
-## Helper: Update rolling success rate
-##
-update_success_rate() {
-    local lane=$1
-    local is_success=$2
-
-    # Get existing history
-    local state_line=$(grep "^${lane}:" "$STATE_FILE" 2>/dev/null || echo "")
-    local history=""
-
-    if [[ -n "$state_line" ]]; then
-        history="${state_line#${lane}:}"
-    fi
-
-    # Add new result
-    if [[ -z "$history" ]]; then
-        history="$is_success"
-    else
-        history="${history},$is_success"
-    fi
-
-    # Keep only last 10 results
-    IFS=',' read -ra probes <<< "$history"
-    if [[ ${#probes[@]} -gt 10 ]]; then
-        probes=("${probes[@]: -10}")
-        history=$(IFS=','; echo "${probes[*]}")
-    fi
-
-    # Update state file (remove old line, add new)
-    grep -v "^${lane}:" "$STATE_FILE" > "${STATE_FILE}.tmp" 2>/dev/null || true
-    mv "${STATE_FILE}.tmp" "$STATE_FILE"
-    echo "${lane}:${history}" >> "$STATE_FILE"
-
-    # Return success rate
-    get_success_rate "$lane"
-}
-
-##
-## Helper: Format JSON string
-##
-to_json_string() {
-    printf '"%s"' "$(json_escape "$1")"
-}
-
-##
-## Main: Collect health for all lanes
-##
-main() {
-    local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-    local lanes_json=""
-    local first_lane=true
-
-    # Always include PowerShell as a lane (direct execution, always OK)
-    LANES[powershell_sfsr]="local_direct_execution"
-
-    echo "Probing ${#LANES[@]} execution lanes..." >&2
-
-    for lane in "${!LANES[@]}"; do
-        local endpoint="${LANES[$lane]}"
-        local probe_result
-        local response_time_ms
-        local http_code
-        local is_success
-        local status
-
-        echo -n "  → $lane... " >&2
-
-        probe_result=$(probe_lane "$lane" "$endpoint")
-        IFS='|' read -r _ response_time_ms http_code is_success <<< "$probe_result"
-
-        # Determine health status
-        if [[ "$is_success" == "true" ]]; then
-            if [[ $response_time_ms -lt 1000 ]]; then
-                status="healthy"
-            else
-                status="degraded"
-            fi
-            echo "✓ $status ($response_time_ms ms)" >&2
+        if [ $response_time -lt 200 ]; then
+            status="healthy"
+        elif [ $response_time -lt 500 ]; then
+            status="degraded"
         else
-            status="offline"
-            echo "✗ offline" >&2
+            status="down"
         fi
+    else
+        response_time=5000
+    fi
 
-        # Update rolling success rate
-        success_rate=$(update_success_rate "$lane" "$is_success")
-
-        # Get last heartbeat
-        local last_heartbeat="never"
-        if [[ "$is_success" == "true" ]]; then
-            last_heartbeat="$timestamp"
-        fi
-
-        # Build lane record (pure bash JSON)
-        # Strip leading zeros from http_code for valid JSON
-        http_code=$((10#$http_code))
-        local lane_record="\"$lane\":{\"status\":\"$status\",\"response_time_ms\":$response_time_ms,\"success_rate_pct\":$success_rate,\"last_heartbeat\":$(to_json_string "$last_heartbeat"),\"http_code\":$http_code}"
-
-        if [[ "$first_lane" == true ]]; then
-            lanes_json="$lane_record"
-            first_lane=false
-        else
-            lanes_json="${lanes_json},$lane_record"
-        fi
-    done
-
-    # Final output (pure bash JSON)
-    local output="{\"timestamp\":$(to_json_string "$timestamp"),\"lane_count\":${#LANES[@]},\"lanes\":{$lanes_json}}"
-
-    # Save proof file
-    local proof_file="${PROOFS_DIR}/lane-health-$(date +%Y%m%d-%H%M%S).json"
-    echo "$output" > "$proof_file"
-    echo "Proof saved: $proof_file" >&2
-
-    # Output to stdout with pretty-printing
-    echo "$output" | python3 -m json.tool 2>/dev/null || echo "$output"
+    echo "$status,$response_time,$success_rate,$(date -u +%Y-%m-%dT%H:%M:%SZ),$circuit_breaker"
 }
 
-main "$@"
+get_lane_success_rate() {
+    local lane_id=$1
+    # Count successful proofs for this lane from today's files
+    local total=0
+    local successful=0
+
+    if [ -d "$PROOFS_DIR/$TODAY" ]; then
+        total=$(find "$PROOFS_DIR/$TODAY" -name "*.json" -type f 2>/dev/null | wc -l)
+        if [ $total -gt 0 ]; then
+            successful=$(grep -l "\"routed_lane\": \"$lane_id\"" "$PROOFS_DIR/$TODAY"/*.json 2>/dev/null | \
+                         xargs grep -l "\"status\": \"SUCCESS\"" 2>/dev/null | wc -l)
+        fi
+    fi
+
+    if [ $total -eq 0 ]; then
+        echo "100.0"
+    else
+        awk "BEGIN {printf \"%.1f\", (($successful / $total) * 100)}"
+    fi
+}
+
+# ============================================================================
+# Main Health Check
+# ============================================================================
+
+echo "🔍 Router Health Check — $(date)"
+echo ""
+
+# Start JSON output
+HEALTH_JSON="{"
+HEALTH_JSON+="\n  \"timestamp\": \"$TIMESTAMP\","
+HEALTH_JSON+="\n  \"health_check_duration_ms\": 0,"
+HEALTH_JSON+="\n  \"lanes\": ["
+
+first=true
+for lane_id in "${!LANES[@]}"; do
+    base_url="${LANES[$lane_id]}"
+
+    IFS=',' read -r status response_time success_rate heartbeat circuit_breaker <<< \
+        "$(health_check_lane "$lane_id" "$base_url")"
+
+    # Add comma separator
+    if [ "$first" = false ]; then
+        HEALTH_JSON+=","
+    fi
+    first=false
+
+    # Append lane record
+    HEALTH_JSON+="\n    {"
+    HEALTH_JSON+="\n      \"lane_id\": \"$lane_id\","
+    HEALTH_JSON+="\n      \"status\": \"$status\","
+    HEALTH_JSON+="\n      \"response_time_ms\": $response_time,"
+    HEALTH_JSON+="\n      \"success_rate_pct\": $success_rate,"
+    HEALTH_JSON+="\n      \"last_heartbeat\": \"$heartbeat\","
+    HEALTH_JSON+="\n      \"circuit_breaker_state\": \"$circuit_breaker\""
+    HEALTH_JSON+="\n    }"
+
+    # Print status
+    case "$status" in
+        "healthy")
+            echo "  ✓ $lane_id — healthy ($response_time ms, ${success_rate}%)"
+            ;;
+        "degraded")
+            echo "  ⚠ $lane_id — degraded ($response_time ms, ${success_rate}%)"
+            ;;
+        *)
+            echo "  ✗ $lane_id — down"
+            ;;
+    esac
+done
+
+# Close JSON
+HEALTH_JSON+="\n  ]"
+HEALTH_JSON+="\n}"
+
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+
+# Write to file
+HEALTH_FILE="$PROOFS_DIR/$TODAY/lane-health-${TODAY}-${TIMESTAMP_FILE}.json"
+echo -e "$HEALTH_JSON" > "$HEALTH_FILE"
+
+# Output to stdout (for dashboard)
+echo -e "$HEALTH_JSON"
+
+echo ""
+echo "✅ Health check written to: $HEALTH_FILE"

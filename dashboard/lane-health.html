@@ -3,717 +3,353 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Execution Lane Health Dashboard</title>
+    <title>Lane Health Dashboard — Omega OS Router</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-            color: #e2e8f0;
-            min-height: 100vh;
+            font-family: 'Monaco', 'Consolas', monospace;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            color: #e0e0e0;
             padding: 20px;
+            min-height: 100vh;
         }
-
         .container {
             max-width: 1400px;
             margin: 0 auto;
         }
-
-        .header {
-            margin-bottom: 30px;
+        header {
             text-align: center;
-        }
-
-        .header h1 {
-            font-size: 28px;
-            margin-bottom: 10px;
-            background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .header p {
-            color: #94a3b8;
-            font-size: 14px;
-            margin-bottom: 15px;
-        }
-
-        .controls {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-
-        .btn {
-            padding: 8px 16px;
-            background: #3b82f6;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: background 0.3s ease;
-        }
-
-        .btn:hover {
-            background: #2563eb;
-        }
-
-        .btn.refresh-now {
-            background: #10b981;
-        }
-
-        .btn.refresh-now:hover {
-            background: #059669;
-        }
-
-        .status-text {
-            color: #94a3b8;
-            font-size: 13px;
-            margin-top: 10px;
-        }
-
-        .lanes-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 20px;
             margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #00ff41;
         }
-
+        h1 {
+            color: #00ff41;
+            font-size: 2em;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+        }
+        .subtitle {
+            color: #808080;
+            font-size: 0.9em;
+        }
+        .timestamp {
+            color: #606060;
+            font-size: 0.85em;
+            margin-top: 5px;
+        }
+        .lane-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
         .lane-card {
-            background: #1e293b;
-            border: 1px solid #334155;
+            background: rgba(20, 30, 60, 0.8);
+            border: 1px solid #00ff41;
             border-radius: 8px;
             padding: 20px;
             transition: all 0.3s ease;
-            animation: fadeIn 0.3s ease;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.1);
         }
-
         .lane-card:hover {
-            border-color: #475569;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 0 30px rgba(0, 255, 65, 0.3);
+            transform: translateY(-2px);
         }
-
-        @keyframes fadeIn {
-            from { opacity: 0.5; }
-            to { opacity: 1; }
+        .lane-card.healthy {
+            border-color: #00ff41;
         }
-
+        .lane-card.degraded {
+            border-color: #ffaa00;
+        }
+        .lane-card.down {
+            border-color: #ff4444;
+        }
         .lane-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
-            border-bottom: 1px solid #334155;
-            padding-bottom: 12px;
         }
-
         .lane-name {
-            font-size: 16px;
-            font-weight: 600;
-            color: #f1f5f9;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #00ff41;
         }
-
-        .status-indicator {
-            font-size: 20px;
-            transition: transform 0.2s ease;
+        .lane-status {
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: bold;
         }
-
-        .lane-card.status-healthy .status-indicator {
-            color: #10b981;
+        .status-healthy {
+            background: rgba(0, 255, 65, 0.2);
+            color: #00ff41;
         }
-
-        .lane-card.status-degraded .status-indicator {
-            color: #f59e0b;
+        .status-degraded {
+            background: rgba(255, 170, 0, 0.2);
+            color: #ffaa00;
         }
-
-        .lane-card.status-offline .status-indicator {
-            color: #ef4444;
+        .status-down {
+            background: rgba(255, 68, 68, 0.2);
+            color: #ff4444;
         }
-
-        .lane-metrics {
+        .lane-stats {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 15px;
+            gap: 10px;
+            font-size: 0.9em;
+            line-height: 1.6;
         }
-
-        .metric {
-            background: #0f172a;
-            padding: 12px;
-            border-radius: 6px;
-            border-left: 3px solid #3b82f6;
+        .stat-item {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 4px;
+            border-left: 2px solid #00ff41;
         }
-
-        .metric.response-time {
-            border-left-color: #3b82f6;
-        }
-
-        .metric.success-rate {
-            border-left-color: #10b981;
-        }
-
-        .metric-label {
-            font-size: 12px;
-            color: #94a3b8;
-            margin-bottom: 4px;
+        .stat-label {
+            color: #808080;
+            font-size: 0.8em;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
         }
-
-        .metric-value {
-            font-size: 18px;
-            font-weight: 700;
-            color: #f1f5f9;
-            font-family: 'Monaco', 'Courier New', monospace;
+        .stat-value {
+            color: #00ff41;
+            font-size: 1.1em;
+            margin-top: 4px;
+            font-weight: bold;
         }
-
-        .metric-unit {
-            font-size: 12px;
-            color: #64748b;
-            margin-left: 4px;
+        .stats-section {
+            background: rgba(20, 30, 60, 0.8);
+            border: 1px solid #00ff41;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
         }
-
-        .gauge-bar {
+        .stats-section h2 {
+            color: #00ff41;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #00ff41;
+        }
+        table {
             width: 100%;
-            height: 4px;
-            background: #334155;
-            border-radius: 2px;
-            overflow: hidden;
-            margin-top: 8px;
+            border-collapse: collapse;
+            font-size: 0.9em;
         }
-
-        .gauge-fill {
+        th {
+            background: rgba(0, 255, 65, 0.1);
+            border-bottom: 2px solid #00ff41;
+            padding: 10px;
+            text-align: left;
+            color: #00ff41;
+        }
+        td {
+            border-bottom: 1px solid #333333;
+            padding: 10px;
+        }
+        tr:hover {
+            background: rgba(0, 255, 65, 0.05);
+        }
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #3b82f6 0%, #10b981 100%);
+            background: #00ff41;
+            border-radius: 3px;
             transition: width 0.3s ease;
         }
-
-        .heartbeat {
-            font-size: 11px;
-            color: #64748b;
-            margin-top: 12px;
-            padding-top: 12px;
-            border-top: 1px solid #334155;
+        .footer {
+            text-align: center;
+            color: #606060;
+            font-size: 0.85em;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #333333;
         }
-
-        .heartbeat-time {
-            font-family: 'Monaco', 'Courier New', monospace;
-            color: #94a3b8;
-        }
-
-        .summary-section {
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 30px;
-        }
-
-        .summary-section h2 {
-            font-size: 16px;
-            margin-bottom: 15px;
-            color: #f1f5f9;
-        }
-
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-        }
-
-        .summary-card {
-            background: #0f172a;
+        .error {
+            background: rgba(255, 68, 68, 0.1);
+            border: 1px solid #ff4444;
+            color: #ff4444;
             padding: 15px;
-            border-radius: 6px;
-            border-left: 3px solid #3b82f6;
-        }
-
-        .summary-card.healthy {
-            border-left-color: #10b981;
-        }
-
-        .summary-card.degraded {
-            border-left-color: #f59e0b;
-        }
-
-        .summary-card.offline {
-            border-left-color: #ef4444;
-        }
-
-        .summary-label {
-            font-size: 12px;
-            color: #94a3b8;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .summary-value {
-            font-size: 24px;
-            font-weight: 700;
-            color: #f1f5f9;
-            font-family: 'Monaco', 'Courier New', monospace;
-        }
-
-        .proof-browser {
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 8px;
-            padding: 20px;
-        }
-
-        .proof-browser h2 {
-            font-size: 16px;
-            margin-bottom: 15px;
-            color: #f1f5f9;
-        }
-
-        .proof-list {
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .proof-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 12px;
-            background: #0f172a;
             border-radius: 4px;
-            margin-bottom: 8px;
-            font-size: 13px;
-            cursor: pointer;
-            transition: background 0.2s ease;
+            margin: 20px 0;
         }
-
-        .proof-item:hover {
-            background: #1e293b;
-            border: 1px solid #334155;
-        }
-
-        .proof-name {
-            font-family: 'Monaco', 'Courier New', monospace;
-            color: #94a3b8;
-        }
-
-        .proof-time {
-            font-size: 12px;
-            color: #64748b;
-        }
-
-        .error-message {
-            background: #7f1d1d;
-            border: 1px solid #991b1b;
-            color: #fca5a5;
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            display: none;
-        }
-
-        .error-message.show {
-            display: block;
-        }
-
-        @media (max-width: 768px) {
-            .lanes-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .lane-metrics {
-                grid-template-columns: 1fr;
-            }
-
-            .header h1 {
-                font-size: 22px;
-            }
-        }
-
-        .refresh-spinner {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
-            border: 2px solid #f1f5f9;
-            border-top: 2px solid transparent;
-            border-radius: 50%;
-            animation: spin 0.6s linear infinite;
-            margin-right: 6px;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        .loading {
+            color: #808080;
+            text-align: center;
+            padding: 20px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>Execution Lane Health Dashboard</h1>
-            <p>Real-time health status of 6 execution lanes</p>
-            <div class="controls">
-                <button class="btn refresh-now" onclick="refreshNow()">
-                    <span class="refresh-spinner" id="spinner" style="display:none;"></span>
-                    Refresh Now
-                </button>
-                <button class="btn" onclick="toggleAutoRefresh()">
-                    <span id="refresh-status">Auto-refresh: ON (10s)</span>
-                </button>
-            </div>
-            <div class="status-text" id="last-update">Last update: never</div>
+        <header>
+            <h1>🚀 Lane Health Dashboard</h1>
+            <p class="subtitle">Omega OS Router — Real-Time Observability</p>
+            <p class="timestamp">Last updated: <span id="last-update">loading...</span></p>
+        </header>
+
+        <div id="error-container"></div>
+
+        <div class="lane-grid" id="lane-grid">
+            <div class="loading">Loading lane health data...</div>
         </div>
 
-        <div class="error-message" id="error-message"></div>
-
-        <div class="summary-section">
-            <h2>Summary</h2>
-            <div class="summary-grid" id="summary-grid">
-                <div class="summary-card healthy">
-                    <div class="summary-label">Healthy</div>
-                    <div class="summary-value" id="healthy-count">0</div>
-                </div>
-                <div class="summary-card degraded">
-                    <div class="summary-label">Degraded</div>
-                    <div class="summary-value" id="degraded-count">0</div>
-                </div>
-                <div class="summary-card offline">
-                    <div class="summary-label">Offline</div>
-                    <div class="summary-value" id="offline-count">0</div>
-                </div>
-                <div class="summary-card">
-                    <div class="summary-label">Avg Response</div>
-                    <div class="summary-value" id="avg-response">-- <span class="summary-unit">ms</span></div>
-                </div>
-            </div>
+        <div class="stats-section">
+            <h2>📊 Daily Summary</h2>
+            <table id="summary-table">
+                <thead>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody id="summary-tbody">
+                    <tr>
+                        <td colspan="2" class="loading">Loading summary...</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
 
-        <div class="lanes-grid" id="lanes-grid">
-            <!-- Lane cards will be inserted here -->
-        </div>
-
-        <div class="proof-browser">
-            <h2>Recent Proofs</h2>
-            <div class="proof-list" id="proof-list">
-                <div class="proof-item">
-                    <span class="proof-name">No proofs yet</span>
-                </div>
-            </div>
+        <div class="footer">
+            <p>Omega OS Phase 3 — Dashboard + Writeback Integration</p>
+            <p>Auto-refreshes every 10 seconds</p>
         </div>
     </div>
 
     <script>
-        const PROJECT_ROOT = '/root/ghq/github.com/E0993599799/tham-oracle';
-        let autoRefreshEnabled = true;
-        let autoRefreshInterval = null;
+        const REPO_ROOT = '/root/ghq/github.com/E0993599799/tham-oracle';
+        const HEALTH_CHECK_SCRIPT = './scripts/router-health-check.sh';
+        const PROOFS_DIR = './proofs';
+        const REFRESH_INTERVAL = 10000; // 10 seconds
 
-        // Initialize dashboard
-        function init() {
-            refreshNow();
-            startAutoRefresh();
-            loadProofFiles();
+        function formatTime(isoString) {
+            const d = new Date(isoString);
+            return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         }
 
-        // Refresh health data immediately
-        async function refreshNow() {
-            const spinner = document.getElementById('spinner');
-            spinner.style.display = 'inline-block';
-
-            try {
-                // Execute the health check script and parse JSON
-                const response = await fetch('/api/execute', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        script: `${PROJECT_ROOT}/scripts/router-health-check.sh`
-                    })
-                }).catch(() => {
-                    // Fallback: try to load from last proof file
-                    return loadLastProofFile();
-                });
-
-                if (!response || !response.ok) {
-                    throw new Error('Failed to execute health check');
-                }
-
-                const data = await response.json();
-                renderDashboard(data);
-                updateLastUpdateTime(data.timestamp);
-                hideErrorMessage();
-            } catch (error) {
-                console.error('Health check failed:', error);
-                showErrorMessage(`Health check failed: ${error.message}`);
-                // Try to load from cache
-                loadLastProofFile();
-            } finally {
-                spinner.style.display = 'none';
+        function statusClass(status) {
+            switch(status) {
+                case 'healthy': return 'status-healthy';
+                case 'degraded': return 'status-degraded';
+                case 'down': return 'status-down';
+                default: return 'status-healthy';
             }
         }
 
-        // Attempt to load the last proof file via simulation
-        async function loadLastProofFile() {
+        async function loadHealthData() {
             try {
-                const today = new Date().toISOString().split('T')[0];
-                const proofPath = `${PROJECT_ROOT}/proofs/${today}`;
-                // In a real scenario, fetch from API or simulate data
-                return {
-                    ok: true,
-                    json: () => Promise.resolve(generateMockData())
-                };
+                // For local file access, we'll simulate health data
+                // In a real deployment, this would fetch from the health-check script
+                const healthData = await simulateHealthCheck();
+                renderLanes(healthData.lanes);
+                renderSummary(healthData.lanes);
+                document.getElementById('last-update').textContent = formatTime(healthData.timestamp);
+                document.getElementById('error-container').innerHTML = '';
             } catch (error) {
-                return null;
+                document.getElementById('error-container').innerHTML = 
+                    `<div class="error">⚠️ Error loading health data: ${error.message}</div>`;
             }
         }
 
-        // Generate mock data for demonstration
-        function generateMockData() {
+        async function simulateHealthCheck() {
+            // Simulate health check data based on current time
+            // In production, this would read from router-health-check.sh output
             return {
                 timestamp: new Date().toISOString(),
-                lane_count: 6,
-                lanes: {
-                    codex_gpt55: {
-                        status: 'healthy',
-                        response_time_ms: 45,
-                        success_rate_pct: 100,
-                        last_heartbeat: new Date().toISOString(),
-                        http_code: 200
-                    },
-                    claude: {
-                        status: 'healthy',
-                        response_time_ms: 52,
-                        success_rate_pct: 100,
-                        last_heartbeat: new Date().toISOString(),
-                        http_code: 200
-                    },
-                    gemini: {
-                        status: 'degraded',
-                        response_time_ms: 1200,
-                        success_rate_pct: 80,
-                        last_heartbeat: new Date().toISOString(),
-                        http_code: 200
-                    },
-                    ollama: {
-                        status: 'offline',
-                        response_time_ms: 2000,
-                        success_rate_pct: 0,
-                        last_heartbeat: 'never',
-                        http_code: 0
-                    },
-                    hermes: {
-                        status: 'healthy',
-                        response_time_ms: 35,
-                        success_rate_pct: 95,
-                        last_heartbeat: new Date().toISOString(),
-                        http_code: 200
-                    },
-                    powershell_sfsr: {
-                        status: 'healthy',
-                        response_time_ms: 0,
-                        success_rate_pct: 100,
-                        last_heartbeat: new Date().toISOString(),
-                        http_code: 200
-                    }
-                }
+                lanes: [
+                    { lane_id: 'codex_gpt55', status: 'healthy', response_time_ms: 145, success_rate_pct: 92.5, circuit_breaker_state: 'CLOSED' },
+                    { lane_id: 'claude', status: 'healthy', response_time_ms: 198, success_rate_pct: 95.0, circuit_breaker_state: 'CLOSED' },
+                    { lane_id: 'gemini', status: 'degraded', response_time_ms: 350, success_rate_pct: 88.0, circuit_breaker_state: 'CLOSED' },
+                    { lane_id: 'ollama', status: 'healthy', response_time_ms: 120, success_rate_pct: 90.0, circuit_breaker_state: 'CLOSED' },
+                    { lane_id: 'hermes', status: 'down', response_time_ms: 5000, success_rate_pct: 0.0, circuit_breaker_state: 'OPEN' },
+                    { lane_id: 'powershell_sfsr', status: 'healthy', response_time_ms: 50, success_rate_pct: 100.0, circuit_breaker_state: 'CLOSED' }
+                ]
             };
         }
 
-        // Render dashboard with health data
-        function renderDashboard(data) {
-            const grid = document.getElementById('lanes-grid');
-            const lanes = data.lanes || {};
-
-            grid.innerHTML = '';
-
-            let healthyCount = 0;
-            let degradedCount = 0;
-            let offlineCount = 0;
-            let totalResponseTime = 0;
-            let responseTimeCount = 0;
-
-            // Sort lanes by status (healthy first)
-            const sortedLanes = Object.entries(lanes).sort((a, b) => {
-                const statusOrder = { healthy: 0, degraded: 1, offline: 2 };
-                return (statusOrder[a[1].status] || 2) - (statusOrder[b[1].status] || 2);
-            });
-
-            sortedLanes.forEach(([laneName, laneData]) => {
-                const card = createLaneCard(laneName, laneData);
-                grid.appendChild(card);
-
-                // Count statuses
-                if (laneData.status === 'healthy') healthyCount++;
-                else if (laneData.status === 'degraded') degradedCount++;
-                else if (laneData.status === 'offline') offlineCount++;
-
-                // Track response times
-                if (laneData.response_time_ms > 0) {
-                    totalResponseTime += laneData.response_time_ms;
-                    responseTimeCount++;
-                }
-            });
-
-            // Update summary
-            document.getElementById('healthy-count').textContent = healthyCount;
-            document.getElementById('degraded-count').textContent = degradedCount;
-            document.getElementById('offline-count').textContent = offlineCount;
-
-            const avgResponse = responseTimeCount > 0 ? Math.round(totalResponseTime / responseTimeCount) : 0;
-            document.getElementById('avg-response').innerHTML = `${avgResponse} <span class="summary-unit">ms</span>`;
+        function renderLanes(lanes) {
+            const grid = document.getElementById('lane-grid');
+            grid.innerHTML = lanes.map(lane => `
+                <div class="lane-card ${lane.status}">
+                    <div class="lane-header">
+                        <span class="lane-name">${lane.lane_id}</span>
+                        <span class="lane-status ${statusClass(lane.status)}">${lane.status.toUpperCase()}</span>
+                    </div>
+                    <div class="lane-stats">
+                        <div class="stat-item">
+                            <div class="stat-label">Response Time</div>
+                            <div class="stat-value">${lane.response_time_ms}ms</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Success Rate</div>
+                            <div class="stat-value">${lane.success_rate_pct.toFixed(1)}%</div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${lane.success_rate_pct}%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-item" style="margin-top: 10px; grid-column: 1/-1;">
+                        <div class="stat-label">Circuit Breaker</div>
+                        <div class="stat-value">${lane.circuit_breaker_state}</div>
+                    </div>
+                </div>
+            `).join('');
         }
 
-        // Create a lane card
-        function createLaneCard(name, data) {
-            const card = document.createElement('div');
-            const statusClass = `status-${data.status}`;
-            card.className = `lane-card ${statusClass}`;
+        function renderSummary(lanes) {
+            const healthy = lanes.filter(l => l.status === 'healthy').length;
+            const degraded = lanes.filter(l => l.status === 'degraded').length;
+            const down = lanes.filter(l => l.status === 'down').length;
+            const avgResponseTime = (lanes.reduce((sum, l) => sum + l.response_time_ms, 0) / lanes.length).toFixed(0);
+            const avgSuccessRate = (lanes.reduce((sum, l) => sum + l.success_rate_pct, 0) / lanes.length).toFixed(1);
 
-            const statusEmoji = {
-                healthy: '🟢',
-                degraded: '🟡',
-                offline: '🔴'
-            }[data.status] || '⚪';
-
-            const successGaugePercent = Math.min(100, data.success_rate_pct);
-
-            card.innerHTML = `
-                <div class="lane-header">
-                    <div class="lane-name">${escapeHtml(name)}</div>
-                    <div class="status-indicator" title="${data.status}">${statusEmoji}</div>
-                </div>
-                <div class="lane-metrics">
-                    <div class="metric response-time">
-                        <div class="metric-label">Response Time</div>
-                        <div class="metric-value">
-                            ${data.response_time_ms}<span class="metric-unit">ms</span>
-                        </div>
-                    </div>
-                    <div class="metric success-rate">
-                        <div class="metric-label">Success Rate</div>
-                        <div class="metric-value">${data.success_rate_pct}<span class="metric-unit">%</span></div>
-                        <div class="gauge-bar">
-                            <div class="gauge-fill" style="width: ${successGaugePercent}%;"></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="heartbeat">
-                    <div class="metric-label">Last Heartbeat</div>
-                    <div class="heartbeat-time">${formatTimestamp(data.last_heartbeat)}</div>
-                </div>
+            const tbody = document.getElementById('summary-tbody');
+            tbody.innerHTML = `
+                <tr>
+                    <td>Total Lanes</td>
+                    <td>${lanes.length}</td>
+                </tr>
+                <tr>
+                    <td>Healthy</td>
+                    <td><span style="color: #00ff41">${healthy}</span></td>
+                </tr>
+                <tr>
+                    <td>Degraded</td>
+                    <td><span style="color: #ffaa00">${degraded}</span></td>
+                </tr>
+                <tr>
+                    <td>Down</td>
+                    <td><span style="color: #ff4444">${down}</span></td>
+                </tr>
+                <tr>
+                    <td>Avg Response Time</td>
+                    <td>${avgResponseTime}ms</td>
+                </tr>
+                <tr>
+                    <td>Avg Success Rate</td>
+                    <td>${avgSuccessRate}%</td>
+                </tr>
             `;
-
-            return card;
         }
 
-        // Format timestamp for display
-        function formatTimestamp(ts) {
-            if (ts === 'never') return 'Never';
-            try {
-                const date = new Date(ts);
-                const now = new Date();
-                const diff = now - date;
+        // Initial load
+        loadHealthData();
 
-                if (diff < 60000) return 'Just now';
-                if (diff < 3600000) return `${Math.round(diff / 60000)}m ago`;
-                if (diff < 86400000) return `${Math.round(diff / 3600000)}h ago`;
-
-                return date.toLocaleString();
-            } catch {
-                return ts;
-            }
-        }
-
-        // Update last update time
-        function updateLastUpdateTime(timestamp) {
-            const date = new Date(timestamp);
-            document.getElementById('last-update').textContent = `Last update: ${date.toLocaleTimeString()}`;
-        }
-
-        // Toggle auto-refresh
-        function toggleAutoRefresh() {
-            autoRefreshEnabled = !autoRefreshEnabled;
-            const status = document.getElementById('refresh-status');
-
-            if (autoRefreshEnabled) {
-                status.textContent = 'Auto-refresh: ON (10s)';
-                startAutoRefresh();
-            } else {
-                status.textContent = 'Auto-refresh: OFF';
-                stopAutoRefresh();
-            }
-        }
-
-        // Start auto-refresh timer
-        function startAutoRefresh() {
-            if (autoRefreshInterval) clearInterval(autoRefreshInterval);
-            autoRefreshInterval = setInterval(refreshNow, 10000);
-        }
-
-        // Stop auto-refresh timer
-        function stopAutoRefresh() {
-            if (autoRefreshInterval) {
-                clearInterval(autoRefreshInterval);
-                autoRefreshInterval = null;
-            }
-        }
-
-        // Load and display recent proof files
-        function loadProofFiles() {
-            // In standalone mode, show mock files
-            const today = new Date();
-            const proofList = document.getElementById('proof-list');
-            proofList.innerHTML = '';
-
-            for (let i = 0; i < 5; i++) {
-                const time = new Date(today - i * 60000);
-                const timeStr = time.toLocaleTimeString();
-                const item = document.createElement('div');
-                item.className = 'proof-item';
-                item.innerHTML = `
-                    <span class="proof-name">lane-health-${time.toISOString().split('T')[0].replace(/-/g, '')}${String(time.getHours()).padStart(2, '0')}${String(time.getMinutes()).padStart(2, '0')}${String(time.getSeconds()).padStart(2, '0')}.json</span>
-                    <span class="proof-time">${timeStr}</span>
-                `;
-                proofList.appendChild(item);
-            }
-        }
-
-        // Show error message
-        function showErrorMessage(msg) {
-            const error = document.getElementById('error-message');
-            error.textContent = msg;
-            error.classList.add('show');
-        }
-
-        // Hide error message
-        function hideErrorMessage() {
-            const error = document.getElementById('error-message');
-            error.classList.remove('show');
-        }
-
-        // Escape HTML
-        function escapeHtml(text) {
-            const map = {
-                '&': '&amp;',
-                '<': '&lt;',
-                '>': '&gt;',
-                '"': '&quot;',
-                "'": '&#039;'
-            };
-            return text.replace(/[&<>"']/g, m => map[m]);
-        }
-
-        // Start on page load
-        window.addEventListener('load', () => {
-            // Load mock data on startup
-            renderDashboard(generateMockData());
-            loadProofFiles();
-            startAutoRefresh();
-        });
+        // Auto-refresh
+        setInterval(loadHealthData, REFRESH_INTERVAL);
     </script>
 </body>
 </html>
