@@ -1,0 +1,128 @@
+{
+  "task_id": "TASK-TEMPERATURE",
+  "title": "Project Temperature Record — Supabase + Modern UI/UX",
+  "lane": "multi",
+  "status": "DISCOVERY",
+  "priority": "HIGH",
+  "created_at": "2026-05-17T07:35:00+07:00",
+
+  "goal": "Setup Project Temperature Record database on Supabase + build modern, clean, signage-ready UI/UX",
+
+  "scope": {
+    "phase_1": {
+      "name": "Project Discovery & Database Setup",
+      "tasks": [
+        "Find Project Temperature Record in Obsidian",
+        "Understand data model (fields, requirements)",
+        "Setup Supabase project + authentication",
+        "Create database schema (tables + RLS policies)",
+        "Migrate existing data (if any)"
+      ],
+      "owner": "codex-b",
+      "eta": "1 hour"
+    },
+    "phase_2": {
+      "name": "Modern UI/UX Design + Implementation",
+      "tasks": [
+        "Design modern, clean interface (Figma/mockup)",
+        "Implement responsive React components",
+        "Build dashboard with real-time updates",
+        "Add signage-ready display (large screens)",
+        "Mobile-first responsive design"
+      ],
+      "owner": "claude",
+      "eta": "2 hours"
+    },
+    "phase_3": {
+      "name": "Integration + Polish",
+      "tasks": [
+        "Wire Supabase queries to UI",
+        "Add real-time streaming (if needed)",
+        "Performance optimization",
+        "Accessibility (WCAG AA)",
+        "Lighthouse ≥90"
+      ],
+      "owner": "claude",
+      "eta": "1 hour"
+    }
+  },
+
+  "deliverables": {
+    "database": {
+      "schema": "Supabase tables + RLS policies",
+      "auth": "Row-level security configured",
+      "data": "Existing data migrated/synced"
+    },
+    "ui_ux": {
+      "design": "Modern, clean, professional design",
+      "responsiveness": "Desktop + tablet + mobile",
+      "signage": "Large display mode (1920x1080+)",
+      "components": "React components (reusable)",
+      "state": "Real-time updates (Supabase subscriptions)"
+    },
+    "proof": {
+      "database_schema": "Supabase schema diagram",
+      "ui_screenshots": "Desktop + mobile + signage modes",
+      "lighthouse": "Score ≥90",
+      "test_results": "All tests passing"
+    }
+  },
+
+  "supabase_setup": {
+    "requirements": [
+      "Supabase project created",
+      "Database schema designed",
+      "Row-level security (RLS) configured",
+      "Realtime subscriptions enabled",
+      "Authentication method chosen"
+    ],
+    "tables_to_create": [
+      "temperature_records (id, timestamp, value, location, source)",
+      "devices (id, name, location, active)",
+      "alerts (id, device_id, threshold, type)",
+      "users (if authentication needed)"
+    ]
+  },
+
+  "ui_ux_requirements": {
+    "design_style": "Modern, minimal, clean",
+    "color_scheme": "Professional (blues/grays/whites)",
+    "typography": "Clear, readable, large for signage",
+    "components": [
+      "Temperature gauge display",
+      "Historical chart (trends)",
+      "Device status panel",
+      "Alert notifications",
+      "Settings/admin panel"
+    ],
+    "modes": {
+      "dashboard": "Desktop view (analytics + status)",
+      "signage": "Large display (room/area temp + alerts)",
+      "mobile": "Responsive, touch-friendly"
+    }
+  },
+
+  "timeline": {
+    "discovery": "now",
+    "database_setup": "1 hour from now",
+    "ui_design": "parallel with DB setup",
+    "ui_implementation": "1-2 hours",
+    "integration": "final 1 hour",
+    "total": "3-4 hours"
+  },
+
+  "lanes": {
+    "codex-b": {
+      "task": "Phase 1 — Supabase schema + RLS setup",
+      "files": "Core schema, migrations, security",
+      "deadline": "1 hour"
+    },
+    "claude": {
+      "task": "Phase 2+3 — UI/UX design + implementation",
+      "files": "React components, styling, integration",
+      "deadline": "3 hours"
+    }
+  },
+
+  "notes": "Wait for Obsidian search result to understand project scope. Then proceed with Supabase + modern UI."
+}
