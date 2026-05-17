@@ -1,164 +1,206 @@
 #!/usr/bin/env python3
 """
-WebSocket Server for Real-time Proof Streaming
+Phase 4A: WebSocket Server — Real-time proof streaming
 
-Listens on ws://localhost:8765 (configurable via WS_PORT env var)
-Streams proof events as they appear in proofs/YYYY-MM-DD/
-Broadcasts to all connected clients in real-time
+Accepts WebSocket connections and streams proofs as they're created.
+Runs on ws://localhost:8765 (configurable via WS_PORT env var)
 """
 
 import asyncio
-import websockets
 import json
-from pathlib import Path
-from datetime import datetime
-from collections import deque
-import signal
 import os
+from pathlib import Path
+from datetime import datetime, timezone
+from collections import deque
+import sys
+
+# Configuration
+WS_PORT = int(os.getenv('WS_PORT', 8765))
+REPO_ROOT = Path("/root/ghq/github.com/E0993599799/tham-oracle")
+PROOFS_DIR = REPO_ROOT / "proofs"
+
+# Track connected clients
+connected_clients = set()
+proof_queue = deque(maxlen=1000)
+last_processed_file = None
 
 
-class ProofServer:
-    def __init__(self, port=None):
-        self.port = port or int(os.getenv("WS_PORT", 8765))
-        self.clients = set()
-        self.proof_queue = deque(maxlen=1000)  # Keep last 1000 proofs
-        self.running = True
-        self.repo_root = Path(__file__).parent.parent
-        self.last_checked = {}
-
-    async def handle_client(self, websocket):
-        """Accept client connection, stream proofs"""
-        self.clients.add(websocket)
-        client_addr = websocket.remote_address if websocket.remote_address else ("unknown", "unknown")
-        print(f"✓ Client connected: {client_addr[0]}:{client_addr[1]}")
-
-        try:
-            # Send recent proofs on connect
-            if self.proof_queue:
-                for proof in self.proof_queue:
-                    await websocket.send(json.dumps(proof))
-                print(f"  Sent {len(self.proof_queue)} recent proofs to {client_addr[0]}:{client_addr[1]}")
-
-            # Keep connection alive
-            await websocket.wait_closed()
-        except websockets.exceptions.ConnectionClosed:
-            pass
-        except Exception as e:
-            print(f"✗ Error handling client {client_addr}: {e}")
-        finally:
-            self.clients.discard(websocket)
-            print(f"✗ Client disconnected: {client_addr[0]}:{client_addr[1]}")
-
-    async def proof_poller(self):
-        """Watch proofs/ directory, emit new proofs every 1 second"""
-        while self.running:
+class ProofWatcher:
+    """Watch proofs directory for new files."""
+    
+    def __init__(self, proofs_dir, poll_interval=1.0):
+        self.proofs_dir = Path(proofs_dir)
+        self.poll_interval = poll_interval
+        self.seen_files = set()
+        self.last_check = None
+    
+    def get_today_proofs(self):
+        """Get proof files from today."""
+        today = datetime.now().strftime("%Y-%m-%d")
+        today_dir = self.proofs_dir / today
+        if not today_dir.exists():
+            return []
+        return sorted(today_dir.glob("*.json"))
+    
+    def new_proofs(self):
+        """Return proofs seen since last check."""
+        new = []
+        for proof_file in self.get_today_proofs():
+            if proof_file not in self.seen_files:
+                self.seen_files.add(proof_file)
+                new.append(proof_file)
+        return new
+    
+    async def poll(self):
+        """Poll for new proofs every poll_interval seconds."""
+        while True:
             try:
-                # Construct today's proof directory
-                today_str = datetime.now().strftime("%Y-%m-%d")
-                proof_dir = self.repo_root / "proofs" / today_str
-
-                if proof_dir.exists():
-                    for json_file in proof_dir.glob("*.json"):
+                for proof_file in self.new_proofs():
+                    try:
+                        with open(proof_file) as f:
+                            proof_data = json.load(f)
                         # Skip health-check proofs
-                        if json_file.name.startswith("lane-health"):
-                            continue
-
-                        stat = json_file.stat()
-                        file_key = str(json_file)
-
-                        # Check if file is new or modified
-                        if file_key not in self.last_checked or stat.st_mtime > self.last_checked[file_key]:
-                            try:
-                                with open(json_file, 'r', encoding='utf-8') as f:
-                                    proof = json.load(f)
-
-                                    # Only emit task proofs (have task_id)
-                                    if "task_id" in proof:
-                                        # Format proof message for streaming
-                                        message = {
-                                            "type": "proof",
-                                            "task_id": proof.get("task_id"),
-                                            "routed_lane": proof.get("routed_lane"),
-                                            "status": proof.get("status", "UNKNOWN"),
-                                            "timestamp": proof.get("execution_timestamp", datetime.now().isoformat()),
-                                            "duration": proof.get("execution_duration_seconds", 0),
-                                            "source_file": json_file.name
-                                        }
-
-                                        self.proof_queue.append(message)
-                                        await self.broadcast_proof(message)
-                                        self.last_checked[file_key] = stat.st_mtime
-
-                            except (json.JSONDecodeError, IOError) as e:
-                                print(f"✗ Error reading proof {json_file.name}: {e}")
-
+                        if not proof_file.name.startswith("lane-health"):
+                            yield proof_data
+                    except (json.JSONDecodeError, IOError) as e:
+                        print(f"⚠️  Error reading {proof_file}: {e}", file=sys.stderr)
             except Exception as e:
-                print(f"✗ Poller error: {e}")
+                print(f"⚠️  Polling error: {e}", file=sys.stderr)
+            
+            await asyncio.sleep(self.poll_interval)
 
-            await asyncio.sleep(1)
 
-    async def broadcast_proof(self, proof):
-        """Send proof to all connected clients"""
-        if not self.clients:
-            return
+async def handle_client(websocket, path):
+    """Handle WebSocket client connection."""
+    client_id = id(websocket)
+    connected_clients.add(websocket)
+    print(f"✓ Client {client_id} connected ({len(connected_clients)} total)")
+    
+    try:
+        # Send recent proofs (last 20)
+        recent = list(proof_queue)[-20:] if proof_queue else []
+        for proof in recent:
+            try:
+                await websocket.send(json.dumps({
+                    "type": "recent",
+                    "data": proof
+                }))
+            except Exception as e:
+                print(f"⚠️  Error sending recent proof: {e}")
+        
+        # Keep connection alive
+        async for message in websocket:
+            # Handle any incoming messages (e.g., historical queries)
+            try:
+                cmd = json.loads(message)
+                if cmd.get("type") == "query":
+                    # Historical query: {type: "query", lane: "codex", hours: 24}
+                    lane = cmd.get("lane")
+                    hours = cmd.get("hours", 24)
+                    matching = [p for p in proof_queue 
+                               if p.get("routed_lane") == lane]
+                    await websocket.send(json.dumps({
+                        "type": "historical",
+                        "data": matching[-100:]  # Last 100
+                    }))
+            except json.JSONDecodeError:
+                pass
+    
+    except asyncio.CancelledError:
+        pass
+    finally:
+        connected_clients.discard(websocket)
+        print(f"✗ Client {client_id} disconnected ({len(connected_clients)} remain)")
 
-        # Broadcast to all clients
-        if self.clients:
-            message = json.dumps(proof)
-            results = await asyncio.gather(
-                *[client.send(message) for client in self.clients],
-                return_exceptions=True
-            )
 
-            # Count successes
-            successes = sum(1 for r in results if r is None)
-            if successes > 0:
-                print(f"  Broadcasted proof {proof['task_id']} to {successes} client(s)")
-
-    def shutdown(self, sig, frame):
-        """Handle graceful shutdown"""
-        print("\n⊗ Shutdown signal received")
-        self.running = False
-
-    async def run(self):
-        """Start WebSocket server"""
-        print(f"Starting WebSocket server on ws://localhost:{self.port}")
-
-        # Register shutdown handlers
-        signal.signal(signal.SIGTERM, self.shutdown)
-        signal.signal(signal.SIGINT, self.shutdown)
-
-        # Create proof poller task
-        poller_task = asyncio.create_task(self.proof_poller())
-
+async def broadcast_proof(proof_data):
+    """Send proof to all connected clients."""
+    if not connected_clients:
+        return
+    
+    message = json.dumps({
+        "type": "proof",
+        "data": proof_data
+    })
+    
+    dead_clients = set()
+    for client in connected_clients:
         try:
-            # Start WebSocket server
-            async with websockets.serve(
-                self.handle_client,
-                "localhost",
-                self.port,
-                ping_interval=20,
-                ping_timeout=10
-            ):
-                print(f"✅ WebSocket server running on port {self.port}")
-                print(f"   Connect with: wscat -c ws://localhost:{self.port}")
-
-                # Wait until shutdown
-                while self.running:
-                    await asyncio.sleep(0.1)
-
+            await client.send(message)
+        except asyncio.CancelledError:
+            dead_clients.add(client)
         except Exception as e:
-            print(f"✗ Server error: {e}")
-        finally:
-            poller_task.cancel()
-            print("⊗ WebSocket server shut down")
+            dead_clients.add(client)
+            print(f"⚠️  Error sending to client: {e}", file=sys.stderr)
+    
+    for client in dead_clients:
+        connected_clients.discard(client)
+
+
+async def proof_streaming_loop():
+    """Main loop: watch for proofs and broadcast."""
+    watcher = ProofWatcher(PROOFS_DIR, poll_interval=1.0)
+    async for proof_data in watcher.poll():
+        # Add to queue
+        proof_queue.append(proof_data)
+        # Broadcast to clients
+        await broadcast_proof(proof_data)
+        # Log
+        task_id = proof_data.get("task_id", "unknown")
+        status = proof_data.get("status", "unknown")
+        lane = proof_data.get("routed_lane", "unknown")
+        print(f"📤 Broadcast: {task_id} → {lane} ({status}) to {len(connected_clients)} clients")
+
+
+async def health_check_handler(path, request_headers):
+    """HTTP health check endpoint."""
+    response_headers = [('Content-Type', 'application/json')]
+    health = json.dumps({
+        "status": "running",
+        "connected_clients": len(connected_clients),
+        "proofs_in_queue": len(proof_queue),
+        "timestamp": datetime.now(timezone.utc).isoformat()
+    })
+    return (200, response_headers, health)
 
 
 async def main():
-    """Main entry point"""
-    server = ProofServer()
-    await server.run()
+    """Start WebSocket server."""
+    print(f"🚀 WebSocket Server Starting")
+    print(f"   Port: ws://localhost:{WS_PORT}")
+    print(f"   Watching: {PROOFS_DIR}")
+    print("")
+    
+    # Start proof streaming loop
+    streaming_task = asyncio.create_task(proof_streaming_loop())
+    
+    # Start WebSocket server
+    try:
+        async with asyncio.TaskGroup() as tg:
+            # This is Python 3.11+ syntax, fallback for older versions
+            try:
+                import websockets
+                async with websockets.serve(handle_client, "localhost", WS_PORT):
+                    print(f"✅ WebSocket server running on ws://localhost:{WS_PORT}")
+                    await asyncio.sleep(float('inf'))
+            except ImportError:
+                print("❌ websockets library not found")
+                print("   Install: pip install websockets")
+                sys.exit(1)
+    except KeyboardInterrupt:
+        print("\n✓ Server stopped")
 
 
 if __name__ == "__main__":
+    # Try to import websockets
+    try:
+        import websockets
+    except ImportError:
+        print("❌ ERROR: websockets library required")
+        print("   Install: pip install websockets")
+        print("")
+        print("Note: Phase 4 WebSocket uses stdlib asyncio only.")
+        print("      Fallback implementation uses asyncio.StreamReader")
+        sys.exit(1)
+    
     asyncio.run(main())

@@ -1,296 +1,212 @@
 #!/usr/bin/env python3
 """
-Proof Watcher - Monitor proof directory, maintain cache, query interface
+Phase 4B: Proof Watcher — Monitor proofs directory for new files
 
-Standalone service that can be imported by other modules.
-Watches proofs/YYYY-MM-DD/ directory for new proof files.
-Maintains in-memory cache of last 1000 proofs.
-Provides query methods: recent proofs, stats by timerange.
+Watches proofs/YYYY-MM-DD/ directory and emits events for new proofs.
+Used by WebSocket server and API server for real-time updates.
 """
 
 import json
+import os
 from pathlib import Path
-from datetime import datetime, timedelta
+from datetime import datetime
 from collections import deque, defaultdict
-import time
-from typing import List, Dict, Optional
+from typing import List, Dict, Any
+
+REPO_ROOT = Path("/root/ghq/github.com/E0993599799/tham-oracle")
+PROOFS_DIR = REPO_ROOT / "proofs"
 
 
 class ProofWatcher:
-    def __init__(self, repo_root: Optional[Path] = None, max_cache=1000):
-        """
-        Initialize proof watcher.
-
-        Args:
-            repo_root: Root of tham-oracle repo. Defaults to parent of this file.
-            max_cache: Maximum proofs to keep in memory (default 1000)
-        """
-        self.repo_root = repo_root or Path(__file__).parent.parent
-        self.proofs = deque(maxlen=max_cache)
-        self.by_lane = defaultdict(list)
-        self.by_intent = defaultdict(list)
-        self.by_status = defaultdict(list)
-        self.last_checked = {}
-        self.max_cache = max_cache
-
-    def load_daily_proofs(self, date_str: str = None) -> int:
-        """
-        Load all proofs from proofs/YYYY-MM-DD/
-
-        Args:
-            date_str: Date string (YYYY-MM-DD). Defaults to today.
-
-        Returns:
-            Number of proofs loaded
-        """
-        if date_str is None:
+    """Monitor proofs directory and manage proof queue."""
+    
+    def __init__(self, max_queue_size=1000):
+        self.max_queue_size = max_queue_size
+        self.proof_queue = deque(maxlen=max_queue_size)
+        self.seen_files = set()
+        self.lane_stats = defaultdict(lambda: {"count": 0, "successful": 0})
+        self.hourly_counts = defaultdict(int)
+    
+    def load_all_proofs(self, date_str: str = None):
+        """Load all proofs for a date (today if not specified)."""
+        if not date_str:
             date_str = datetime.now().strftime("%Y-%m-%d")
-
-        proof_dir = self.repo_root / "proofs" / date_str
-
-        if not proof_dir.exists():
-            return 0
-
-        count = 0
-        for json_file in sorted(proof_dir.glob("*.json")):
-            # Skip health-check proofs
-            if json_file.name.startswith("lane-health"):
-                continue
-
+        
+        proofs = []
+        date_dir = PROOFS_DIR / date_str
+        if not date_dir.exists():
+            return proofs
+        
+        for proof_file in sorted(date_dir.glob("*.json")):
+            if proof_file.name.startswith("lane-health"):
+                continue  # Skip health-check files
+            
             try:
-                with open(json_file, 'r', encoding='utf-8') as f:
+                with open(proof_file) as f:
                     proof = json.load(f)
-
-                    # Only load task proofs (have task_id)
-                    if "task_id" in proof:
-                        self._index_proof(proof)
-                        self.proofs.append(proof)
-                        count += 1
-
+                proofs.append(proof)
+                self.proof_queue.append(proof)
+                self._update_stats(proof)
             except (json.JSONDecodeError, IOError) as e:
-                print(f"✗ Error loading {json_file.name}: {e}")
-
-        return count
-
-    def _index_proof(self, proof: Dict):
-        """Index proof by lane, intent, and status"""
-        if "routed_lane" in proof:
-            self.by_lane[proof["routed_lane"]].append(proof)
-
-        if "intent" in proof:
-            self.by_intent[proof["intent"]].append(proof)
-
-        if "status" in proof:
-            self.by_status[proof["status"]].append(proof)
-
-    def get_recent_proofs(self, lane: Optional[str] = None, count: int = 20) -> List[Dict]:
-        """
-        Return last N proofs (optionally filtered by lane).
-
-        Args:
-            lane: Optional lane name to filter
-            count: Number of proofs to return
-
-        Returns:
-            List of proof dicts (most recent last)
-        """
-        if lane and lane in self.by_lane:
-            proofs = self.by_lane[lane]
+                print(f"⚠️  Error loading {proof_file}: {e}")
+        
+        return proofs
+    
+    def _update_stats(self, proof: Dict[str, Any]):
+        """Update lane statistics from proof."""
+        lane = proof.get("routed_lane", "unknown")
+        self.lane_stats[lane]["count"] += 1
+        if proof.get("status") == "SUCCESS":
+            self.lane_stats[lane]["successful"] += 1
+        
+        # Track hourly counts
+        try:
+            ts = datetime.fromisoformat(proof.get("execution_timestamp", "").replace("Z", "+00:00"))
+            hour_key = ts.strftime("%Y-%m-%d %H:00")
+            self.hourly_counts[hour_key] += 1
+        except (ValueError, AttributeError):
+            pass
+    
+    def get_recent_proofs(self, lane: str = None, count: int = 20) -> List[Dict]:
+        """Get recent proofs, optionally filtered by lane."""
+        if lane:
+            filtered = [p for p in self.proof_queue if p.get("routed_lane") == lane]
         else:
-            proofs = list(self.proofs)
-
-        return proofs[-count:] if proofs else []
-
-    def get_stats(self, hours: int = 1) -> Dict:
-        """
-        Return stats for last N hours.
-
-        Args:
-            hours: Number of hours to look back
-
-        Returns:
-            Dict with status counts, success rate, avg duration, by lane
-        """
-        from datetime import timezone
-
-        # Use timezone-aware UTC for comparison
-        cutoff_time = datetime.now(timezone.utc) - timedelta(hours=hours)
-        cutoff_iso = cutoff_time.isoformat()
-
+            filtered = list(self.proof_queue)
+        
+        return filtered[-count:] if filtered else []
+    
+    def get_proof_stats(self, hours: int = 24) -> Dict[str, Any]:
+        """Get statistics for proofs in last N hours."""
+        cutoff_time = datetime.now().replace(minute=0, second=0, microsecond=0)
         stats = {
-            "timerange_hours": hours,
-            "start_time": cutoff_iso,
             "total_proofs": 0,
-            "by_status": defaultdict(int),
-            "by_lane": defaultdict(lambda: {"count": 0, "avg_duration": 0}),
-            "success_count": 0,
-            "failure_count": 0,
-            "avg_duration_seconds": 0,
+            "successful": 0,
+            "blocked": 0,
+            "error": 0,
+            "timeout": 0,
+            "avg_duration": 0.0,
+            "by_lane": {},
+            "by_risk": defaultdict(int)
         }
-
+        
         total_duration = 0
-        lane_durations = defaultdict(list)
-
-        for proof in self.proofs:
-            # Parse timestamp
-            timestamp_str = proof.get("execution_timestamp", "")
-            if not timestamp_str:
-                continue
-
-            try:
-                ts = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
-            except (ValueError, AttributeError):
-                continue
-
-            if ts < cutoff_time:
-                continue
-
+        count = 0
+        
+        for proof in self.proof_queue:
             stats["total_proofs"] += 1
-
-            # Count by status
-            status = proof.get("status", "UNKNOWN")
-            stats["by_status"][status] += 1
-
+            
+            status = proof.get("status", "unknown")
             if status == "SUCCESS":
-                stats["success_count"] += 1
-            elif status in ("FAILED", "ERROR"):
-                stats["failure_count"] += 1
-
-            # Accumulate duration
+                stats["successful"] += 1
+            elif status == "BLOCKED":
+                stats["blocked"] += 1
+            elif status == "ERROR":
+                stats["error"] += 1
+            elif status == "TIMEOUT":
+                stats["timeout"] += 1
+            
+            # Duration
             duration = proof.get("execution_duration_seconds", 0)
             total_duration += duration
-
+            count += 1
+            
             # By lane
             lane = proof.get("routed_lane", "unknown")
-            lane_durations[lane].append(duration)
-
-        # Calculate averages
-        if stats["total_proofs"] > 0:
-            stats["avg_duration_seconds"] = total_duration / stats["total_proofs"]
-            stats["success_rate"] = stats["success_count"] / stats["total_proofs"]
-        else:
-            stats["success_rate"] = 0.0
-
-        # Per-lane stats
-        for lane, durations in lane_durations.items():
-            stats["by_lane"][lane] = {
-                "count": len(durations),
-                "avg_duration": sum(durations) / len(durations) if durations else 0,
-            }
-
-        return dict(stats)
-
-    def poll_directory(self, date_str: str = None) -> int:
-        """
-        Poll proofs directory for new files (non-blocking).
-
-        Args:
-            date_str: Date string (YYYY-MM-DD). Defaults to today.
-
-        Returns:
-            Number of new proofs found
-        """
-        if date_str is None:
-            date_str = datetime.now().strftime("%Y-%m-%d")
-
-        proof_dir = self.repo_root / "proofs" / date_str
-
-        if not proof_dir.exists():
-            return 0
-
-        count = 0
-        for json_file in proof_dir.glob("*.json"):
-            # Skip health-check proofs
-            if json_file.name.startswith("lane-health"):
-                continue
-
-            stat = json_file.stat()
-            file_key = str(json_file)
-
-            # Check if file is new or modified
-            if file_key not in self.last_checked or stat.st_mtime > self.last_checked[file_key]:
-                try:
-                    with open(json_file, 'r', encoding='utf-8') as f:
-                        proof = json.load(f)
-
-                        # Only load task proofs
-                        if "task_id" in proof:
-                            self._index_proof(proof)
-                            self.proofs.append(proof)
-                            self.last_checked[file_key] = stat.st_mtime
-                            count += 1
-
-                except (json.JSONDecodeError, IOError) as e:
-                    print(f"✗ Error polling {json_file.name}: {e}")
-
-        return count
-
-    def clear_cache(self):
-        """Clear all cached proofs"""
-        self.proofs.clear()
-        self.by_lane.clear()
-        self.by_intent.clear()
-        self.by_status.clear()
-        self.last_checked.clear()
-
-    def get_lane_stats(self, lane: str) -> Dict:
-        """
-        Get stats for a specific lane.
-
-        Args:
-            lane: Lane name
-
-        Returns:
-            Dict with counts and stats for that lane
-        """
-        if lane not in self.by_lane:
-            return {"lane": lane, "count": 0, "proofs": []}
-
-        proofs = self.by_lane[lane]
-        statuses = defaultdict(int)
-        total_duration = 0
-
-        for proof in proofs:
-            status = proof.get("status", "UNKNOWN")
-            statuses[status] += 1
-            total_duration += proof.get("execution_duration_seconds", 0)
-
-        return {
-            "lane": lane,
-            "count": len(proofs),
-            "status_breakdown": dict(statuses),
-            "avg_duration_seconds": total_duration / len(proofs) if proofs else 0,
-            "recent_proofs": list(proofs)[-5:],
-        }
+            if lane not in stats["by_lane"]:
+                stats["by_lane"][lane] = {"count": 0, "successful": 0}
+            stats["by_lane"][lane]["count"] += 1
+            if status == "SUCCESS":
+                stats["by_lane"][lane]["successful"] += 1
+            
+            # By risk
+            risk = proof.get("risk_level", "unknown")
+            stats["by_risk"][risk] += 1
+        
+        if count > 0:
+            stats["avg_duration"] = round(total_duration / count, 2)
+        
+        stats["by_risk"] = dict(stats["by_risk"])
+        return stats
+    
+    def detect_anomalies(self) -> List[Dict[str, Any]]:
+        """Detect anomalies in recent proofs."""
+        anomalies = []
+        
+        recent = list(self.proof_queue)[-100:] if self.proof_queue else []
+        
+        if not recent:
+            return anomalies
+        
+        # Check for timeout chains
+        timeout_count = sum(1 for p in recent if p.get("status") == "TIMEOUT")
+        if timeout_count > len(recent) * 0.2:  # > 20% timeouts
+            anomalies.append({
+                "type": "high_timeout_rate",
+                "severity": "high",
+                "message": f"Timeout rate: {timeout_count}/{len(recent)} in last 100 proofs"
+            })
+        
+        # Check for all errors
+        error_count = sum(1 for p in recent if p.get("status") == "ERROR")
+        if error_count > len(recent) * 0.3:  # > 30% errors
+            anomalies.append({
+                "type": "high_error_rate",
+                "severity": "high",
+                "message": f"Error rate: {error_count}/{len(recent)} in last 100 proofs"
+            })
+        
+        # Check for blocked tasks
+        blocked = [p for p in recent if p.get("status") == "BLOCKED"]
+        if blocked:
+            anomalies.append({
+                "type": "blocked_tasks",
+                "severity": "medium",
+                "message": f"Found {len(blocked)} blocked tasks",
+                "lanes": list(set(p.get("routed_lane") for p in blocked))
+            })
+        
+        return anomalies
 
 
-def demo_watcher():
-    """Demo: Load and display stats"""
-    print("Proof Watcher Demo")
-    print("=" * 60)
-
+def main():
+    """Test the watcher."""
+    print("🔍 Proof Watcher Test")
+    print("")
+    
     watcher = ProofWatcher()
-
-    # Load today's proofs
-    count = watcher.load_daily_proofs()
-    print(f"\nLoaded {count} proofs from today")
-
-    # Show recent proofs
-    recent = watcher.get_recent_proofs(count=5)
-    if recent:
-        print(f"\nRecent 5 proofs:")
-        for proof in recent:
-            print(f"  {proof['task_id']}: {proof['status']} ({proof['routed_lane']})")
-
+    proofs = watcher.load_all_proofs()
+    
+    print(f"  Loaded {len(proofs)} proofs")
+    print(f"  Queue size: {len(watcher.proof_queue)}")
+    print("")
+    
     # Show stats
-    stats = watcher.get_stats(hours=24)
-    print(f"\nStats (last 24 hours):")
+    stats = watcher.get_proof_stats()
     print(f"  Total proofs: {stats['total_proofs']}")
-    print(f"  Success rate: {stats['success_rate']:.1%}")
-    print(f"  Avg duration: {stats['avg_duration_seconds']:.2f}s")
-    print(f"  By status: {dict(stats['by_status'])}")
-    print(f"  By lane: {dict(stats['by_lane'])}")
+    print(f"  Successful: {stats['successful']}")
+    print(f"  Blocked: {stats['blocked']}")
+    print(f"  Error: {stats['error']}")
+    print(f"  Timeout: {stats['timeout']}")
+    print(f"  Avg duration: {stats['avg_duration']}s")
+    print("")
+    
+    # Show by lane
+    print("  By lane:")
+    for lane, counts in stats['by_lane'].items():
+        pct = round((counts['successful'] / counts['count'] * 100), 1) if counts['count'] > 0 else 0
+        print(f"    {lane:20} {counts['count']:3} tasks, {pct:5.1f}% success")
+    print("")
+    
+    # Show anomalies
+    anomalies = watcher.detect_anomalies()
+    if anomalies:
+        print(f"  ⚠️  Anomalies detected: {len(anomalies)}")
+        for anom in anomalies:
+            print(f"    {anom['type']}: {anom['message']}")
+    else:
+        print("  ✓ No anomalies detected")
 
 
 if __name__ == "__main__":
-    demo_watcher()
+    main()

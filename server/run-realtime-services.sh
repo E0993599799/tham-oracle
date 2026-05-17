@@ -1,123 +1,70 @@
 #!/bin/bash
-
-# Start all real-time services for the Router Live Dashboard
+# Phase 4E: Run Real-time Services
+# Starts WebSocket server, Proof watcher, and API server together
 # Usage: bash server/run-realtime-services.sh
 
 set -e
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(dirname "$SCRIPT_DIR")"
-LOG_DIR="$REPO_ROOT/logs"
+REPO_ROOT="/root/ghq/github.com/E0993599799/tham-oracle"
+SERVER_DIR="$REPO_ROOT/server"
+LOGS_DIR="$REPO_ROOT/logs"
 
 # Create logs directory
-mkdir -p "$LOG_DIR"
+mkdir -p "$LOGS_DIR"
 
-# Colors for output
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+# Cleanup on exit
+cleanup() {
+    echo ""
+    echo "🛑 Stopping services..."
+    jobs -p | xargs -r kill 2>/dev/null || true
+    wait
+    echo "✓ Services stopped"
+    exit 0
+}
+trap cleanup SIGINT SIGTERM
 
-echo -e "${BLUE}════════════════════════════════════════${NC}"
-echo -e "${BLUE}  Router Live Dashboard - Service Runner${NC}"
-echo -e "${BLUE}════════════════════════════════════════${NC}"
+# Start services
+echo "🚀 Starting Real-time Services"
 echo ""
 
-# Start WebSocket server
-echo -e "${YELLOW}Starting WebSocket server...${NC}"
-python3 "$SCRIPT_DIR/websocket-server.py" > "$LOG_DIR/websocket-server.log" 2>&1 &
-WS_PID=$!
-sleep 1
-
-if ! kill -0 $WS_PID 2>/dev/null; then
-    echo -e "${RED}✗ WebSocket server failed to start${NC}"
-    tail -20 "$LOG_DIR/websocket-server.log"
-    exit 1
-fi
-
-echo -e "${GREEN}✓ WebSocket server started (PID: $WS_PID)${NC}"
-
-# Start API server
-echo -e "${YELLOW}Starting Playback API server...${NC}"
-python3 "$SCRIPT_DIR/proof-playback-api.py" > "$LOG_DIR/api-server.log" 2>&1 &
+# Start API server (uses stdlib, doesn't need websockets)
+echo "📡 Starting Proof Playback API on http://localhost:8766..."
+python3 "$SERVER_DIR/proof-playback-api.py" > "$LOGS_DIR/api-server.log" 2>&1 &
 API_PID=$!
 sleep 1
 
-if ! kill -0 $API_PID 2>/dev/null; then
-    echo -e "${RED}✗ API server failed to start${NC}"
-    tail -20 "$LOG_DIR/api-server.log"
-    kill $WS_PID 2>/dev/null || true
-    exit 1
+# Test API health
+if curl -s http://localhost:8766/health >/dev/null 2>&1; then
+    echo "  ✅ API server running"
+else
+    echo "  ⚠️  API server not responding yet"
 fi
 
-echo -e "${GREEN}✓ API server started (PID: $API_PID)${NC}"
-
-echo ""
-echo -e "${GREEN}════════════════════════════════════════${NC}"
-echo -e "${GREEN}✅ All services started successfully!${NC}"
-echo -e "${GREEN}════════════════════════════════════════${NC}"
-echo ""
-echo -e "${BLUE}Services:${NC}"
-echo -e "  WebSocket: ${GREEN}ws://localhost:8765${NC} (PID: $WS_PID)"
-echo -e "  API:       ${GREEN}http://localhost:8766${NC} (PID: $API_PID)"
-echo ""
-echo -e "${BLUE}Dashboard:${NC}"
-echo -e "  ${GREEN}file:///$REPO_ROOT/dashboard/realtime-dashboard.html${NC}"
-echo ""
-echo -e "${BLUE}Logs:${NC}"
-echo -e "  WebSocket: $LOG_DIR/websocket-server.log"
-echo -e "  API:       $LOG_DIR/api-server.log"
-echo ""
-echo -e "${YELLOW}Press Ctrl+C to stop all services...${NC}"
-echo ""
-
-# Function to cleanup on exit
-cleanup() {
-    echo ""
-    echo -e "${YELLOW}Stopping services...${NC}"
-    kill $WS_PID 2>/dev/null || true
-    kill $API_PID 2>/dev/null || true
-
-    # Wait for processes to terminate
+# Try to start WebSocket server (requires websockets package)
+echo "📡 Starting WebSocket Server on ws://localhost:8765..."
+if python3 -c "import websockets" 2>/dev/null; then
+    python3 "$SERVER_DIR/websocket-server.py" > "$LOGS_DIR/websocket-server.log" 2>&1 &
+    WS_PID=$!
     sleep 1
+    echo "  ✅ WebSocket server started"
+else
+    echo "  ⚠️  websockets package not installed"
+    echo "  💡  Install: pip install websockets"
+    echo "  💡  Dashboard will use API polling fallback"
+fi
 
-    if ! kill -0 $WS_PID 2>/dev/null && ! kill -0 $API_PID 2>/dev/null; then
-        echo -e "${GREEN}✓ WebSocket server stopped${NC}"
-        echo -e "${GREEN}✓ API server stopped${NC}"
-    else
-        # Force kill if needed
-        kill -9 $WS_PID 2>/dev/null || true
-        kill -9 $API_PID 2>/dev/null || true
-    fi
-
-    echo ""
-    echo -e "${GREEN}✅ All services stopped.${NC}"
-    exit 0
-}
-
-# Set trap to cleanup on Ctrl+C
-trap cleanup SIGINT SIGTERM
+echo ""
+echo "✅ Services running:"
+echo "   API:       http://localhost:8766/api/proofs?date=$(date +%Y-%m-%d)"
+echo "   WebSocket: ws://localhost:8765 (if websockets installed)"
+echo "   Dashboard: file://$REPO_ROOT/dashboard/realtime-dashboard.html"
+echo ""
+echo "Logs:"
+echo "   API:       $LOGS_DIR/api-server.log"
+echo "   WebSocket: $LOGS_DIR/websocket-server.log"
+echo ""
+echo "Press Ctrl+C to stop services"
+echo ""
 
 # Keep script running
-while true; do
-    # Check if either process died unexpectedly
-    if ! kill -0 $WS_PID 2>/dev/null; then
-        echo ""
-        echo -e "${YELLOW}⚠ WebSocket server crashed. Restarting in 5s...${NC}"
-        sleep 5
-        python3 "$SCRIPT_DIR/websocket-server.py" >> "$LOG_DIR/websocket-server.log" 2>&1 &
-        WS_PID=$!
-        echo -e "${GREEN}✓ WebSocket server restarted (PID: $WS_PID)${NC}"
-    fi
-
-    if ! kill -0 $API_PID 2>/dev/null; then
-        echo ""
-        echo -e "${YELLOW}⚠ API server crashed. Restarting in 5s...${NC}"
-        sleep 5
-        python3 "$SCRIPT_DIR/proof-playback-api.py" >> "$LOG_DIR/api-server.log" 2>&1 &
-        API_PID=$!
-        echo -e "${GREEN}✓ API server restarted (PID: $API_PID)${NC}"
-    fi
-
-    sleep 5
-done
+wait $API_PID 2>/dev/null || true
