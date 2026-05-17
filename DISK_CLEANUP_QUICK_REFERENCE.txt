@@ -1,0 +1,290 @@
+================================================================================
+                    DISK OPTIMIZATION — QUICK REFERENCE
+================================================================================
+
+QUICK START (Copy & Paste)
+────────────────────────────────────────────────────────────────────────────
+
+1. Open PowerShell as Administrator
+   • Press: Win + X → PowerShell (Admin)
+
+2. Navigate to script folder
+   cd C:\Path\To\Script
+
+3. Run cleanup
+   .\cleanup-and-optimize-disk.ps1
+
+4. Wait 15-40 minutes for completion
+
+
+COMMAND OPTIONS
+────────────────────────────────────────────────────────────────────────────
+
+Default (Cleanup + Optimize)
+   .\cleanup-and-optimize-disk.ps1
+
+Analysis Only (No deletion)
+   .\cleanup-and-optimize-disk.ps1 -SkipCleanup
+
+Skip Optimization (TRIM/Defrag)
+   .\cleanup-and-optimize-disk.ps1 -SkipOptimization
+
+Enable File Compression (Extra 1-2GB savings)
+   .\cleanup-and-optimize-disk.ps1 -CompactFiles
+
+Multiple Options
+   .\cleanup-and-optimize-disk.ps1 -SkipOptimization -CompactFiles
+
+
+WHAT GETS CLEANED
+────────────────────────────────────────────────────────────────────────────
+
+Temporary Files (500MB - 1.5GB)
+  ✓ C:\Windows\Temp
+  ✓ %TEMP% (User AppData\Local\Temp)
+  ✓ Windows Update cache
+  ✓ System prefetch files
+
+Browser Caches (500MB - 2GB)
+  ✓ Chrome cache
+  ✓ Edge cache
+  ✓ Firefox cache
+
+Application Caches (300MB - 1.5GB)
+  ✓ npm cache
+  ✓ NuGet cache
+  ✓ Gradle cache
+  ✓ Explorer thumbnails
+
+Other (100MB - 1GB)
+  ✓ Recycle Bin
+  ✓ Windows cleanup files
+  ✓ Downloaded program files
+
+TOTAL EXPECTED: 1.5GB - 6.5GB FREE (typical: 2-5GB)
+
+
+EXECUTION TIMELINE
+────────────────────────────────────────────────────────────────────────────
+
+Phase 1: Analysis .................... 2-3 min
+Phase 2: Cleanup Operations .......... 10-15 min
+Phase 3: File Compression (optional) . 5-15 min
+Phase 4: Disk Optimization ........... 2-5 min
+Phase 5: Final Analysis .............. 1-2 min
+                                        ─────────
+TOTAL ............................ 15-40 minutes
+
+
+OUTPUT FILES (Saved to Desktop)
+────────────────────────────────────────────────────────────────────────────
+
+cleanup_log_YYYYMMDD_HHMMSS.txt
+  └─ Detailed log of all actions
+  └─ Review for any warnings/errors
+
+disk_space_report_YYYYMMDD_HHMMSS.json
+  └─ Machine-readable analysis results
+  └─ Before/after disk usage
+  └─ Cleanup summary
+
+
+EXPECTED SPACE SAVINGS BY CATEGORY
+────────────────────────────────────────────────────────────────────────────
+
+Low Usage System:
+  • Temp Files: 200-500 MB
+  • Browser Caches: 100-500 MB
+  • App Caches: 100-300 MB
+  • Total: 500 MB - 1.3 GB
+
+Typical Usage System:
+  • Temp Files: 500 MB - 1.5 GB
+  • Browser Caches: 500 MB - 2 GB
+  • App Caches: 300 MB - 1.5 GB
+  • Total: 1.3 GB - 5 GB ← MOST COMMON
+
+Heavy Usage System:
+  • Temp Files: 1.5 GB - 3 GB
+  • Browser Caches: 2 GB - 5 GB
+  • App Caches: 1.5 GB - 3 GB
+  • Total: 5 GB - 11 GB
+
+
+SAFETY CHECKLIST
+────────────────────────────────────────────────────────────────────────────
+
+Before Running:
+  ☐ Run as Administrator
+  ☐ Close all applications
+  ☐ Close all browser windows
+  ☐ Ensure stable power (not on battery)
+  ☐ Desktop has free space for log files
+
+During Execution:
+  ☐ Don't interrupt the script
+  ☐ Don't turn off computer
+  ☐ Let it finish completely
+
+After Completion:
+  ☐ Review log file for any errors
+  ☐ Check desktop for freed space
+  ☐ Verify applications still work
+  ☐ Restart computer (recommended)
+
+
+TROUBLESHOOTING
+────────────────────────────────────────────────────────────────────────────
+
+Script Won't Run (Execution Policy)
+  Fix: Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+Browser Caches Not Cleared
+  Cause: Browser was open during cleanup
+  Fix: Close browser completely, run script again
+
+Some Files Remain
+  Cause: Files in use by applications
+  Fix: Close those applications, run script again
+
+Antivirus Slowing Down
+  Fix: Temporarily disable antivirus, run script, re-enable
+
+
+ADDITIONAL CLEANUP OPTIONS (If Needed)
+────────────────────────────────────────────────────────────────────────────
+
+Downloads Folder (Review first!)
+  Manual: Check C:\Users\{user}\Downloads, delete old files
+
+Old User Profiles (Backup first!)
+  Settings → System → About → System protection (Advanced tab)
+
+Disable Hibernation (4-8GB savings)
+  Command: powercfg /hibernate off
+  (Can be re-enabled with: powercfg /hibernate on)
+
+Reduce Restore Points
+  Settings → System → About → System protection → Configure
+  (Keep at least 2-3 recent points)
+
+Delete Windows.old (If > 30 days old)
+  Backup first! Can't downgrade Windows after deletion
+  Manual: Right-click C:\Windows.old → Delete
+
+
+ENABLE AUTOMATIC CLEANUP (Windows 10/11)
+────────────────────────────────────────────────────────────────────────────
+
+Settings → System → Storage → Storage Sense
+  ✓ Enable "Storage Sense"
+  ✓ Set cleanup frequency (e.g., monthly)
+  ✓ Enable all cleanup options
+  → Windows will auto-cleanup from now on
+
+
+MONITOR DISK SPACE REGULARLY
+────────────────────────────────────────────────────────────────────────────
+
+Check disk status:
+  Command: Get-Volume | Where-Object { $_.DriveLetter -eq 'C' }
+
+Schedule weekly cleanup:
+  Option 1: Task Scheduler (Windows built-in)
+  Option 2: Run script manually each week
+
+
+PERFORMANCE IMPACT
+────────────────────────────────────────────────────────────────────────────
+
+During Cleanup:
+  • Computer will be slow
+  • High disk I/O activity
+  • Don't use other applications
+
+After Cleanup:
+  • System should be faster
+  • Disk I/O improved
+  • Browsers may re-cache (normal)
+
+Long-term:
+  • More free disk space
+  • Better TRIM efficiency (SSD)
+  • Faster file system
+
+
+ESTIMATED TIME TO FREE 10-20GB
+────────────────────────────────────────────────────────────────────────────
+
+Safe cleanup (temps, cache):
+  • Realistic: 2-5 GB
+  • Time: 15-30 minutes
+  • Risk: LOW
+
+With compression:
+  • Realistic: 2-8 GB
+  • Time: 30-45 minutes
+  • Risk: LOW (trades CPU for storage)
+
+Advanced cleanup needed (old profiles, files):
+  • Realistic: 10-20 GB
+  • Time: Varies (manual work)
+  • Risk: MEDIUM-HIGH (backup first!)
+
+
+IMPORTANT NOTES
+────────────────────────────────────────────────────────────────────────────
+
+✓ All cleaned files are safe to delete
+✓ Caches rebuild automatically
+✓ No personal files are deleted
+✓ No system files are modified
+✓ All actions are logged
+✓ No internet upload (fully offline)
+✓ Reversible (caches recreate on demand)
+
+✗ Don't run while using applications
+✗ Don't interrupt the script
+✗ Don't disable antivirus permanently
+✗ Don't delete Windows.old carelessly
+✗ Don't modify system files manually
+
+
+QUICK COMMANDS
+────────────────────────────────────────────────────────────────────────────
+
+Check disk space now:
+  Get-Volume | Format-Table DriveLetter, @{N='FreeGB';E={$_.SizeRemaining/1GB}},
+                                          @{N='TotalGB';E={$_.Size/1GB}}
+
+Clear specific cache manually:
+  Remove-Item "$env:TEMP\*" -Recurse -Force
+  Clear-RecycleBin -Force
+
+Enable hibernation (if disabled):
+  powercfg /hibernate on
+
+Check hibernation status:
+  powercfg /a
+
+
+FILES YOU NEED
+────────────────────────────────────────────────────────────────────────────
+
+1. cleanup-and-optimize-disk.ps1 (Main script)
+2. DISK_OPTIMIZATION_GUIDE.md (Full documentation)
+3. DISK_OPTIMIZATION_USAGE.md (Usage guide)
+4. DISK_CLEANUP_QUICK_REFERENCE.txt (This file)
+
+
+CONTACT / SUPPORT
+────────────────────────────────────────────────────────────────────────────
+
+Questions: Review DISK_OPTIMIZATION_USAGE.md
+Issues: Check cleanup_log_*.txt and disk_space_report_*.json
+Tips: See "ADDITIONAL CLEANUP OPTIONS" section above
+
+
+================================================================================
+Created: May 2026 | Author: ธาม Oracle | Version: 1.0.0
+================================================================================
