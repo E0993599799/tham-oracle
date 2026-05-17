@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Omega OS — Unified Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f0f1e;
+            color: #e0e0e0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* SIDE MENU */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            border-right: 1px solid #2d3561;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.3);
+        }
+
+        .logo {
+            font-size: 20px;
+            font-weight: 700;
+            color: #4ade80;
+            margin-bottom: 30px;
+            text-align: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #2d3561;
+        }
+
+        .menu-section {
+            margin-bottom: 25px;
+        }
+
+        .menu-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #888;
+            letter-spacing: 1.5px;
+            margin-bottom: 10px;
+            padding-left: 10px;
+        }
+
+        .menu-item {
+            padding: 12px 15px;
+            margin: 5px 0;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .menu-item:hover {
+            background: rgba(74, 222, 128, 0.1);
+            border-left-color: #4ade80;
+            color: #4ade80;
+        }
+
+        .menu-item.active {
+            background: rgba(74, 222, 128, 0.15);
+            border-left-color: #4ade80;
+            color: #4ade80;
+            font-weight: 600;
+        }
+
+        .menu-icon {
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid #2d3561;
+            font-size: 12px;
+            color: #666;
+        }
+
+        /* MAIN CONTENT */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e1e2e 0%, #2d2d44 100%);
+            padding: 15px 30px;
+            border-bottom: 1px solid #3d3d5c;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            color: #fff;
+        }
+
+        .header-status {
+            display: flex;
+            gap: 20px;
+            font-size: 12px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4ade80;
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+        }
+
+        .page {
+            display: none;
+            height: 100%;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* METRICS PANELS */
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .card {
+            background: #2d2d44;
+            border: 1px solid #3d3d5c;
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.3s;
+        }
+        .card:hover { border-color: #5d5d7d; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        .card h3 { font-size: 12px; color: #888; text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px; }
+        .card .value { font-size: 32px; font-weight: 600; color: #fff; margin-bottom: 5px; }
+        .card .subtext { font-size: 12px; color: #666; }
+
+        .status-good { color: #4ade80; }
+        .status-warn { color: #facc15; }
+        .status-bad { color: #ef4444; }
+
+        .table-container {
+            background: #2d2d44;
+            border: 1px solid #3d3d5c;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        th { text-align: left; padding: 12px; border-bottom: 1px solid #3d3d5c; color: #888; text-transform: uppercase; }
+        td { padding: 12px; border-bottom: 1px solid #1d1d2e; }
+        tr:hover { background: #3d3d5c; }
+
+        .emoji { margin-right: 8px; }
+        .loading { color: #666; font-style: italic; }
+
+        /* SCROLLBAR */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #1a1a2e; }
+        ::-webkit-scrollbar-thumb { background: #3d3d5c; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #5d5d7d; }
+
+        @media (max-width: 768px) {
+            .sidebar { width: 60px; }
+            .menu-item { padding: 12px; justify-content: center; }
+            .menu-title { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <!-- SIDEBAR MENU -->
+    <div class="sidebar">
+        <div class="logo">⚙️ OMEGA OS</div>
+
+        <div class="menu-section">
+            <div class="menu-title">Dashboard</div>
+            <div class="menu-item active" onclick="showPage('overview')">
+                <span class="menu-icon">📊</span>
+                <span>Overview</span>
+            </div>
+            <div class="menu-item" onclick="showPage('learning')">
+                <span class="menu-icon">🧠</span>
+                <span>Learning</span>
+            </div>
+            <div class="menu-item" onclick="showPage('lanes')">
+                <span class="menu-icon">🛣️</span>
+                <span>Lanes</span>
+            </div>
+            <div class="menu-item" onclick="showPage('performance')">
+                <span class="menu-icon">📈</span>
+                <span>Performance</span>
+            </div>
+        </div>
+
+        <div class="menu-section">
+            <div class="menu-title">Monitoring</div>
+            <div class="menu-item" onclick="showPage('realtime')">
+                <span class="menu-icon">⚡</span>
+                <span>Real-time</span>
+            </div>
+            <div class="menu-item" onclick="showPage('health')">
+                <span class="menu-icon">🏥</span>
+                <span>Health</span>
+            </div>
+        </div>
+
+        <div class="menu-section">
+            <div class="menu-title">System</div>
+            <div class="menu-item" onclick="showPage('settings')">
+                <span class="menu-icon">⚙️</span>
+                <span>Settings</span>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <div id="api-status">🟢 API Connected</div>
+            <div style="margin-top: 8px; color: #555;">Last update: <span id="last-update">—</span></div>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <!-- HEADER -->
+        <div class="header">
+            <h1 id="page-title">Overview</h1>
+            <div class="header-status">
+                <div class="status-item">
+                    <div class="status-dot"></div>
+                    <span>System <strong id="sys-status">Healthy</strong></span>
+                </div>
+                <div class="status-item">
+                    API: <strong id="api-health">Healthy</strong>
+                </div>
+            </div>
+        </div>
+
+        <!-- CONTENT PAGES -->
+        <div class="content">
+            <!-- PAGE: OVERVIEW -->
+            <div id="overview" class="page active">
+                <div class="grid">
+                    <div class="card">
+                        <h3>Success Rate</h3>
+                        <div class="value status-good" id="success-rate">—</div>
+                        <div class="subtext">7-day window</div>
+                    </div>
+                    <div class="card">
+                        <h3>Total Executions</h3>
+                        <div class="value" id="total-exec">—</div>
+                        <div class="subtext">Last 7 days</div>
+                    </div>
+                    <div class="card">
+                        <h3>Avg Response</h3>
+                        <div class="value" id="avg-response">—</div>
+                        <div class="subtext">Milliseconds</div>
+                    </div>
+                    <div class="card">
+                        <h3>Daily Throughput</h3>
+                        <div class="value" id="throughput">—</div>
+                        <div class="subtext">Tasks/day</div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <h3 style="margin-bottom: 15px;">🟢 Top Lanes (by health)</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Lane</th>
+                                <th>Success Rate</th>
+                                <th>Executions</th>
+                                <th>Throughput</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="overview-lanes">
+                            <tr><td colspan="5" class="loading">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- PAGE: LEARNING -->
+            <div id="learning" class="page">
+                <div class="grid">
+                    <div class="card">
+                        <h3>Failures Found</h3>
+                        <div class="value status-warn" id="failures-found">—</div>
+                        <div class="subtext">Today</div>
+                    </div>
+                    <div class="card">
+                        <h3>Rules Generated</h3>
+                        <div class="value" id="rules-gen">—</div>
+                        <div class="subtext">Candidates</div>
+                    </div>
+                    <div class="card">
+                        <h3>Rules Validated</h3>
+                        <div class="value status-good" id="rules-val">—</div>
+                        <div class="subtext">Ready</div>
+                    </div>
+                    <div class="card">
+                        <h3>Success Rate</h3>
+                        <div class="value" id="learning-rate">—</div>
+                        <div class="subtext">Promotion</div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <h3 style="margin-bottom: 15px;">📊 Learning Pipeline</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Stage</th>
+                                <th>Input</th>
+                                <th>Output</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>7A: Classification</td>
+                                <td>Proofs</td>
+                                <td id="stage-7a">—</td>
+                                <td class="status-good">✓</td>
+                            </tr>
+                            <tr>
+                                <td>7B: Generation</td>
+                                <td>Failures</td>
+                                <td id="stage-7b">—</td>
+                                <td class="status-good">✓</td>
+                            </tr>
+                            <tr>
+                                <td>7C: Validation</td>
+                                <td>Rules</td>
+                                <td id="stage-7c">—</td>
+                                <td class="status-good">✓</td>
+                            </tr>
+                            <tr>
+                                <td>7D: Promotion</td>
+                                <td>Valid Rules</td>
+                                <td id="stage-7d">—</td>
+                                <td class="status-warn">⏳</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- PAGE: LANES -->
+            <div id="lanes" class="page">
+                <div class="table-container">
+                    <h3 style="margin-bottom: 15px;">🛣️ Lane Performance (7-day)</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Lane</th>
+                                <th>Success Rate</th>
+                                <th>Executions</th>
+                                <th>Avg Response</th>
+                                <th>Throughput</th>
+                                <th>SLA Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lanes-detail">
+                            <tr><td colspan="6" class="loading">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- PAGE: PERFORMANCE -->
+            <div id="performance" class="page">
+                <div class="grid">
+                    <div class="card">
+                        <h3>Executions</h3>
+                        <div class="value" id="perf-exec">—</div>
+                        <div class="subtext">7-day total</div>
+                    </div>
+                    <div class="card">
+                        <h3>Success Rate</h3>
+                        <div class="value" id="perf-success">—</div>
+                        <div class="subtext">System-wide</div>
+                    </div>
+                    <div class="card">
+                        <h3>P95 Response</h3>
+                        <div class="value" id="perf-p95">—</div>
+                        <div class="subtext">Milliseconds</div>
+                    </div>
+                    <div class="card">
+                        <h3>Critical Gaps</h3>
+                        <div class="value status-warn" id="perf-gaps">—</div>
+                        <div class="subtext">Skill gaps</div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <h3 style="margin-bottom: 15px;">📊 Intent Performance</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Intent</th>
+                                <th>Success Rate</th>
+                                <th>Attempts</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="perf-intents">
+                            <tr><td colspan="4" class="loading">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- PAGE: REALTIME -->
+            <div id="realtime" class="page">
+                <div class="table-container">
+                    <h3 style="margin-bottom: 15px;">⚡ Real-Time Events</h3>
+                    <div style="color: #888; font-size: 14px; padding: 20px; text-align: center;">
+                        🔌 Real-time events will display here<br/>
+                        <small>WebSocket connection to metrics API</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGE: HEALTH -->
+            <div id="health" class="page">
+                <div class="grid">
+                    <div class="card">
+                        <h3>API Status</h3>
+                        <div class="value status-good" id="health-api">🟢 Healthy</div>
+                        <div class="subtext">Port 8768</div>
+                    </div>
+                    <div class="card">
+                        <h3>Data Files</h3>
+                        <div class="value status-good" id="health-files">✓ All</div>
+                        <div class="subtext">Resonance dir</div>
+                    </div>
+                    <div class="card">
+                        <h3>Last Update</h3>
+                        <div class="value" id="health-update" style="font-size: 16px;">—</div>
+                        <div class="subtext">Timestamp</div>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <h3 style="margin-bottom: 15px;">🏥 System Health</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Component</th>
+                                <th>Status</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody id="health-components">
+                            <tr><td colspan="3" class="loading">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- PAGE: SETTINGS -->
+            <div id="settings" class="page">
+                <div style="background: #2d2d44; border: 1px solid #3d3d5c; border-radius: 8px; padding: 30px;">
+                    <h2 style="margin-bottom: 20px;">⚙️ Settings</h2>
+
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; color: #888; font-size: 12px; text-transform: uppercase;">API Endpoint</label>
+                        <input type="text" id="api-endpoint" value="http://localhost:8768" style="width: 100%; padding: 10px; background: #1d1d2e; border: 1px solid #3d3d5c; color: #fff; border-radius: 4px;">
+                    </div>
+
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; margin-bottom: 8px; color: #888; font-size: 12px; text-transform: uppercase;">Refresh Interval (seconds)</label>
+                        <input type="number" id="refresh-interval" value="30" min="5" max="300" style="width: 100%; padding: 10px; background: #1d1d2e; border: 1px solid #3d3d5c; color: #fff; border-radius: 4px;">
+                    </div>
+
+                    <button onclick="saveSettings()" style="padding: 10px 20px; background: #4ade80; color: #000; border: none; border-radius: 4px; font-weight: 600; cursor: pointer;">Save Settings</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8768';
+        let refreshInterval = 30000;
+        let autoRefreshTimer;
+
+        function showPage(page) {
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            // Show selected page
+            document.getElementById(page).classList.add('active');
+            // Update menu
+            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+            event.target.closest('.menu-item').classList.add('active');
+            // Update title
+            const titles = { overview: 'Overview', learning: 'Learning Pipeline', lanes: 'Lane Analysis', performance: 'Performance', realtime: 'Real-Time', health: 'System Health', settings: 'Settings' };
+            document.getElementById('page-title').textContent = titles[page];
+            // Load data
+            loadMetrics();
+        }
+
+        async function loadMetrics() {
+            try {
+                const resp = await fetch(`${API_BASE}/metrics/learning`);
+                const data = await resp.json();
+                renderMetrics(data);
+                updateStatus('🟢 Connected', true);
+            } catch (e) {
+                console.error('Failed to fetch metrics:', e);
+                updateStatus('🔴 Disconnected', false);
+            }
+        }
+
+        function renderMetrics(data) {
+            const overall = data.performance?.overall_metrics || {};
+            const learning = data.learning || {};
+            const lanes = data.performance?.lane_metrics || [];
+
+            // Overview
+            document.getElementById('success-rate').textContent = `${(overall.overall_success_rate * 100).toFixed(1)}%`;
+            document.getElementById('total-exec').textContent = overall.total_executions || '—';
+            document.getElementById('avg-response').textContent = `${overall.avg_response_time_ms?.toFixed(0) || '—'}ms`;
+            document.getElementById('throughput').textContent = `${overall.daily_throughput?.toFixed(1) || '—'}`;
+
+            // Learning
+            document.getElementById('failures-found').textContent = learning.failures_found || '—';
+            document.getElementById('rules-gen').textContent = learning.rules_generated || '—';
+            document.getElementById('rules-val').textContent = learning.rules_validated || '—';
+            document.getElementById('learning-rate').textContent = `${learning.promotion_success_rate?.toFixed(1) || 0}%`;
+
+            document.getElementById('stage-7a').textContent = `${learning.failures_found || 0} failures`;
+            document.getElementById('stage-7b').textContent = `${learning.rules_generated || 0} rules`;
+            document.getElementById('stage-7c').textContent = `${learning.rules_validated || 0} valid`;
+            document.getElementById('stage-7d').textContent = `${learning.rules_promoted || 0} promoted`;
+
+            // Lanes
+            const laneHtml = lanes.length > 0
+                ? lanes.map(lane => `
+                    <tr>
+                        <td>${lane.lane}</td>
+                        <td class="${lane.success_rate >= 0.95 ? 'status-good' : lane.success_rate >= 0.85 ? 'status-warn' : 'status-bad'}">
+                            ${(lane.success_rate * 100).toFixed(1)}%
+                        </td>
+                        <td>${lane.total_executions}</td>
+                        <td>${lane.avg_response_time_ms?.toFixed(0) || '—'}ms</td>
+                        <td>${lane.throughput_per_day?.toFixed(1) || '—'}</td>
+                        <td>${lane.sla_status}</td>
+                    </tr>
+                `).join('')
+                : '<tr><td colspan="6" class="loading">No data</td></tr>';
+
+            document.getElementById('overview-lanes').innerHTML = laneHtml;
+            document.getElementById('lanes-detail').innerHTML = laneHtml;
+
+            // Performance
+            document.getElementById('perf-exec').textContent = overall.total_executions || '—';
+            document.getElementById('perf-success').textContent = `${(overall.overall_success_rate * 100).toFixed(1)}%`;
+            document.getElementById('perf-p95').textContent = `${overall.p95_response_time_ms?.toFixed(0) || '—'}ms`;
+            document.getElementById('perf-gaps').textContent = '0';
+
+            // Health
+            document.getElementById('health-update').textContent = new Date().toLocaleTimeString();
+            document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
+        }
+
+        function updateStatus(status, ok) {
+            document.getElementById('api-status').textContent = status;
+            document.getElementById('api-health').textContent = ok ? 'Connected' : 'Disconnected';
+            document.getElementById('sys-status').textContent = ok ? 'Healthy' : 'Error';
+        }
+
+        function saveSettings() {
+            const endpoint = document.getElementById('api-endpoint').value;
+            const interval = parseInt(document.getElementById('refresh-interval').value) * 1000;
+            localStorage.setItem('api_endpoint', endpoint);
+            localStorage.setItem('refresh_interval', interval);
+            alert('Settings saved!');
+        }
+
+        // Initial load
+        loadMetrics();
+        autoRefreshTimer = setInterval(loadMetrics, refreshInterval);
+
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) loadMetrics();
+        });
+    </script>
+</body>
+</html>
