@@ -545,12 +545,9 @@
         <div class="header">
             <h1 id="page-title">Overview</h1>
             <div class="header-status">
-                <div class="status-item">
-                    <div class="status-dot"></div>
-                    <span>System <strong id="sys-status">Healthy</strong></span>
-                </div>
-                <div class="status-item">
-                    API: <strong id="api-health">Healthy</strong>
+                <div class="status-item" id="system-status-indicator" style="background: rgba(74, 222, 128, 0.15); border: 1px solid #4ade80; padding: 8px 16px; border-radius: 20px;">
+                    <span style="font-size: 20px; margin-right: 8px;">●</span>
+                    <span style="font-weight: 600; color: #4ade80;">System Online</span>
                 </div>
             </div>
         </div>
@@ -1034,7 +1031,6 @@
                 const data = await resp.json();
                 renderMetrics(data, page);
                 updateStatus(true);
-                showToast('Data updated successfully', 'success');
             } catch (e) {
                 console.error('Failed to fetch metrics:', e);
                 updateStatus(false);
@@ -1230,6 +1226,7 @@
             const statusEl = document.querySelector('.api-status-dot');
             const statusText = document.getElementById('api-health');
             const sysStatus = document.getElementById('sys-status');
+            const headerIndicator = document.getElementById('system-status-indicator');
 
             if (statusEl) {
                 statusEl.classList.toggle('online', ok);
@@ -1237,6 +1234,19 @@
             }
             if (statusText) statusText.textContent = ok ? 'Connected' : 'Disconnected';
             if (sysStatus) sysStatus.textContent = ok ? 'Healthy' : 'Error';
+
+            // Update header status indicator
+            if (headerIndicator) {
+                if (ok) {
+                    headerIndicator.style.background = 'rgba(74, 222, 128, 0.15)';
+                    headerIndicator.style.borderColor = '#4ade80';
+                    headerIndicator.innerHTML = '<span style="font-size: 20px; margin-right: 8px; animation: pulse-status 2s infinite;">●</span><span style="font-weight: 600; color: #4ade80;">System Online</span>';
+                } else {
+                    headerIndicator.style.background = 'rgba(239, 68, 68, 0.15)';
+                    headerIndicator.style.borderColor = '#ef4444';
+                    headerIndicator.innerHTML = '<span style="font-size: 20px; margin-right: 8px;">●</span><span style="font-weight: 600; color: #ef4444;">System Offline</span>';
+                }
+            }
         }
 
         function saveSettings() {
