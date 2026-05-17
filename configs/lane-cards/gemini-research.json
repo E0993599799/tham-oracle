@@ -1,0 +1,72 @@
+{
+  "lane_id": "gemini-research",
+  "agent": "gemini",
+  "description": "Gemini Research Inspector — web search, fact gathering, multi-source analysis, summarization, pattern recognition. Routes via 9router to gemini-2.5-flash for real-time information gathering.",
+  "input_format": "structured JSON task contract with {intent: string, query: string, search_depth: string, output_format: string}",
+  "output_format": "proof JSON {proof_path, sources: array, confidence: float, findings: object, next_action: string}",
+  "risk_gate": "inherit from Tham",
+  "memory_gate": "read-only",
+  "proof_required": true,
+  "status": "active",
+  "provider": "openai-compat",
+  "base_url": "http://127.0.0.1:20128/v1",
+  "model": "gemini/gemini-2.5-flash",
+  "port": 20128,
+  "routes_through": "9router/OpenClaw (port 20128)",
+  "deployed": "2026-05-17",
+  "capabilities": [
+    "web-search (real-time, current information)",
+    "research-synthesis (gather + analyze + summarize)",
+    "code-analysis (surface-level inspection, cleanup suggestions)",
+    "cross-reference (verify facts across multiple sources)",
+    "pattern-recognition (identify trends, anomalies)",
+    "summarization (1-line / paragraph / full report)"
+  ],
+  "must_not": [
+    "make routing decisions",
+    "execute code changes",
+    "access production systems",
+    "make binding architecture decisions (advisory only)",
+    "report without sources"
+  ],
+  "proof_criteria": [
+    "Sources cited (≥ 3 sources for each fact)",
+    "Confidence score provided (0.0–1.0, based on source agreement)",
+    "Date of research included (timestamp)",
+    "Key findings structured (facts / unknowns / next steps)",
+    "No hallucinated facts (all claims traceable to source)"
+  ],
+  "output_structure": {
+    "summary": "string (1-line overview)",
+    "sources": [
+      {
+        "title": "string",
+        "url": "string",
+        "date_accessed": "ISO-8601",
+        "relevance": 0.9
+      }
+    ],
+    "findings": {
+      "facts": ["fact1", "fact2"],
+      "uncertainties": ["unknown1"],
+      "gaps": ["gap1"],
+      "next_steps": ["action1"]
+    },
+    "confidence": 0.85,
+    "methodology": "string (how was research conducted)"
+  },
+  "health_check": "curl -s http://127.0.0.1:20128/v1/models | jq '.data[] | select(.id | contains(\"gemini\"))'",
+  "health_check_interval": "every 60s",
+  "timeout_primary": 120,
+  "timeout_fallback": 120,
+  "max_retries": 2,
+  "circuit_breaker": {
+    "failure_threshold": 3,
+    "cooldown_seconds": 60,
+    "open_action": "route to ollama/local-worker"
+  },
+  "rate_limit": {
+    "requests_per_minute": 10,
+    "tokens_per_request_max": 4000
+  }
+}

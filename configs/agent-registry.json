@@ -101,19 +101,90 @@
       "validation": "housekeeper.log existence + BoB broadcast receipt",
       "lane_card": "configs/lane-cards/housekeeper-maintenance.json",
       "skill": "skills/housekeeper/SKILL.md"
+    },
+    {
+      "id": "codex",
+      "soul": "Codex Builder — Code Implementation & Architecture",
+      "role": "code-builder",
+      "capabilities": [
+        "write-code",
+        "fix-bug",
+        "refactor-code",
+        "code-review",
+        "security-audit",
+        "proof-generation",
+        "git-safe-workflow"
+      ],
+      "lane": "codex-builder",
+      "port": 20128,
+      "base_url": "http://127.0.0.1:20128/v1",
+      "model": "cx/gpt-5.5",
+      "routes_through": "9router (OpenAI-compat)",
+      "status": "active",
+      "deployed": "2026-05-17",
+      "validation": "9router health check + code proof verification",
+      "lane_card": "configs/lane-cards/codex-builder.json",
+      "skill": "skills/codex-manual-lane/SKILL.md"
+    },
+    {
+      "id": "gemini",
+      "soul": "Gemini Inspector — Research & Fast Analysis",
+      "role": "research-inspector",
+      "capabilities": [
+        "web-search",
+        "research-synthesis",
+        "code-analysis",
+        "summarization",
+        "pattern-recognition",
+        "cross-reference",
+        "fact-verification"
+      ],
+      "lane": "gemini-research",
+      "port": 20128,
+      "base_url": "http://127.0.0.1:20128/v1",
+      "model": "gemini/gemini-2.5-flash",
+      "routes_through": "9router (OpenAI-compat)",
+      "status": "active",
+      "deployed": "2026-05-17",
+      "validation": "9router health check + research proof (sources + confidence)",
+      "lane_card": "configs/lane-cards/gemini-research.json",
+      "skill": "skills/research-synthesis/SKILL.md"
+    },
+    {
+      "id": "watchdog",
+      "soul": "Watchdog — System Monitor & Circuit Breaker",
+      "role": "system-monitor",
+      "capabilities": [
+        "health-probe",
+        "sla-monitoring",
+        "anomaly-detection",
+        "circuit-breaker",
+        "alert-routing",
+        "recovery-orchestration"
+      ],
+      "lane": "watchdog-monitor",
+      "port": null,
+      "activation": "continuous background process (tmux pane)",
+      "status": "active",
+      "deployed": "2026-05-17",
+      "validation": "service health probe success + alert delivery",
+      "lane_card": "configs/lane-cards/watchdog-monitor.json",
+      "skill": "skills/watchdog-central/SKILL.md"
     }
   ],
 
   "lanes": [
     { "id": "orchestrator", "description": "Tham brain — receives intent, routes to executor" },
     { "id": "core-runner", "description": "Core bridge — structured GitHub inbox tasks" },
+    { "id": "codex-builder", "description": "Codex agent — code implementation, bug fix, refactor (GPT-5.5 via 9router)" },
+    { "id": "gemini-research", "description": "Gemini agent — web research, analysis, synthesis (Gemini 2.5 Flash via 9router)" },
     { "id": "powershell-sfsr", "description": "PowerShell one-file-one-run for Windows automation" },
     { "id": "openclaw-9router", "description": "Local OpenAI-compatible routing via 9router/OpenClaw" },
     { "id": "local-worker", "description": "Local worker processes on WSL/Linux" },
     { "id": "web-browser", "description": "Web/browser automation worker" },
-    { "id": "research-worker", "description": "Research and synthesis worker" },
     { "id": "codex-manual", "description": "Codex manual coding lane — high-quality prompts only" },
     { "id": "hermes-optional", "description": "Hermes legacy adapter — specialist only when explicitly routed" },
-    { "id": "housekeeper", "description": "Housekeeper maintenance — inbox archival, log rotation, health check, git reminder" }
+    { "id": "housekeeper", "description": "Housekeeper maintenance — inbox archival, log rotation, health check, git reminder" },
+    { "id": "watchdog-monitor", "description": "Watchdog monitor — service health probe, SLA monitoring, circuit breaker" }
   ]
 }

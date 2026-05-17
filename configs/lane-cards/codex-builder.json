@@ -1,0 +1,52 @@
+{
+  "lane_id": "codex-builder",
+  "agent": "codex",
+  "description": "Codex Builder — code implementation, bug fix, refactor, security audit. Routes via 9router (OpenAI-compatible) to cx/gpt-5.5 or fallback cx/gpt-4o.",
+  "input_format": "structured JSON task contract with {intent: string, context: object, proof_criteria: array}",
+  "output_format": "proof JSON {proof_path, code_changes, test_results, security_check, next_action}",
+  "risk_gate": "inherit from Tham (LOW/MEDIUM/HIGH risk filters apply)",
+  "memory_gate": "read-only (can read ψ vault, CLAUDE.md, but cannot write)",
+  "proof_required": true,
+  "status": "active",
+  "provider": "openai-compat",
+  "base_url": "http://127.0.0.1:20128/v1",
+  "model": "cx/gpt-5.5",
+  "fallback_model": "cx/gpt-4o",
+  "port": 20128,
+  "routes_through": "9router/OpenClaw (Windows, port 20128)",
+  "deployed": "2026-05-17",
+  "specialization": [
+    "CODEX-A: API logic, business logic, core features, backend implementation",
+    "CODEX-B: Schema design, migrations, RLS policies, infrastructure, database"
+  ],
+  "capabilities": [
+    "write-code (new feature, complete file)",
+    "fix-bug (debug and patch)",
+    "refactor-code (restructure without logic change)",
+    "code-review (CR feedback)",
+    "security-audit (OWASP top 10 scan)"
+  ],
+  "must_not": [
+    "interpret raw user intent (get contract from Tham first)",
+    "make architecture decisions without Tham approval",
+    "commit code without proof (must generate proof JSON + file/HTTP/git verification)",
+    "skip git safe workflow (no force push, no secrets, small commits only)"
+  ],
+  "proof_criteria": [
+    "Code diff present (git show or files changed)",
+    "Tests passing (pytest / npm test / bash script)",
+    "No secrets leaked (grep for patterns: password, token, key, secret, api_key)",
+    "Security check passed (basic OWASP scan or Codex confidence ≥ 0.9)",
+    "Linting clean (black / prettier / shellcheck depending on language)"
+  ],
+  "health_check": "curl -s http://127.0.0.1:20128/v1/models | jq '.data[] | select(.id | contains(\"gpt-5\"))'",
+  "health_check_interval": "every 60s",
+  "timeout_primary": 180,
+  "timeout_fallback": 180,
+  "max_retries": 2,
+  "circuit_breaker": {
+    "failure_threshold": 3,
+    "cooldown_seconds": 60,
+    "open_action": "route to ollama/local-worker"
+  }
+}

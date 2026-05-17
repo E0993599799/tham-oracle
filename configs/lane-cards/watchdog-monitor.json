@@ -1,0 +1,136 @@
+{
+  "lane_id": "watchdog-monitor",
+  "agent": "watchdog",
+  "description": "Watchdog System Monitor — continuous service health probing, SLA monitoring, anomaly detection, circuit breaker management, recovery orchestration. Runs as background process.",
+  "input_format": "none (autonomous monitoring)",
+  "output_format": "alert event {type: string, severity: string, timestamp: ISO-8601, recovery_action: string}",
+  "risk_gate": "none (monitoring only, no execution)",
+  "memory_gate": "read-only",
+  "proof_required": false,
+  "status": "active",
+  "deployment_model": "continuous background loop (tmux pane or systemd service)",
+  "deployed": "2026-05-17",
+  "capabilities": [
+    "health-probe (every 5 min: 9router, oracle-v2, tmux sessions, ports)",
+    "sla-monitoring (response time %, uptime %, error rate %)",
+    "anomaly-detection (spike in errors, queue backlog > threshold, memory leak)",
+    "circuit-breaker (3 failures → open, 60s cooldown, escalation)",
+    "alert-routing (Telegram, ψ/inbox/tham, dashboard event)",
+    "recovery-orchestration (auto-restart stateless services, handoff to Housekeeper)"
+  ],
+  "must_not": [
+    "execute code tasks",
+    "modify system state (alert only, don't fix)",
+    "block message delivery",
+    "assume recovery without verification"
+  ],
+  "health_probes": [
+    {
+      "service": "9router (OpenClaw)",
+      "endpoint": "http://127.0.0.1:20128/v1/models",
+      "method": "GET",
+      "timeout_ms": 1000,
+      "success_code": 200,
+      "interval_seconds": 60,
+      "sla": {
+        "availability": 0.99,
+        "response_time_p95_ms": 500
+      }
+    },
+    {
+      "service": "oracle-v2 (Tham memory server)",
+      "endpoint": "http://127.0.0.1:47778/health",
+      "method": "GET",
+      "timeout_ms": 1000,
+      "success_code": 200,
+      "interval_seconds": 60,
+      "sla": {
+        "availability": 0.995,
+        "response_time_p95_ms": 200
+      }
+    },
+    {
+      "service": "Core (Omega bridge)",
+      "endpoint": "http://127.0.0.1:47779/health",
+      "method": "GET",
+      "timeout_ms": 1000,
+      "success_code": 200,
+      "interval_seconds": 60,
+      "sla": {
+        "availability": 0.99,
+        "response_time_p95_ms": 200
+      }
+    },
+    {
+      "service": "tmux sessions",
+      "check": "tmux list-sessions | wc -l",
+      "expected_min_count": 1,
+      "interval_seconds": 300,
+      "sla": {
+        "min_sessions": 1
+      }
+    }
+  ],
+  "anomaly_detection": {
+    "error_spike": {
+      "threshold": "error_rate > 10% in last 5 min",
+      "action": "alert severity=HIGH"
+    },
+    "queue_backlog": {
+      "threshold": "ψ/inbox files > 20",
+      "action": "alert severity=MEDIUM"
+    },
+    "memory_leak": {
+      "threshold": "process memory growth > 100MB in 1 hour",
+      "action": "alert severity=HIGH, recommend restart"
+    },
+    "response_time_degradation": {
+      "threshold": "p95 latency > 2x baseline",
+      "action": "alert severity=MEDIUM"
+    }
+  },
+  "circuit_breaker": {
+    "failure_threshold": 3,
+    "consecutive_failures_required": true,
+    "cooldown_seconds": 60,
+    "state_transitions": [
+      {"from": "CLOSED", "to": "OPEN", "trigger": "3 consecutive failures"},
+      {"from": "OPEN", "to": "HALF_OPEN", "trigger": "cooldown expired"},
+      {"from": "HALF_OPEN", "to": "CLOSED", "trigger": "test request succeeds"},
+      {"from": "HALF_OPEN", "to": "OPEN", "trigger": "test request fails"}
+    ],
+    "auto_recovery_actions": {
+      "OPEN": "attempt restart of stateless service (oracle-v2)"
+    }
+  },
+  "alert_routing": {
+    "LOW": "log to ψ/memory/watchdog.log only",
+    "MEDIUM": "log + dashboard event + notify Tham (ψ/inbox/tham)",
+    "HIGH": "log + dashboard event + Telegram alert + notify Tham + notify BoB (cc)",
+    "CRITICAL": "log + dashboard event + Telegram CRITICAL + page human (direct contact)"
+  },
+  "recovery_orchestration": {
+    "9router_down": "manual restart (Windows PowerShell script)",
+    "oracle_v2_down": "bash scripts/start-oracle-v2-http.sh",
+    "core_down": "notify Core via GitHub inbox (task contract)",
+    "tmux_sessions_dead": "notify Housekeeper + Tham (session recovery needed)"
+  },
+  "logging": {
+    "log_path": "ψ/memory/watchdog.log",
+    "rotation_policy": "daily + size-based (> 10MB)",
+    "retention_days": 30,
+    "format": "JSON (timestamp, service, status, response_time_ms, alert_raised)"
+  },
+  "dashboard_integration": {
+    "event_types": [
+      "health_check_start",
+      "health_check_pass",
+      "health_check_fail",
+      "sla_breach",
+      "circuit_breaker_open",
+      "recovery_attempt",
+      "recovery_success"
+    ],
+    "event_emission_rate": "on every status change"
+  }
+}
