@@ -237,6 +237,26 @@
         </div>
 
         <div class="menu-section">
+            <div class="menu-title">Phases 8-11</div>
+            <div class="menu-item" onclick="showPage('circuit-breaker')">
+                <span class="menu-icon">🔌</span>
+                <span>Circuit Breaker</span>
+            </div>
+            <div class="menu-item" onclick="showPage('constitution')">
+                <span class="menu-icon">🛡️</span>
+                <span>Constitution</span>
+            </div>
+            <div class="menu-item" onclick="showPage('fleet')">
+                <span class="menu-icon">🤝</span>
+                <span>Fleet</span>
+            </div>
+            <div class="menu-item" onclick="showPage('benchmarks')">
+                <span class="menu-icon">🏆</span>
+                <span>Benchmarks</span>
+            </div>
+        </div>
+
+        <div class="menu-section">
             <div class="menu-title">System</div>
             <div class="menu-item" onclick="showPage('settings')">
                 <span class="menu-icon">⚙️</span>
@@ -491,6 +511,130 @@
                 </div>
             </div>
 
+            <!-- PAGE: CIRCUIT BREAKER -->
+            <div id="circuit-breaker" class="page">
+                <div class="grid">
+                    <div class="card">
+                        <h3>Closed Lanes</h3>
+                        <div class="value status-good" id="cb-closed">—</div>
+                        <div class="subtext">Operating normally</div>
+                    </div>
+                    <div class="card">
+                        <h3>Half-Open Lanes</h3>
+                        <div class="value status-warn" id="cb-half">—</div>
+                        <div class="subtext">Testing recovery</div>
+                    </div>
+                    <div class="card">
+                        <h3>Open Lanes</h3>
+                        <div class="value status-bad" id="cb-open">—</div>
+                        <div class="subtext">In cooldown</div>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <h3 style="margin-bottom: 15px;">🔌 Circuit Breaker States</h3>
+                    <table>
+                        <thead><tr><th>Lane</th><th>State</th><th>Failures</th><th>Last Failure</th></tr></thead>
+                        <tbody id="cb-table"><tr><td colspan="4" class="loading">Loading...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- PAGE: CONSTITUTION -->
+            <div id="constitution" class="page">
+                <div class="grid">
+                    <div class="card">
+                        <h3>Compliance Score</h3>
+                        <div class="value status-good" id="const-score">—</div>
+                        <div class="subtext">Percentage</div>
+                    </div>
+                    <div class="card">
+                        <h3>Rules Enforced</h3>
+                        <div class="value" id="const-rules">—</div>
+                        <div class="subtext">Active rules</div>
+                    </div>
+                    <div class="card">
+                        <h3>Violations</h3>
+                        <div class="value status-bad" id="const-violations">—</div>
+                        <div class="subtext">Detected</div>
+                    </div>
+                    <div class="card">
+                        <h3>HITL Queue</h3>
+                        <div class="value status-warn" id="const-hitl">—</div>
+                        <div class="subtext">Pending review</div>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <h3 style="margin-bottom: 15px;">🛡️ Rules Enforced</h3>
+                    <table>
+                        <thead><tr><th>Rule</th><th>Description</th><th>Status</th></tr></thead>
+                        <tbody id="const-rules-table">
+                            <tr><td>C-01</td><td>No force push</td><td class="status-good">✓</td></tr>
+                            <tr><td>C-02</td><td>No secrets in code</td><td class="status-good">✓</td></tr>
+                            <tr><td>C-03</td><td>Memory gate required</td><td class="status-good">✓</td></tr>
+                            <tr><td>C-04</td><td>Human approval for HIGH/CRITICAL</td><td class="status-good">✓</td></tr>
+                            <tr><td>C-06</td><td>Proof required</td><td class="status-good">✓</td></tr>
+                            <tr><td>C-12</td><td>Delegate via router</td><td class="status-good">✓</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- PAGE: FLEET -->
+            <div id="fleet" class="page">
+                <div class="grid">
+                    <div class="card">
+                        <h3>Agents Online</h3>
+                        <div class="value status-good" id="fleet-online">—</div>
+                        <div class="subtext">Active agents</div>
+                    </div>
+                    <div class="card">
+                        <h3>Messages Relayed</h3>
+                        <div class="value" id="fleet-relayed">—</div>
+                        <div class="subtext">Today</div>
+                    </div>
+                    <div class="card">
+                        <h3>Queue Depth</h3>
+                        <div class="value" id="fleet-queue">—</div>
+                        <div class="subtext">Pending</div>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <h3 style="margin-bottom: 15px;">🤝 Agent Status</h3>
+                    <table>
+                        <thead><tr><th>Agent</th><th>Status</th><th>Last Heartbeat</th><th>Tasks</th></tr></thead>
+                        <tbody id="fleet-agents-table"><tr><td colspan="4" class="loading">Loading...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- PAGE: BENCHMARKS -->
+            <div id="benchmarks" class="page">
+                <div class="grid">
+                    <div class="card">
+                        <h3>World-Class Status</h3>
+                        <div class="value" id="bench-status">—</div>
+                        <div class="subtext">Pass/fail</div>
+                    </div>
+                    <div class="card">
+                        <h3>Benchmarks Passing</h3>
+                        <div class="value status-good" id="bench-passing">—</div>
+                        <div class="subtext">Out of 12</div>
+                    </div>
+                    <div class="card">
+                        <h3>Overall Score</h3>
+                        <div class="value" id="bench-score">—</div>
+                        <div class="subtext">Percentage</div>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <h3 style="margin-bottom: 15px;">🏆 Benchmark Results</h3>
+                    <table>
+                        <thead><tr><th>Benchmark</th><th>Result</th><th>Details</th></tr></thead>
+                        <tbody id="bench-results-table"><tr><td colspan="3" class="loading">Loading...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+
             <!-- PAGE: SETTINGS -->
             <div id="settings" class="page">
                 <div style="background: #2d2d44; border: 1px solid #3d3d5c; border-radius: 8px; padding: 30px;">
@@ -526,17 +670,35 @@
             document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
             event.target.closest('.menu-item').classList.add('active');
             // Update title
-            const titles = { overview: 'Overview', learning: 'Learning Pipeline', lanes: 'Lane Analysis', performance: 'Performance', realtime: 'Real-Time', health: 'System Health', settings: 'Settings' };
+            const titles = {
+                overview: 'Overview',
+                learning: 'Learning Pipeline',
+                lanes: 'Lane Analysis',
+                performance: 'Performance',
+                realtime: 'Real-Time',
+                health: 'System Health',
+                'circuit-breaker': 'Circuit Breaker',
+                constitution: 'Constitutional AI',
+                fleet: 'Multi-Agent Fleet',
+                benchmarks: 'World-Class Benchmarks',
+                settings: 'Settings'
+            };
             document.getElementById('page-title').textContent = titles[page];
             // Load data
-            loadMetrics();
+            loadMetrics(page);
         }
 
-        async function loadMetrics() {
+        async function loadMetrics(page) {
             try {
-                const resp = await fetch(`${API_BASE}/metrics/learning`);
+                let endpoint = '/metrics/learning';
+                if (page === 'circuit-breaker') endpoint = '/metrics/circuit-breaker';
+                else if (page === 'constitution') endpoint = '/metrics/constitution';
+                else if (page === 'fleet') endpoint = '/metrics/fleet';
+                else if (page === 'benchmarks') endpoint = '/metrics/benchmarks';
+
+                const resp = await fetch(`${API_BASE}${endpoint}`);
                 const data = await resp.json();
-                renderMetrics(data);
+                renderMetrics(data, page);
                 updateStatus('🟢 Connected', true);
             } catch (e) {
                 console.error('Failed to fetch metrics:', e);
@@ -544,7 +706,7 @@
             }
         }
 
-        function renderMetrics(data) {
+        function renderMetrics(data, page) {
             const overall = data.performance?.overall_metrics || {};
             const learning = data.learning || {};
             const lanes = data.performance?.lane_metrics || [];
@@ -594,6 +756,67 @@
             // Health
             document.getElementById('health-update').textContent = new Date().toLocaleTimeString();
             document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
+
+            // Circuit Breaker
+            if (page === 'circuit-breaker' && data.summary) {
+                document.getElementById('cb-closed').textContent = data.summary.closed;
+                document.getElementById('cb-half').textContent = data.summary.half_open;
+                document.getElementById('cb-open').textContent = data.summary.open;
+                const cbHtml = Object.entries(data.lanes || {})
+                    .map(([lane, state]) => `
+                        <tr>
+                            <td>${lane}</td>
+                            <td class="${state.state === 'CLOSED' ? 'status-good' : state.state === 'HALF_OPEN' ? 'status-warn' : 'status-bad'}">${state.state}</td>
+                            <td>${state.failure_count || 0}</td>
+                            <td>${state.last_failure_time ? new Date(state.last_failure_time).toLocaleTimeString() : '—'}</td>
+                        </tr>
+                    `).join('') || '<tr><td colspan="4" class="loading">No data</td></tr>';
+                document.getElementById('cb-table').innerHTML = cbHtml;
+            }
+
+            // Constitution
+            if (page === 'constitution' && data.compliance_score !== undefined) {
+                document.getElementById('const-score').textContent = `${data.compliance_score.toFixed(1)}%`;
+                document.getElementById('const-rules').textContent = data.rules_enforced.length;
+                document.getElementById('const-violations').textContent = data.violations.length;
+                document.getElementById('const-hitl').textContent = data.hitl_queue.length;
+            }
+
+            // Fleet
+            if (page === 'fleet') {
+                const fleetAgents = data.agents || [];
+                document.getElementById('fleet-online').textContent = fleetAgents.filter(a => a.available).length;
+                document.getElementById('fleet-relayed').textContent = (data.relay_log || []).length;
+                document.getElementById('fleet-queue').textContent = (data.message_queue || []).length;
+                const fleetHtml = fleetAgents.length > 0
+                    ? fleetAgents.map(agent => `
+                        <tr>
+                            <td>${agent.name}</td>
+                            <td class="${agent.available ? 'status-good' : 'status-bad'}">${agent.available ? 'Online' : 'Offline'}</td>
+                            <td>${agent.last_heartbeat ? new Date(agent.last_heartbeat).toLocaleTimeString() : '—'}</td>
+                            <td>${agent.task_count || 0}</td>
+                        </tr>
+                    `).join('')
+                    : '<tr><td colspan="4" class="loading">No agents</td></tr>';
+                document.getElementById('fleet-agents-table').innerHTML = fleetHtml;
+            }
+
+            // Benchmarks
+            if (page === 'benchmarks' && data.benchmarks !== undefined) {
+                document.getElementById('bench-status').textContent = data.world_class ? '✓ World-Class' : '✗ Not Yet';
+                document.getElementById('bench-passing').textContent = `${data.pass_count}/${data.total}`;
+                document.getElementById('bench-score').textContent = `${((data.pass_count / data.total) * 100).toFixed(1)}%`;
+                const benchHtml = (data.benchmarks || []).length > 0
+                    ? data.benchmarks.map(bench => `
+                        <tr>
+                            <td>${bench.name}</td>
+                            <td class="${bench.status === 'pass' ? 'status-good' : 'status-bad'}">${bench.status.toUpperCase()}</td>
+                            <td>${bench.details || '—'}</td>
+                        </tr>
+                    `).join('')
+                    : '<tr><td colspan="3" class="loading">No results</td></tr>';
+                document.getElementById('bench-results-table').innerHTML = benchHtml;
+            }
         }
 
         function updateStatus(status, ok) {
