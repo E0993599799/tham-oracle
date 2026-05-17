@@ -30,7 +30,7 @@ ALIAS_BLOCK=$(cat << 'EOF'
 # ===== oracle-aliases-v1.0 =====
 # Oracle Toolkit shortcuts
 export ORACLE_ROOT="/root/ghq/github.com/E0993599799/tham-oracle"
-alias oracle="bash $ORACLE_ROOT/bin/oracle"
+alias oracle="bash \$ORACLE_ROOT/bin/oracle"
 alias cc="claude"
 alias ccd="claude --dangerously-skip-permissions"
 alias gs="git status"
