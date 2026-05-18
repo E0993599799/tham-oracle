@@ -1,0 +1,50 @@
+{
+  "contract_id": "CODEX-DASHBOARD-PHASE1-20260518",
+  "task_type": "dashboard_ux_improvement",
+  "assigned_to": "Codex (gpt-5.5)",
+  "supervisor": "ธาม",
+  "priority": "CRITICAL",
+  "status": "active",
+  "context": {
+    "research_source": "Gemini UX/UI findings (2026-05-17)",
+    "current_state": "10+ components built, need UX/visual improvements",
+    "target_repo": "/mnt/d/Git/forge-omega-v2"
+  },
+  "phase": "Phase 1: Critical UX",
+  "objectives": [
+    "Implement Fleet Health Summary Card (visual bar, color indicators)",
+    "Status badges: color + icon + text (no color-only)",
+    "Live/Real-time WebSocket indicators",
+    "Ensure TypeScript clean (0 errors)"
+  ],
+  "deliverables": [
+    "FleetHealthSummary.tsx: enhanced with visual bar + live indicator",
+    "StatusBadge component: reusable with color + icon + text",
+    "OracleFleet.tsx: updated to use improved status badges",
+    "Clean build with TypeScript check"
+  ],
+  "acceptance_criteria": [
+    "Fleet health shows 7/8 agents healthy with green bar",
+    "All status indicators use color + icon + text",
+    "Live indicator shows connection state (green pulse / yellow / red)",
+    "TypeScript: 0 errors",
+    "No visual regressions",
+    "Commit with descriptive message"
+  ],
+  "research_key_points": [
+    "3 seconds to understand visualization",
+    "Critical KPIs in top-left corner",
+    "5-9 key metrics per screen max",
+    "Consistent patterns everywhere",
+    "Live feedback reassures users"
+  ],
+  "success_proof": {
+    "requires": [
+      "git diff showing changes to components",
+      "npm run build success",
+      "npm run typecheck: 0 errors",
+      "screenshot of Fleet Health Summary",
+      "test that status badges render correctly"
+    ]
+  }
+}
