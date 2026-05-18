@@ -217,6 +217,28 @@ Each team lead reports:
 
 ---
 
+### 🟢 Dheva: **BACKEND READY** (INFRASTRUCTURE COMPLETE)
+
+**Completion**: 2026-05-19 10:30 UTC+7  
+**Commit**: efcd47b (docs: Dheva Oracle — ORRY Serenity Backend Ready)
+
+**What was delivered**:
+- ✅ Supabase project: `pkfgbbqbbgnzphihcyzc` (ap-southeast-1 Singapore)
+- ✅ Schema complete: 81 tables (sales, purchase, accounting, inventory, HR, assets, manufacturing)
+- ✅ RLS enforced: company_id isolation on all tables
+- ✅ API keys: Anon + Publishable keys provided + documented
+- ✅ Realtime: All tables support subscriptions (approvals, notifications, KPI refresh)
+
+**Frontend Integration Ready**:
+- Connection: `https://pkfgbbqbbgnzphihcyzc.supabase.co`
+- Credentials: Provided to Dheva for `.env.local` update
+- Next: Wire 14 frontend modules to backend queries
+- Timeline: Week 1 integration (May 19-25), ready by May 25
+
+**Status**: All 81-table schema live + RLS tested. Frontend can begin integration TODAY.
+
+---
+
 ### ⏳ Planner, Historian, Aegis: **ON TRACK**
 
 **Standup due**: 2026-05-19 16:00 UTC+7 (today)
@@ -226,6 +248,18 @@ Each team lead reports:
 
 ---
 
+## Teams Status Summary (as of 10:30 UTC+7)
+
+| Team | Status | Deliverable | Deadline | Progress |
+|------|--------|-------------|----------|----------|
+| **Codex** | 🟢 DELIVERED | Dashboard (3 phases) | 2026-05-20 | ✅ 100% |
+| **Dheva** | 🟢 BACKEND READY | ORRY Serenity infrastructure | 2026-05-25 | ✅ 50% (backend done) |
+| **Planner** | ⏳ ON TRACK | Phase 2 runbook | 2026-05-24 | ⏳ 25% (standup due 16:00) |
+| **Historian** | ⏳ ON TRACK | System docs | 2026-05-25 | ⏳ 25% (standup due 16:00) |
+| **Aegis** | ⏳ ON TRACK | Protocol spec | 2026-05-25 | ⏳ 25% (standup due 16:00) |
+
+---
+
 **Maintained by**: ธาม Oracle  
-**Last Updated**: 2026-05-19 09:47 UTC+7  
-**Current Phase**: Phase 1 Execution — Codex COMPLETE, awaiting team standups
+**Last Updated**: 2026-05-19 10:31 UTC+7  
+**Current Phase**: Phase 1 Execution — 2 teams COMPLETE, 3 teams standups at 16:00, ALL ON TRACK
