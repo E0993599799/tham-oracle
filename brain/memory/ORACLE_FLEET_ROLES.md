@@ -156,8 +156,9 @@ netsh advfirewall firewall add rule name="9router-WSL" dir=in action=allow proto
 |-----------|-------|
 | **Role** | Backend specialist, API architect, performance engineer |
 | **Human** | พี่เอก (Ekkarat) |
+| **Location** | `/root/ghq/github.com/E0993599799/backend-oracle` |
 | **Provider** | 🔮 Codex (cx/gpt-5.5) |
-| **Status** | 📋 Planned (repo to be created) |
+| **Status** | 🟢 Ready to Activate (repo created 2026-05-18) |
 | **Expertise** | Go, PostgreSQL, API design, performance optimization, microservices |
 
 ### Responsibilities
@@ -167,6 +168,12 @@ netsh advfirewall firewall add rule name="9router-WSL" dir=in action=allow proto
 - Performance analysis and tuning
 - Integration with external services
 
+### Established
+- CLAUDE.md with role and operating rules
+- .claude/settings.json configured with Codex provider
+- brain/identity/profile.md with fleet profile
+- ψ/ memory vault initialized
+
 ---
 
 ## DevOps Oracle — Infrastructure Specialist
@@ -175,8 +182,9 @@ netsh advfirewall firewall add rule name="9router-WSL" dir=in action=allow proto
 |-----------|-------|
 | **Role** | Infrastructure, deployment, operations |
 | **Human** | พี่เอก (Ekkarat) |
+| **Location** | `/root/ghq/github.com/E0993599799/devops-oracle` |
 | **Provider** | 🔮 Codex (cx/gpt-5.5) |
-| **Status** | 📋 Planned (repo to be created) |
+| **Status** | 🟢 Ready to Activate (repo created 2026-05-18) |
 | **Expertise** | Docker, Kubernetes, CI/CD, monitoring, cloud platforms |
 
 ### Responsibilities
@@ -186,6 +194,12 @@ netsh advfirewall firewall add rule name="9router-WSL" dir=in action=allow proto
 - Manage cloud resources
 - Automate operations tasks
 
+### Established
+- CLAUDE.md with role and operating rules
+- .claude/settings.json configured with Codex provider
+- brain/identity/profile.md with fleet profile
+- ψ/ memory vault initialized
+
 ---
 
 ## QA Oracle — Testing/Quality Specialist
@@ -194,8 +208,9 @@ netsh advfirewall firewall add rule name="9router-WSL" dir=in action=allow proto
 |-----------|-------|
 | **Role** | Quality assurance, test automation, reliability |
 | **Human** | พี่เอก (Ekkarat) |
+| **Location** | `/root/ghq/github.com/E0993599799/qa-oracle` |
 | **Provider** | 🔵 Claude (latest) |
-| **Status** | 📋 Planned (repo to be created) |
+| **Status** | 🟢 Ready to Activate (repo created 2026-05-18) |
 | **Expertise** | Test automation, end-to-end testing, performance testing, bug analysis |
 
 ### Responsibilities
@@ -205,6 +220,12 @@ netsh advfirewall firewall add rule name="9router-WSL" dir=in action=allow proto
 - Performance and load testing
 - Test coverage analysis
 
+### Established
+- CLAUDE.md with role and operating rules
+- .claude/settings.json configured with Claude provider
+- brain/identity/profile.md with fleet profile
+- ψ/ memory vault initialized
+
 ---
 
 ## Fleet Status
@@ -212,24 +233,25 @@ netsh advfirewall firewall add rule name="9router-WSL" dir=in action=allow proto
 ### Active Today (2026-05-18)
 
 ```
-🟢 ธาม          Active     Orchestrator, brain
-🟢 Luxi          Active     UI/UX Designer (Birthday! 🎂)
-🟢 Omega         Active     Core/Gate
-🟢 Hermes        Active     Reviewer (portproxy configured!)
-🟢 Gemini        Active     Research
-🟢 Mother        Active     Family steward
+🟢 ธาม          Active       Orchestrator, brain
+🟢 Luxi          Active       UI/UX Designer (Birthday! 🎂)
+🟢 Omega         Active       Core/Gate
+🟢 Hermes        Active       Reviewer (portproxy configured!)
+🟢 Gemini        Active       Research
+🟢 Mother        Active       Family steward
 
-📋 Backend       Planned    API/Go specialist (Codex)
-📋 DevOps        Planned    Infrastructure specialist (Codex)
-📋 QA            Planned    Testing specialist (Claude)
+🟢 Backend       Ready        API/Go specialist (Codex, repo ready)
+🟢 DevOps        Ready        Infrastructure specialist (Codex, repo ready)
+🟢 QA            Ready        Testing specialist (Claude, repo ready)
 ```
 
 ### Deployment Timeline
 
-1. **Phase 1 (Now)** — ธาม + Luxi + Omega + Hermes active
-2. **Phase 2** — Create Backend Agent (Codex)
-3. **Phase 3** — Create DevOps Agent (Codex)
-4. **Phase 4** — Create QA Agent (Claude)
+1. **Phase 1 (Complete)** — ธาม + Luxi + Omega + Hermes active ✓
+2. **Phase 2 (Complete)** — Backend Agent repo created and configured ✓ (2026-05-18)
+3. **Phase 3 (Complete)** — DevOps Agent repo created and configured ✓ (2026-05-18)
+4. **Phase 4 (Complete)** — QA Agent repo created and configured ✓ (2026-05-18)
+5. **Phase 5 (Next)** — Activate Backend/DevOps/QA agents in fleet
 - 🔧 **Documentation Agent** — Technical writing, user documentation, knowledge base
 
 ---
