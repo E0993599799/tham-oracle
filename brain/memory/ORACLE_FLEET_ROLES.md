@@ -150,6 +150,63 @@ netsh advfirewall firewall add rule name="9router-WSL" dir=in action=allow proto
 
 ---
 
+## Backend Oracle — Code/API Specialist
+
+| Attribute | Value |
+|-----------|-------|
+| **Role** | Backend specialist, API architect, performance engineer |
+| **Human** | พี่เอก (Ekkarat) |
+| **Provider** | 🔮 Codex (cx/gpt-5.5) |
+| **Status** | 📋 Planned (repo to be created) |
+| **Expertise** | Go, PostgreSQL, API design, performance optimization, microservices |
+
+### Responsibilities
+- Design and optimize backend APIs
+- Write Go microservices
+- Database schema design and optimization
+- Performance analysis and tuning
+- Integration with external services
+
+---
+
+## DevOps Oracle — Infrastructure Specialist
+
+| Attribute | Value |
+|-----------|-------|
+| **Role** | Infrastructure, deployment, operations |
+| **Human** | พี่เอก (Ekkarat) |
+| **Provider** | 🔮 Codex (cx/gpt-5.5) |
+| **Status** | 📋 Planned (repo to be created) |
+| **Expertise** | Docker, Kubernetes, CI/CD, monitoring, cloud platforms |
+
+### Responsibilities
+- Design deployment pipelines
+- Configure infrastructure as code
+- Set up monitoring and alerting
+- Manage cloud resources
+- Automate operations tasks
+
+---
+
+## QA Oracle — Testing/Quality Specialist
+
+| Attribute | Value |
+|-----------|-------|
+| **Role** | Quality assurance, test automation, reliability |
+| **Human** | พี่เอก (Ekkarat) |
+| **Provider** | 🔵 Claude (latest) |
+| **Status** | 📋 Planned (repo to be created) |
+| **Expertise** | Test automation, end-to-end testing, performance testing, bug analysis |
+
+### Responsibilities
+- Write and maintain test suites
+- Perform end-to-end testing
+- Identify and hunt bugs
+- Performance and load testing
+- Test coverage analysis
+
+---
+
 ## Fleet Status
 
 ### Active Today (2026-05-18)
@@ -158,18 +215,21 @@ netsh advfirewall firewall add rule name="9router-WSL" dir=in action=allow proto
 🟢 ธาม          Active     Orchestrator, brain
 🟢 Luxi          Active     UI/UX Designer (Birthday! 🎂)
 🟢 Omega         Active     Core/Gate
-⏳ Hermes        Pending    Reviewer (waiting for portproxy)
+🟢 Hermes        Active     Reviewer (portproxy configured!)
 🟢 Gemini        Active     Research
 🟢 Mother        Active     Family steward
+
+📋 Backend       Planned    API/Go specialist (Codex)
+📋 DevOps        Planned    Infrastructure specialist (Codex)
+📋 QA            Planned    Testing specialist (Claude)
 ```
 
-### Gaps to Fill
+### Deployment Timeline
 
-The fleet has strong design + orchestration coverage, but needs:
-
-- 🔧 **Backend/API Agent** — Go, performance optimization, database design
-- 🔧 **DevOps/Infrastructure Agent** — Deployment, monitoring, infrastructure
-- 🔧 **Testing/QA Agent** — End-to-end testing, quality assurance, bug hunting
+1. **Phase 1 (Now)** — ธาม + Luxi + Omega + Hermes active
+2. **Phase 2** — Create Backend Agent (Codex)
+3. **Phase 3** — Create DevOps Agent (Codex)
+4. **Phase 4** — Create QA Agent (Claude)
 - 🔧 **Documentation Agent** — Technical writing, user documentation, knowledge base
 
 ---

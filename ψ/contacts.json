@@ -14,6 +14,39 @@
       "thread": "channel:luxi",
       "status": "active",
       "notes": "UI/UX specialist, design system expert, performance optimization"
+    },
+    "backend-agent": {
+      "name": "Backend Oracle",
+      "human": "พี่เอก (Ekkarat)",
+      "role": "Backend/API Specialist — Go, performance, database design",
+      "provider": "Codex",
+      "status": "planned",
+      "maw": "backend-oracle",
+      "inbox": "/root/ghq/github.com/E0993599799/backend-oracle/ψ/inbox",
+      "thread": "channel:backend-agent",
+      "notes": "API optimization, Go expertise, database design, performance tuning"
+    },
+    "devops-agent": {
+      "name": "DevOps Oracle",
+      "human": "พี่เอก (Ekkarat)",
+      "role": "Infrastructure/DevOps Specialist — Deployment, monitoring, CI/CD",
+      "provider": "Codex",
+      "status": "planned",
+      "maw": "devops-oracle",
+      "inbox": "/root/ghq/github.com/E0993599799/devops-oracle/ψ/inbox",
+      "thread": "channel:devops-agent",
+      "notes": "Infrastructure automation, deployment pipelines, monitoring, cloud operations"
+    },
+    "qa-agent": {
+      "name": "QA Oracle",
+      "human": "พี่เอก (Ekkarat)",
+      "role": "Testing/QA Specialist — Test automation, quality assurance",
+      "provider": "Claude",
+      "status": "planned",
+      "maw": "qa-oracle",
+      "inbox": "/root/ghq/github.com/E0993599799/qa-oracle/ψ/inbox",
+      "thread": "channel:qa-agent",
+      "notes": "Test automation, end-to-end testing, bug hunting, quality assurance, performance testing"
     }
   }
 }
