@@ -85,3 +85,11 @@ Available via 9router (74+ models):
 - SFSR-24–28 pending
 - 2026-05-14 memory update: Read-memory cache rule added; foreground local runner prohibition strengthened; path-space ProcessStartInfo rule added.
 - 2026-05-17: Telegram integration pushed (18 commits), monitor script debugged + Unicode decode fixed, Hermes portproxy setup script + docs created, Forge Omega V2 dashboard components ready
+
+## Hermes Activation (2026-05-18)
+
+- Status: 🟢 ACTIVE
+- Model: ollama/minimax-m2.5
+- Access: WSL → Windows 9router via 172.21.112.1:20128 (portproxy configured)
+- Role: Code/Design reviewer, specialist executor
+- Ready: Yes — review contract prepared at D:/Git/forge-omega-v2/hermes-review-contract.json
