@@ -6,7 +6,7 @@
   "input_format": "structured JSON task contract",
   "output_format": "completion result + proof",
   "provider": "gemini",
-  "base_url": "http://127.0.0.1:20128/v1",
+  "base_url": "http://172.21.112.1:20128/v1",
   "model": "gemini/gemini-2.5-flash",
   "api_key_env": "OPENCLAW_API_KEY",
   "gemini_key_note": "Gemini API key is managed by 9router internally — no separate env needed in caller",
@@ -33,7 +33,7 @@
     "expected_output": "...",
     "proof_required": true
   },
-  "health_check": "curl http://127.0.0.1:20128/v1/models | jq '.data[] | select(.id | contains(\"gemini\"))'",
+  "health_check": "curl http://172.21.112.1:20128/v1/models | jq '.data[] | select(.id | contains(\"gemini\"))'",
   "rules": [
     "NEVER route to Hermes by default",
     "Always use structured JSON contract — no raw natural language",

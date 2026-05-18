@@ -9,7 +9,7 @@
   "proof_required": true,
   "status": "active",
   "provider": "openai-compat",
-  "base_url": "http://127.0.0.1:20128/v1",
+  "base_url": "http://172.21.112.1:20128/v1",
   "model": "gemini/gemini-2.5-flash",
   "port": 20128,
   "routes_through": "9router/OpenClaw (port 20128)",
@@ -55,7 +55,7 @@
     "confidence": 0.85,
     "methodology": "string (how was research conducted)"
   },
-  "health_check": "curl -s http://127.0.0.1:20128/v1/models | jq '.data[] | select(.id | contains(\"gemini\"))'",
+  "health_check": "curl -s http://172.21.112.1:20128/v1/models | jq '.data[] | select(.id | contains(\"gemini\"))'",
   "health_check_interval": "every 60s",
   "timeout_primary": 120,
   "timeout_fallback": 120,

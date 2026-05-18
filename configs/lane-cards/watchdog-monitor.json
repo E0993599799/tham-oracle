@@ -27,7 +27,7 @@
   "health_probes": [
     {
       "service": "9router (OpenClaw)",
-      "endpoint": "http://127.0.0.1:20128/v1/models",
+      "endpoint": "http://172.21.112.1:20128/v1/models",
       "method": "GET",
       "timeout_ms": 1000,
       "success_code": 200,

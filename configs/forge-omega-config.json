@@ -54,7 +54,7 @@
 
   "providers": {
     "9router": {
-      "base_url": "http://127.0.0.1:20128/v1",
+      "base_url": "http://172.21.112.1:20128/v1",
       "api_key_env": "OPENCLAW_API_KEY",
       "status": "active",
       "port": 20128,
@@ -72,7 +72,7 @@
     },
     "hermes": {
       "provider": "gemini",
-      "base_url": "http://127.0.0.1:20128/v1",
+      "base_url": "http://172.21.112.1:20128/v1",
       "model": "gemini/gemini-2.5-flash",
       "api_key_env": "OPENCLAW_API_KEY",
       "status": "active",

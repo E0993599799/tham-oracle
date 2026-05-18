@@ -1,0 +1,54 @@
+{
+  "timestamp": "2026-05-18T14:18:09Z",
+  "health_check_duration_ms": 0,
+  "lanes": [
+    {
+      "lane_id": "codex_gpt55",
+      "status": "down",
+      "response_time_ms": 5000,
+      "success_rate_pct": 50.0,
+      "last_heartbeat": "2026-05-18T14:18:09Z",
+      "circuit_breaker_state": "OPEN"
+    },
+    {
+      "lane_id": "ollama",
+      "status": "down",
+      "response_time_ms": 5000,
+      "success_rate_pct": 50.0,
+      "last_heartbeat": "2026-05-18T14:18:09Z",
+      "circuit_breaker_state": "OPEN"
+    },
+    {
+      "lane_id": "gemini",
+      "status": "down",
+      "response_time_ms": 5000,
+      "success_rate_pct": 50.0,
+      "last_heartbeat": "2026-05-18T14:18:09Z",
+      "circuit_breaker_state": "OPEN"
+    },
+    {
+      "lane_id": "claude",
+      "status": "down",
+      "response_time_ms": 5000,
+      "success_rate_pct": 50.0,
+      "last_heartbeat": "2026-05-18T14:18:09Z",
+      "circuit_breaker_state": "OPEN"
+    },
+    {
+      "lane_id": "hermes",
+      "status": "down",
+      "response_time_ms": 5000,
+      "success_rate_pct": 50.0,
+      "last_heartbeat": "2026-05-18T14:18:09Z",
+      "circuit_breaker_state": "OPEN"
+    },
+    {
+      "lane_id": "powershell_sfsr",
+      "status": "HEALTHY",
+      "response_time_ms": 0,
+      "success_rate_pct": 100.0,
+      "last_heartbeat": "2026-05-18T14:18:09Z",
+      "circuit_breaker_state": "CLOSED"
+    }
+  ]
+}
