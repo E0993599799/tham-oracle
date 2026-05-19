@@ -6,8 +6,9 @@
   "agents": [
     {
       "id": "tham",
-      "soul": "ธาม — Personal Oracle for พี่เอก",
-      "role": "brain-orchestrator",
+      "soul": "ธาม — ORACLE/OBSERVER/GOVERNOR for Forge/Omega",
+      "role": "oracle-governor",
+      "execution_model": "delegation-only",
       "capabilities": [
         "intent-decode",
         "memory-read",
@@ -16,14 +17,27 @@
         "proof-writer",
         "executor-routing",
         "code-review",
-        "debugging",
         "research-synthesis",
-        "prompt-engineering"
+        "prompt-engineering",
+        "observe",
+        "coordinate",
+        "enforce",
+        "escalate",
+        "prevent-drift",
+        "maintain-memory",
+        "monitor-agents"
       ],
-      "lane": "orchestrator",
+      "forbidden": [
+        "edit_files",
+        "run_commands",
+        "git_operations",
+        "execute_scripts",
+        "deploy"
+      ],
+      "lane": "oracle-governor",
       "port": 47778,
       "status": "active",
-      "validation": "oracle_search + oracle_learn via oracle-v2 MCP"
+      "validation": "oracle-v2 MCP observation + governance enforcement"
     },
     {
       "id": "core",
@@ -192,7 +206,7 @@
   ],
 
   "lanes": [
-    { "id": "orchestrator", "description": "Tham brain — receives intent, routes to executor" },
+    { "id": "oracle-governor", "description": "Tham — ORACLE/OBSERVER/GOVERNOR (delegation-only, no execution)" },
     { "id": "core-runner", "description": "Core bridge — structured GitHub inbox tasks" },
     { "id": "codex-builder", "description": "Codex agent — code implementation, bug fix, refactor (GPT-5.5 via 9router)" },
     { "id": "gemini-research", "description": "Gemini agent — web research, analysis, synthesis (Gemini 2.5 Flash via 9router)" },
