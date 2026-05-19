@@ -4,6 +4,17 @@
 
 ---
 
+## Latest Deployment
+
+**Date**: 2026-05-19  
+**Status**: 🟢 LIVE  
+**Fleet**: 8 agents (Codex + Gemini + Native Claude)  
+**Architecture**: OBSERVER/GOVERNOR governance model  
+**Oracle-v2**: Running (v26.5.2-alpha.1704) — [Studio](http://localhost:47778/swagger)  
+**Release**: [2026-05-19-fleet-activation](../../releases/tag/2026-05-19-fleet-activation)
+
+---
+
 ## เริ่มใช้งาน
 
 ### วิธีที่ 1 — tmux session (แนะนำ)
