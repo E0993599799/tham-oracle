@@ -209,7 +209,7 @@ netsh advfirewall firewall add rule name="9router-WSL" dir=in action=allow proto
 | **Role** | Quality assurance, test automation, reliability |
 | **Human** | พี่เอก (Ekkarat) |
 | **Location** | `/root/ghq/github.com/E0993599799/qa-oracle` |
-| **Provider** | 🔵 Claude (latest) |
+| **Provider** | 🟢 Gemini (fast analysis, test coverage synthesis) |
 | **Status** | 🟢 Ready to Activate (repo created 2026-05-18) |
 | **Expertise** | Test automation, end-to-end testing, performance testing, bug analysis |
 
@@ -222,7 +222,7 @@ netsh advfirewall firewall add rule name="9router-WSL" dir=in action=allow proto
 
 ### Established
 - CLAUDE.md with role and operating rules
-- .claude/settings.json configured with Claude provider
+- .claude/settings.json configured with Gemini provider
 - brain/identity/profile.md with fleet profile
 - ψ/ memory vault initialized
 
@@ -242,7 +242,7 @@ netsh advfirewall firewall add rule name="9router-WSL" dir=in action=allow proto
 
 🟢 Backend       Ready        API/Go specialist (Codex, repo ready)
 🟢 DevOps        Ready        Infrastructure specialist (Codex, repo ready)
-🟢 QA            Ready        Testing specialist (Claude, repo ready)
+🟢 QA            Ready        Testing specialist (Gemini, repo ready)
 ```
 
 ### Deployment Timeline
