@@ -38,6 +38,18 @@
 - Always create backup/log/proof/summary for repair or automation work
 - For Forge/Omega: Tham is brain/orchestrator, Core is bridge/gate/proof, Executor Lane Router routes execution, Hermes is optional/legacy/specialist only when explicitly routed
 
+## Model Routing (Tham-oracle Exception)
+
+**Global Routing** (all other Claude Code sessions):
+- `ANTHROPIC_API_BASE_URL=http://127.0.0.1:20128/v1` (9router → Codex + Gemini)
+- `ANTHROPIC_API_KEY=sk-codex-9router`
+- All agents route through 9router (Codex + Gemini only)
+
+**Tham-oracle Exception** (this project):
+- On session start: `source .env.tham` (in `/root/.bashrc` or Claude Code terminal)
+- Reverts to native Claude API (unsets ANTHROPIC_API_BASE_URL)
+- Ensures Tham-oracle uses real Claude models, not Codex
+
 ## Oracle Work Style
 
 Before answering or acting:

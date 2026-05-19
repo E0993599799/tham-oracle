@@ -59,15 +59,12 @@
       "status": "active",
       "port": 20128,
       "models": {
-        "claude": "cc/claude-sonnet-4-6",
-        "hermes": "gemini/gemini-2.5-flash",
-        "fast": "ollama/glm-4.7-flash"
+        "codex": "cx/gpt-5.5",
+        "gemini": "gemini/gemini-2.5-flash"
       },
       "available": [
-        "cc/claude-opus-4-7", "cc/claude-sonnet-4-6", "cc/claude-haiku-4-5-20251001",
-        "gemini/gemini-2.5-flash",
-        "ollama/minimax-m2.5", "ollama/qwen3.5", "ollama/glm-4.7-flash",
-        "ollama/kimi-k2.5", "ollama/glm-5", "ollama/gpt-oss:120b"
+        "cx/gpt-5.5",
+        "gemini/gemini-2.5-flash"
       ]
     },
     "hermes": {
@@ -76,42 +73,42 @@
       "model": "gemini/gemini-2.5-flash",
       "api_key_env": "OPENCLAW_API_KEY",
       "status": "active",
-      "verified": "2026-05-16",
-      "note": "Hermes routes through 9router (OpenClaw) using gemini/gemini-2.5-flash — Gemini API key is managed by 9router internally (db.json gemini provider)"
+      "verified": "2026-05-19",
+      "note": "Hermes routes through 9router using gemini/gemini-2.5-flash (Gemini only, no Claude)"
     }
   },
 
   "agent_routing": {
-    "_updated": "2026-05-16",
-    "_rule": "Claude Code=brain/reviewer | Codex A=feature/UI builder | Codex B=backend/database/repair | Gemini=fast scout/research/runtime probe | Tham/Core=SOT gate/queue/proof/final authority",
+    "_updated": "2026-05-19",
+    "_rule": "Codex=orchestrator/planner/reviewer/code/reasoning | Gemini=research/observability/fast-analysis | Tham/Core=SOT gate/queue/proof/final authority",
     "agents": {
-      "orchestrator":      { "primary": "claude-code",       "fallback": "gpt-5.5",       "reason": "อ่าน repo, วางแผน, คุมงานยาว" },
-      "reviewer":          { "primary": "claude-code",       "fallback": "codex-a",       "reason": "ตรวจ architecture/code ก่อน merge" },
-      "planner":           { "primary": "claude-code",       "fallback": "gpt-5.5",       "reason": "reasoning / แตก phase / risk" },
-      "dispatcher":        { "primary": "tham-core",         "fallback": "claude-code",   "reason": "คุม SOT, queue, risk gate" },
-      "builder":           { "primary": "codex-a",           "fallback": "codex-b",       "reason": "agentic coding/worktree/parallel task" },
-      "verifier":          { "primary": "claude-code",       "fallback": "codex-b",       "reason": "แยกคนตรวจจากคนสร้าง" },
-      "proof-writer":      { "primary": "tham-core",         "fallback": "claude-code",   "reason": "ยึด log/proof/local paths" },
-      "memory-reader":     { "primary": "gemini",            "fallback": "claude-code",   "reason": "อ่าน/สรุป codebase/automation เร็ว" },
-      "memory-writer":     { "primary": "tham-core",         "fallback": "claude-code",   "reason": "เขียน Obsidian ต้อง conservative" },
-      "runtime-guard":     { "primary": "gemini",            "fallback": "core-local",    "reason": "ตรวจ runtime/status/ไฟล์เร็ว" },
-      "security-governor": { "primary": "claude-code",       "fallback": "tham-core",     "reason": "skeptical / reject-first" },
-      "ui":                { "primary": "codex-a",           "fallback": "claude-code",   "reason": "implement React/Tailwind" },
-      "ux":                { "primary": "claude-code",       "fallback": "gemini",        "reason": "critique flow / layout" },
-      "database":          { "primary": "codex-b",           "fallback": "claude-code",   "reason": "schema/migration/RLS แยกจาก UI builder" },
-      "backend":           { "primary": "codex-b",           "fallback": "codex-a",       "reason": "API/queue/runtime patch" },
-      "api":               { "primary": "codex-b",           "fallback": "gemini",        "reason": "route/schema/probe" },
-      "runtime":           { "primary": "gemini",            "fallback": "core-local",    "reason": "fast inspect/probe" },
-      "devops":            { "primary": "gemini",            "fallback": "claude-code",   "reason": "process/port/log/scheduled-task analysis" },
-      "recovery":          { "primary": "claude-code",       "fallback": "core-local",    "reason": "root-cause + safe rollback" },
-      "research":          { "primary": "gemini",            "fallback": "claude-code",   "reason": "quick wide research/summarize" },
-      "debate":            { "primary": "claude-code",       "fallback": "gpt-5.5",       "reason": "reasoning/critic layer" },
-      "simulation":        { "primary": "gpt-5.5",           "fallback": "gemini",        "reason": "scenario planning" },
-      "cost-optimization": { "primary": "gemini",            "fallback": "gpt-5.5-mini",  "reason": "cheap/fast evaluation" },
-      "prompt-optimization":{ "primary": "claude-code",      "fallback": "gpt-5.5",       "reason": "instruction/refactor prompt" },
-      "skill-learning":    { "primary": "claude-code",       "fallback": "codex-a",       "reason": "extract repeatable skill from proof/error" },
-      "observability":     { "primary": "gemini",            "fallback": "core-local",    "reason": "dashboard/status/log aggregation" },
-      "autonomous-repair": { "primary": "claude-code",       "fallback": "codex-b",       "reason": "Claude diagnoses, Codex patches, Core validates" }
+      "orchestrator":      { "primary": "codex",             "fallback": "codex",         "reason": "repository orchestration, architecture, intent-decode" },
+      "reviewer":          { "primary": "codex",             "fallback": "codex",         "reason": "code review, architecture validation, merge gate" },
+      "planner":           { "primary": "codex",             "fallback": "codex",         "reason": "reasoning, phase breakdown, risk analysis" },
+      "dispatcher":        { "primary": "tham-core",         "fallback": "tham-core",     "reason": "SOT gate, queue, risk gate" },
+      "builder":           { "primary": "codex",             "fallback": "codex",         "reason": "code implementation, worktree, parallel tasks" },
+      "verifier":          { "primary": "codex",             "fallback": "codex",         "reason": "verification separate from builder" },
+      "proof-writer":      { "primary": "tham-core",         "fallback": "tham-core",     "reason": "log/proof/local paths authority" },
+      "memory-reader":     { "primary": "gemini",            "fallback": "gemini",        "reason": "fast codebase/automation summarization" },
+      "memory-writer":     { "primary": "tham-core",         "fallback": "tham-core",     "reason": "conservative Obsidian writeback" },
+      "runtime-guard":     { "primary": "gemini",            "fallback": "gemini",        "reason": "fast runtime/status/file inspection" },
+      "security-governor": { "primary": "codex",             "fallback": "codex",         "reason": "skeptical risk evaluation" },
+      "ui":                { "primary": "codex",             "fallback": "codex",         "reason": "React/Tailwind implementation" },
+      "ux":                { "primary": "codex",             "fallback": "codex",         "reason": "UX critique, flow analysis" },
+      "database":          { "primary": "codex",             "fallback": "codex",         "reason": "schema/migration/RLS design" },
+      "backend":           { "primary": "codex",             "fallback": "codex",         "reason": "API design, runtime patches" },
+      "api":               { "primary": "codex",             "fallback": "codex",         "reason": "route design, schema, probes" },
+      "runtime":           { "primary": "gemini",            "fallback": "gemini",        "reason": "fast inspection/probe" },
+      "devops":            { "primary": "gemini",            "fallback": "gemini",        "reason": "process/port/log analysis" },
+      "recovery":          { "primary": "codex",             "fallback": "codex",         "reason": "root-cause diagnosis + rollback" },
+      "research":          { "primary": "gemini",            "fallback": "gemini",        "reason": "wide research and synthesis" },
+      "debate":            { "primary": "codex",             "fallback": "codex",         "reason": "reasoning, arguments" },
+      "simulation":        { "primary": "codex",             "fallback": "codex",         "reason": "scenario planning" },
+      "cost-optimization": { "primary": "gemini",            "fallback": "gemini",        "reason": "cost evaluation" },
+      "prompt-optimization":{ "primary": "codex",            "fallback": "codex",         "reason": "prompt engineering" },
+      "skill-learning":    { "primary": "codex",             "fallback": "codex",         "reason": "extract skills from proofs" },
+      "observability":     { "primary": "gemini",            "fallback": "gemini",        "reason": "dashboard/status/log aggregation" },
+      "autonomous-repair": { "primary": "codex",             "fallback": "codex",         "reason": "diagnosis, patching, validation" }
     }
   },
 

@@ -45,7 +45,7 @@
       "name": "QA Oracle",
       "human": "พี่เอก (Ekkarat)",
       "role": "Testing/QA Specialist — Test automation, quality assurance",
-      "provider": "Claude",
+      "provider": "Gemini",
       "status": "active",
       "maw": "qa-oracle",
       "inbox": "/root/ghq/github.com/E0993599799/qa-oracle/ψ/inbox",
