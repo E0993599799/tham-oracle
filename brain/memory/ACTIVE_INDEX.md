@@ -93,3 +93,4 @@ Available via 9router (74+ models):
 - Access: WSL → Windows 9router via 172.21.112.1:20128 (portproxy configured)
 - Role: Code/Design reviewer, specialist executor
 - Ready: Yes — review contract prepared at D:/Git/forge-omega-v2/hermes-review-contract.json
+test memory change
