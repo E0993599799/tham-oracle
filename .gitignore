@@ -42,6 +42,9 @@ tools/logs/
 
 # Added by Multi-Agent Workflow Kit
 /.agents
+!/.agents/
+/.agents/*
+!/.agents/agents.yaml
 /.envrc
 /MAW-*
 .claude/settings.local.json
@@ -62,3 +65,4 @@ scripts/__pycache__/
 
 # Auto-save transient lock file
 brain/memory/.auto-save.lock
+/agents
