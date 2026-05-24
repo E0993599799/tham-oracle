@@ -56,56 +56,91 @@ async function callClaude(messages: AnthropicMessage[], apiKey: string): Promise
 }
 
 async function callCodex(humanText: string, codexApiKey: string): Promise<string> {
-  const baseUrl = (process.env.CODEX_BASE_URL || 'https://chatgpt.com/backend-api/codex').replace(/\/$/, '')
-  const model = process.env.CODEX_MODEL || 'gpt-5.4'
+  const model = process.env.CODEX_MODEL || 'gpt-4o'
 
-  const res = await fetch(`${baseUrl}/responses`, {
+  // sk-proj- keys use the standard OpenAI API; OAuth Hermes tokens use chatgpt.com/backend-api/codex
+  const isOAuthToken = !codexApiKey.startsWith('sk-')
+  const baseUrl = isOAuthToken
+    ? (process.env.CODEX_BASE_URL || 'https://chatgpt.com/backend-api/codex').replace(/\/$/, '')
+    : 'https://api.openai.com/v1'
+
+  if (isOAuthToken) {
+    // Hermes OAuth path — Responses API with SSE
+    const res = await fetch(`${baseUrl}/responses`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${codexApiKey}`,
+        'Content-Type': 'application/json',
+        'User-Agent': 'codex_cli_rs/0.0.0 (Hermes Agent)',
+        originator: 'codex_cli_rs',
+      },
+      body: JSON.stringify({
+        model,
+        instructions: SYSTEM_PROMPT,
+        input: [{ role: 'user', content: humanText }],
+        store: false,
+        stream: true,
+      }),
+      signal: AbortSignal.timeout(30000),
+    })
+
+    if (!res.ok) {
+      const errText = await res.text().catch(() => res.statusText)
+      throw new Error(`Codex API error ${res.status}: ${errText}`)
+    }
+
+    const sseText = await res.text()
+    let outputText = ''
+    for (const line of sseText.split('\n')) {
+      if (!line.startsWith('data: ')) continue
+      const raw = line.slice(6).trim()
+      if (raw === '[DONE]') break
+      try {
+        const evt = JSON.parse(raw)
+        if (evt.type === 'response.output_text.delta') {
+          outputText += evt.delta || ''
+        } else if (evt.type === 'response.done' || evt.type === 'response.completed') {
+          const finalText =
+            evt.response?.output_text ||
+            evt.response?.output?.find((o: { type: string }) => o.type === 'message')
+              ?.content?.find((c: { type: string }) => c.type === 'output_text')?.text ||
+            ''
+          if (finalText) outputText = finalText
+        }
+      } catch { /* skip malformed SSE lines */ }
+    }
+
+    if (!outputText) throw new Error('Codex: no output_text extracted from SSE stream')
+    return outputText.trim()
+  }
+
+  // Standard OpenAI API path (sk-proj- / sk- keys)
+  const res = await fetch(`${baseUrl}/chat/completions`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${codexApiKey}`,
       'Content-Type': 'application/json',
-      'User-Agent': 'codex_cli_rs/0.0.0 (Hermes Agent)',
-      originator: 'codex_cli_rs',
     },
     body: JSON.stringify({
       model,
-      instructions: SYSTEM_PROMPT,
-      input: [{ role: 'user', content: humanText }],
-      store: false,
-      stream: true,
+      max_tokens: 1024,
+      messages: [
+        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'user', content: humanText },
+      ],
     }),
     signal: AbortSignal.timeout(30000),
   })
 
   if (!res.ok) {
     const errText = await res.text().catch(() => res.statusText)
-    throw new Error(`Codex API error ${res.status}: ${errText}`)
+    throw new Error(`OpenAI API error ${res.status}: ${errText}`)
   }
 
-  // Parse SSE stream: accumulate text deltas, prefer response.done final text
-  const sseText = await res.text()
-  let outputText = ''
-  for (const line of sseText.split('\n')) {
-    if (!line.startsWith('data: ')) continue
-    const raw = line.slice(6).trim()
-    if (raw === '[DONE]') break
-    try {
-      const evt = JSON.parse(raw)
-      if (evt.type === 'response.output_text.delta') {
-        outputText += evt.delta || ''
-      } else if (evt.type === 'response.done' || evt.type === 'response.completed') {
-        const finalText =
-          evt.response?.output_text ||
-          evt.response?.output?.find((o: { type: string }) => o.type === 'message')
-            ?.content?.find((c: { type: string }) => c.type === 'output_text')?.text ||
-          ''
-        if (finalText) outputText = finalText
-      }
-    } catch { /* skip malformed SSE lines */ }
-  }
-
-  if (!outputText) throw new Error('Codex: no output_text extracted from SSE stream')
-  return outputText.trim()
+  const data = await res.json()
+  const text = data?.choices?.[0]?.message?.content
+  if (!text) throw new Error('OpenAI: empty response')
+  return text.trim()
 }
 
 export async function POST(request: NextRequest) {
