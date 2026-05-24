@@ -66,6 +66,7 @@ async function callCodex(humanText: string, codexApiKey: string): Promise<string
 
   if (isOAuthToken) {
     // Hermes OAuth path — Responses API with SSE
+    const accountId = process.env.CHATGPT_ACCOUNT_ID
     const res = await fetch(`${baseUrl}/responses`, {
       method: 'POST',
       headers: {
@@ -73,6 +74,7 @@ async function callCodex(humanText: string, codexApiKey: string): Promise<string
         'Content-Type': 'application/json',
         'User-Agent': 'codex_cli_rs/0.0.0 (Hermes Agent)',
         originator: 'codex_cli_rs',
+        ...(accountId ? { 'ChatGPT-Account-ID': accountId } : {}),
       },
       body: JSON.stringify({
         model,
