@@ -41,8 +41,12 @@ async function callClaude(messages: AnthropicMessage[], apiKey: string): Promise
   })
 
   if (!res.ok) {
-    const err = await res.text().catch(() => res.statusText)
-    throw new Error(`Anthropic API error ${res.status}: ${err}`)
+    const errText = await res.text().catch(() => res.statusText)
+    // Surface credit errors distinctly so the caller can fallback
+    if (res.status === 400 && errText.includes('credit balance is too low')) {
+      throw Object.assign(new Error('credit_low'), { code: 'credit_low' })
+    }
+    throw new Error(`Anthropic API error ${res.status}: ${errText}`)
   }
 
   const data = await res.json()
@@ -51,11 +55,66 @@ async function callClaude(messages: AnthropicMessage[], apiKey: string): Promise
   return content
 }
 
+async function callCodex(humanText: string, codexApiKey: string): Promise<string> {
+  const baseUrl = (process.env.CODEX_BASE_URL || 'https://chatgpt.com/backend-api/codex').replace(/\/$/, '')
+  const model = process.env.CODEX_MODEL || 'gpt-5.4'
+
+  const res = await fetch(`${baseUrl}/responses`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${codexApiKey}`,
+      'Content-Type': 'application/json',
+      'User-Agent': 'codex_cli_rs/0.0.0 (Hermes Agent)',
+      originator: 'codex_cli_rs',
+    },
+    body: JSON.stringify({
+      model,
+      instructions: SYSTEM_PROMPT,
+      input: [{ role: 'user', content: humanText }],
+      store: false,
+      stream: true,
+    }),
+    signal: AbortSignal.timeout(30000),
+  })
+
+  if (!res.ok) {
+    const errText = await res.text().catch(() => res.statusText)
+    throw new Error(`Codex API error ${res.status}: ${errText}`)
+  }
+
+  // Parse SSE stream: accumulate text deltas, prefer response.done final text
+  const sseText = await res.text()
+  let outputText = ''
+  for (const line of sseText.split('\n')) {
+    if (!line.startsWith('data: ')) continue
+    const raw = line.slice(6).trim()
+    if (raw === '[DONE]') break
+    try {
+      const evt = JSON.parse(raw)
+      if (evt.type === 'response.output_text.delta') {
+        outputText += evt.delta || ''
+      } else if (evt.type === 'response.done' || evt.type === 'response.completed') {
+        const finalText =
+          evt.response?.output_text ||
+          evt.response?.output?.find((o: { type: string }) => o.type === 'message')
+            ?.content?.find((c: { type: string }) => c.type === 'output_text')?.text ||
+          ''
+        if (finalText) outputText = finalText
+      }
+    } catch { /* skip malformed SSE lines */ }
+  }
+
+  if (!outputText) throw new Error('Codex: no output_text extracted from SSE stream')
+  return outputText.trim()
+}
+
 export async function POST(request: NextRequest) {
-  const apiKey = process.env.ANTHROPIC_API_KEY
-  if (!apiKey) {
+  const anthropicKey = process.env.ANTHROPIC_API_KEY
+  const codexKey = process.env.CODEX_API_KEY
+
+  if (!anthropicKey && !codexKey) {
     return NextResponse.json(
-      { error: 'ANTHROPIC_API_KEY not configured', message: null, forward: null },
+      { error: 'No LLM credentials configured (ANTHROPIC_API_KEY or CODEX_API_KEY)', message: null, forward: null },
       { status: 503 }
     )
   }
@@ -72,16 +131,30 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: '"message" required', message: null, forward: null }, { status: 400 })
   }
 
+  // Try Claude first; fallback to Codex on credit error
+  if (anthropicKey) {
+    try {
+      const reply = await callClaude([{ role: 'user', content: humanText }], anthropicKey)
+      return NextResponse.json({ message: reply, forward: null, provider: 'claude' }, { status: 200 })
+    } catch (err) {
+      const isCreditLow = err instanceof Error && (err as NodeJS.ErrnoException & { code?: string }).code === 'credit_low'
+      if (!isCreditLow || !codexKey) {
+        return NextResponse.json(
+          { error: err instanceof Error ? err.message : 'llm_error', message: null, forward: null },
+          { status: 502 }
+        )
+      }
+      // Fall through to Codex
+    }
+  }
+
+  // Codex / gpt-5.4 path
   try {
-    const reply = await callClaude([{ role: 'user', content: humanText }], apiKey)
-    return NextResponse.json({ message: reply, forward: null }, { status: 200 })
+    const reply = await callCodex(humanText, codexKey!)
+    return NextResponse.json({ message: reply, forward: null, provider: 'codex' }, { status: 200 })
   } catch (err) {
     return NextResponse.json(
-      {
-        error: err instanceof Error ? err.message : 'llm_error',
-        message: null,
-        forward: null,
-      },
+      { error: err instanceof Error ? err.message : 'codex_error', message: null, forward: null },
       { status: 502 }
     )
   }
