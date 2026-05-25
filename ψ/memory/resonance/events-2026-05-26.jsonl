@@ -904,3 +904,31 @@
 {"timestamp": "2026-05-25T17:30:20.313633+00:00", "event_type": "route_decided", "task_id": "e2e-write-code", "primary_lane": "codex_gpt55", "fallback_lane": "ollama"}
 {"timestamp": "2026-05-25T17:30:20.330338+00:00", "event_type": "lane_started", "task_id": "e2e-write-code", "lane": "codex_gpt55"}
 {"timestamp": "2026-05-25T17:30:20.341319+00:00", "event_type": "lane_completed", "task_id": "e2e-write-code", "lane": "codex_gpt55", "status": "ERROR"}
+{"timestamp": "2026-05-25T17:42:17.207334+00:00", "event_type": "memory_gate_done", "task_id": "constitution-block-secret", "passed": true, "elapsed_s": 0.0051381587982177734}
+{"timestamp": "2026-05-25T17:42:17.211099+00:00", "event_type": "risk_gate_done", "task_id": "constitution-block-secret", "risk_level": "medium", "elapsed_s": 1.6689300537109375e-06}
+{"timestamp": "2026-05-25T17:42:17.234414+00:00", "event_type": "intent_decoded", "task_id": "constitution-block-secret", "intent": "write_code", "elapsed_s": 1.430511474609375e-06}
+{"timestamp": "2026-05-25T17:42:17.251390+00:00", "event_type": "constitution_blocked", "task_id": "constitution-block-secret", "reason": "secret-bearing content detected", "risk_level": "medium"}
+{"timestamp": "2026-05-25T17:42:17.288904+00:00", "event_type": "memory_gate_done", "task_id": "phase2-normalization", "passed": true, "elapsed_s": 0.0074367523193359375}
+{"timestamp": "2026-05-25T17:42:17.291893+00:00", "event_type": "risk_gate_done", "task_id": "phase2-normalization", "risk_level": "low", "elapsed_s": 1.1920928955078125e-06}
+{"timestamp": "2026-05-25T17:42:17.308744+00:00", "event_type": "intent_decoded", "task_id": "phase2-normalization", "intent": "write_code", "elapsed_s": 2.288818359375e-05}
+{"timestamp": "2026-05-25T17:42:17.326434+00:00", "event_type": "route_decided", "task_id": "phase2-normalization", "primary_lane": "codex_gpt55", "fallback_lane": "ollama"}
+{"timestamp": "2026-05-25T17:42:17.359498+00:00", "event_type": "lane_started", "task_id": "phase2-normalization", "lane": "codex_gpt55"}
+{"timestamp": "2026-05-25T17:42:17.363685+00:00", "event_type": "lane_completed", "task_id": "phase2-normalization", "lane": "codex_gpt55", "status": "ERROR"}
+{"timestamp": "2026-05-25T17:42:17.422961+00:00", "event_type": "memory_gate_done", "task_id": "test-proof-file", "passed": true, "elapsed_s": 0.0070247650146484375}
+{"timestamp": "2026-05-25T17:42:17.426604+00:00", "event_type": "risk_gate_done", "task_id": "test-proof-file", "risk_level": "low", "elapsed_s": 1.1920928955078125e-06}
+{"timestamp": "2026-05-25T17:42:17.445935+00:00", "event_type": "intent_decoded", "task_id": "test-proof-file", "intent": "write_code", "elapsed_s": 1.6689300537109375e-06}
+{"timestamp": "2026-05-25T17:42:17.462902+00:00", "event_type": "route_decided", "task_id": "test-proof-file", "primary_lane": "codex_gpt55", "fallback_lane": "ollama"}
+{"timestamp": "2026-05-25T17:42:17.483846+00:00", "event_type": "lane_started", "task_id": "test-proof-file", "lane": "codex_gpt55"}
+{"timestamp": "2026-05-25T17:42:17.498711+00:00", "event_type": "lane_completed", "task_id": "test-proof-file", "lane": "codex_gpt55", "status": "ERROR"}
+{"timestamp": "2026-05-25T17:42:17.549608+00:00", "event_type": "memory_gate_done", "task_id": "e2e-review", "passed": true, "elapsed_s": 0.005257844924926758}
+{"timestamp": "2026-05-25T17:42:17.552982+00:00", "event_type": "risk_gate_done", "task_id": "e2e-review", "risk_level": "low", "elapsed_s": 1.1920928955078125e-06}
+{"timestamp": "2026-05-25T17:42:17.567560+00:00", "event_type": "intent_decoded", "task_id": "e2e-review", "intent": "review", "elapsed_s": 1.430511474609375e-06}
+{"timestamp": "2026-05-25T17:42:17.588875+00:00", "event_type": "route_decided", "task_id": "e2e-review", "primary_lane": "claude", "fallback_lane": "codex_gpt55"}
+{"timestamp": "2026-05-25T17:42:17.606829+00:00", "event_type": "lane_started", "task_id": "e2e-review", "lane": "claude"}
+{"timestamp": "2026-05-25T17:42:17.628305+00:00", "event_type": "lane_completed", "task_id": "e2e-review", "lane": "claude", "status": "ERROR"}
+{"timestamp": "2026-05-25T17:42:17.675314+00:00", "event_type": "memory_gate_done", "task_id": "e2e-write-code", "passed": true, "elapsed_s": 0.007077932357788086}
+{"timestamp": "2026-05-25T17:42:17.679202+00:00", "event_type": "risk_gate_done", "task_id": "e2e-write-code", "risk_level": "medium", "elapsed_s": 1.6689300537109375e-06}
+{"timestamp": "2026-05-25T17:42:17.693788+00:00", "event_type": "intent_decoded", "task_id": "e2e-write-code", "intent": "write_code", "elapsed_s": 1.430511474609375e-06}
+{"timestamp": "2026-05-25T17:42:17.716485+00:00", "event_type": "route_decided", "task_id": "e2e-write-code", "primary_lane": "codex_gpt55", "fallback_lane": "ollama"}
+{"timestamp": "2026-05-25T17:42:17.738993+00:00", "event_type": "lane_started", "task_id": "e2e-write-code", "lane": "codex_gpt55"}
+{"timestamp": "2026-05-25T17:42:17.753241+00:00", "event_type": "lane_completed", "task_id": "e2e-write-code", "lane": "codex_gpt55", "status": "ERROR"}
