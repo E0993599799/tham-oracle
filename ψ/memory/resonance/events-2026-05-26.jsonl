@@ -1,0 +1,210 @@
+{"timestamp": "2026-05-25T17:02:06.347484+00:00", "event_type": "memory_gate_done", "task_id": "sample_write_code_001", "passed": true, "elapsed_s": 0.00513768196105957}
+{"timestamp": "2026-05-25T17:02:06.350512+00:00", "event_type": "risk_gate_done", "task_id": "sample_write_code_001", "risk_level": "medium", "elapsed_s": 2.1457672119140625e-06}
+{"timestamp": "2026-05-25T17:02:06.362898+00:00", "event_type": "intent_decoded", "task_id": "sample_write_code_001", "intent": "write_code", "elapsed_s": 1.6689300537109375e-06}
+{"timestamp": "2026-05-25T17:02:06.372992+00:00", "event_type": "route_decided", "task_id": "sample_write_code_001", "primary_lane": "codex_gpt55", "fallback_lane": "ollama"}
+{"timestamp": "2026-05-25T17:02:06.396950+00:00", "event_type": "lane_started", "task_id": "sample_write_code_001", "lane": "codex_gpt55"}
+{"timestamp": "2026-05-25T17:02:06.401653+00:00", "event_type": "lane_completed", "task_id": "sample_write_code_001", "lane": "codex_gpt55", "status": "ERROR"}
+{"timestamp": "2026-05-25T17:02:06.425607+00:00", "event_type": "memory_gate_done", "task_id": "sample_fix_bug_001", "passed": true, "elapsed_s": 0.005025148391723633}
+{"timestamp": "2026-05-25T17:02:06.428544+00:00", "event_type": "risk_gate_done", "task_id": "sample_fix_bug_001", "risk_level": "medium", "elapsed_s": 1.6689300537109375e-06}
+{"timestamp": "2026-05-25T17:02:06.443782+00:00", "event_type": "intent_decoded", "task_id": "sample_fix_bug_001", "intent": "fix_bug", "elapsed_s": 1.6689300537109375e-06}
+{"timestamp": "2026-05-25T17:02:06.457465+00:00", "event_type": "route_decided", "task_id": "sample_fix_bug_001", "primary_lane": "codex_gpt55", "fallback_lane": "ollama"}
+{"timestamp": "2026-05-25T17:02:06.475773+00:00", "event_type": "lane_started", "task_id": "sample_fix_bug_001", "lane": "codex_gpt55"}
+{"timestamp": "2026-05-25T17:02:06.488223+00:00", "event_type": "lane_completed", "task_id": "sample_fix_bug_001", "lane": "codex_gpt55", "status": "ERROR"}
+{"timestamp": "2026-05-25T17:02:06.516228+00:00", "event_type": "memory_gate_done", "task_id": "sample_review_001", "passed": true, "elapsed_s": 0.005620241165161133}
+{"timestamp": "2026-05-25T17:02:06.519204+00:00", "event_type": "risk_gate_done", "task_id": "sample_review_001", "risk_level": "low", "elapsed_s": 1.430511474609375e-06}
+{"timestamp": "2026-05-25T17:02:06.534928+00:00", "event_type": "intent_decoded", "task_id": "sample_review_001", "intent": "review", "elapsed_s": 1.6689300537109375e-06}
+{"timestamp": "2026-05-25T17:02:06.549006+00:00", "event_type": "route_decided", "task_id": "sample_review_001", "primary_lane": "claude", "fallback_lane": "codex_gpt55"}
+{"timestamp": "2026-05-25T17:02:06.564312+00:00", "event_type": "lane_started", "task_id": "sample_review_001", "lane": "claude"}
+{"timestamp": "2026-05-25T17:02:06.575447+00:00", "event_type": "lane_completed", "task_id": "sample_review_001", "lane": "claude", "status": "ERROR"}
+{"timestamp": "2026-05-25T17:02:06.606750+00:00", "event_type": "memory_gate_done", "task_id": "sample_design_001", "passed": true, "elapsed_s": 0.006223201751708984}
+{"timestamp": "2026-05-25T17:02:06.610108+00:00", "event_type": "risk_gate_done", "task_id": "sample_design_001", "risk_level": "medium", "elapsed_s": 1.1920928955078125e-06}
+{"timestamp": "2026-05-25T17:02:06.623652+00:00", "event_type": "intent_decoded", "task_id": "sample_design_001", "intent": "design", "elapsed_s": 9.5367431640625e-07}
+{"timestamp": "2026-05-25T17:02:06.638164+00:00", "event_type": "route_decided", "task_id": "sample_design_001", "primary_lane": "claude", "fallback_lane": "codex_gpt55"}
+{"timestamp": "2026-05-25T17:02:06.654630+00:00", "event_type": "lane_started", "task_id": "sample_design_001", "lane": "claude"}
+{"timestamp": "2026-05-25T17:02:06.667810+00:00", "event_type": "lane_completed", "task_id": "sample_design_001", "lane": "claude", "status": "ERROR"}
+{"timestamp": "2026-05-25T17:02:06.692640+00:00", "event_type": "memory_gate_done", "task_id": "sample_search_001", "passed": true, "elapsed_s": 0.005379915237426758}
+{"timestamp": "2026-05-25T17:02:06.695523+00:00", "event_type": "risk_gate_done", "task_id": "sample_search_001", "risk_level": "low", "elapsed_s": 9.5367431640625e-07}
+{"timestamp": "2026-05-25T17:02:06.711254+00:00", "event_type": "intent_decoded", "task_id": "sample_search_001", "intent": "search", "elapsed_s": 1.430511474609375e-06}
+{"timestamp": "2026-05-25T17:02:06.727535+00:00", "event_type": "route_decided", "task_id": "sample_search_001", "primary_lane": "gemini", "fallback_lane": "ollama"}
+{"timestamp": "2026-05-25T17:02:06.745729+00:00", "event_type": "lane_started", "task_id": "sample_search_001", "lane": "gemini"}
+{"timestamp": "2026-05-25T17:02:06.756896+00:00", "event_type": "lane_completed", "task_id": "sample_search_001", "lane": "gemini", "status": "ERROR"}
+{"timestamp": "2026-05-25T17:02:06.782258+00:00", "event_type": "memory_gate_done", "task_id": "sample_classify_001", "passed": true, "elapsed_s": 0.0048329830169677734}
+{"timestamp": "2026-05-25T17:02:06.785110+00:00", "event_type": "risk_gate_done", "task_id": "sample_classify_001", "risk_level": "low", "elapsed_s": 1.430511474609375e-06}
+{"timestamp": "2026-05-25T17:02:06.800096+00:00", "event_type": "intent_decoded", "task_id": "sample_classify_001", "intent": "classify", "elapsed_s": 9.5367431640625e-07}
+{"timestamp": "2026-05-25T17:02:06.816078+00:00", "event_type": "route_decided", "task_id": "sample_classify_001", "primary_lane": "ollama", "fallback_lane": null}
+{"timestamp": "2026-05-25T17:02:06.833370+00:00", "event_type": "lane_started", "task_id": "sample_classify_001", "lane": "ollama"}
+{"timestamp": "2026-05-25T17:02:06.848104+00:00", "event_type": "lane_completed", "task_id": "sample_classify_001", "lane": "ollama", "status": "ERROR"}
+{"timestamp": "2026-05-25T17:02:06.874711+00:00", "event_type": "memory_gate_done", "task_id": "sample_patch_001", "passed": true, "elapsed_s": 0.0052950382232666016}
+{"timestamp": "2026-05-25T17:02:06.877732+00:00", "event_type": "risk_gate_done", "task_id": "sample_patch_001", "risk_level": "medium", "elapsed_s": 2.1457672119140625e-06}
+{"timestamp": "2026-05-25T17:02:06.892279+00:00", "event_type": "intent_decoded", "task_id": "sample_patch_001", "intent": "patch", "elapsed_s": 1.1920928955078125e-06}
+{"timestamp": "2026-05-25T17:02:06.906163+00:00", "event_type": "route_decided", "task_id": "sample_patch_001", "primary_lane": "codex_gpt55", "fallback_lane": "ollama"}
+{"timestamp": "2026-05-25T17:02:06.923950+00:00", "event_type": "lane_started", "task_id": "sample_patch_001", "lane": "codex_gpt55"}
+{"timestamp": "2026-05-25T17:02:06.935020+00:00", "event_type": "lane_completed", "task_id": "sample_patch_001", "lane": "codex_gpt55", "status": "ERROR"}
+{"timestamp": "2026-05-25T17:02:06.958519+00:00", "event_type": "memory_gate_done", "task_id": "sample_refactor_001", "passed": true, "elapsed_s": 0.00547027587890625}
+{"timestamp": "2026-05-25T17:02:06.962081+00:00", "event_type": "risk_gate_done", "task_id": "sample_refactor_001", "risk_level": "medium", "elapsed_s": 1.1920928955078125e-06}
+{"timestamp": "2026-05-25T17:02:06.976456+00:00", "event_type": "intent_decoded", "task_id": "sample_refactor_001", "intent": "refactor", "elapsed_s": 1.1920928955078125e-06}
+{"timestamp": "2026-05-25T17:02:06.991101+00:00", "event_type": "route_decided", "task_id": "sample_refactor_001", "primary_lane": "claude", "fallback_lane": "codex_gpt55"}
+{"timestamp": "2026-05-25T17:02:07.008339+00:00", "event_type": "lane_started", "task_id": "sample_refactor_001", "lane": "claude"}
+{"timestamp": "2026-05-25T17:02:07.021591+00:00", "event_type": "lane_completed", "task_id": "sample_refactor_001", "lane": "claude", "status": "ERROR"}
+{"timestamp": "2026-05-25T17:02:07.050784+00:00", "event_type": "memory_gate_done", "task_id": "sample_security_audit_001", "passed": true, "elapsed_s": 0.005362272262573242}
+{"timestamp": "2026-05-25T17:02:07.053621+00:00", "event_type": "risk_gate_done", "task_id": "sample_security_audit_001", "risk_level": "low", "elapsed_s": 1.6689300537109375e-06}
+{"timestamp": "2026-05-25T17:02:07.070990+00:00", "event_type": "intent_decoded", "task_id": "sample_security_audit_001", "intent": "security_audit", "elapsed_s": 9.5367431640625e-07}
+{"timestamp": "2026-05-25T17:02:07.083448+00:00", "event_type": "route_decided", "task_id": "sample_security_audit_001", "primary_lane": "claude", "fallback_lane": "codex_gpt55"}
+{"timestamp": "2026-05-25T17:02:07.100816+00:00", "event_type": "lane_started", "task_id": "sample_security_audit_001", "lane": "claude"}
+{"timestamp": "2026-05-25T17:02:07.114930+00:00", "event_type": "lane_completed", "task_id": "sample_security_audit_001", "lane": "claude", "status": "ERROR"}
+{"timestamp": "2026-05-25T17:02:07.143642+00:00", "event_type": "memory_gate_done", "task_id": "sample_performance_001", "passed": true, "elapsed_s": 0.005471229553222656}
+{"timestamp": "2026-05-25T17:02:07.146785+00:00", "event_type": "risk_gate_done", "task_id": "sample_performance_001", "risk_level": "medium", "elapsed_s": 1.6689300537109375e-06}
+{"timestamp": "2026-05-25T17:02:07.159545+00:00", "event_type": "intent_decoded", "task_id": "sample_performance_001", "intent": "performance", "elapsed_s": 9.5367431640625e-07}
+{"timestamp": "2026-05-25T17:02:07.176476+00:00", "event_type": "route_decided", "task_id": "sample_performance_001", "primary_lane": "claude", "fallback_lane": "codex_gpt55"}
+{"timestamp": "2026-05-25T17:02:07.194656+00:00", "event_type": "lane_started", "task_id": "sample_performance_001", "lane": "claude"}
+{"timestamp": "2026-05-25T17:02:07.209233+00:00", "event_type": "lane_completed", "task_id": "sample_performance_001", "lane": "claude", "status": "ERROR"}
+{"timestamp": "2026-05-25T17:02:07.247707+00:00", "event_type": "memory_gate_done", "task_id": "test_memory_timeout", "passed": true, "elapsed_s": 0.005479335784912109}
+{"timestamp": "2026-05-25T17:02:07.250392+00:00", "event_type": "risk_gate_done", "task_id": "test_memory_timeout", "risk_level": "low", "elapsed_s": 1.1920928955078125e-06}
+{"timestamp": "2026-05-25T17:02:07.265579+00:00", "event_type": "intent_decoded", "task_id": "test_memory_timeout", "intent": "write_code", "elapsed_s": 4.5299530029296875e-06}
+{"timestamp": "2026-05-25T17:02:07.279592+00:00", "event_type": "route_decided", "task_id": "test_memory_timeout", "primary_lane": "codex_gpt55", "fallback_lane": "ollama"}
+{"timestamp": "2026-05-25T17:02:07.296643+00:00", "event_type": "lane_started", "task_id": "test_memory_timeout", "lane": "codex_gpt55"}
+{"timestamp": "2026-05-25T17:02:07.310350+00:00", "event_type": "lane_completed", "task_id": "test_memory_timeout", "lane": "codex_gpt55", "status": "ERROR"}
+{"timestamp": "2026-05-25T17:02:07.359302+00:00", "event_type": "memory_gate_done", "task_id": "test_risk_low", "passed": true, "elapsed_s": 0.006983280181884766}
+{"timestamp": "2026-05-25T17:02:07.362976+00:00", "event_type": "risk_gate_done", "task_id": "test_risk_low", "risk_level": "low", "elapsed_s": 9.5367431640625e-07}
+{"timestamp": "2026-05-25T17:02:07.380915+00:00", "event_type": "intent_decoded", "task_id": "test_risk_low", "intent": "classify", "elapsed_s": 9.5367431640625e-07}
+{"timestamp": "2026-05-25T17:02:07.396643+00:00", "event_type": "route_decided", "task_id": "test_risk_low", "primary_lane": "ollama", "fallback_lane": null}
+{"timestamp": "2026-05-25T17:02:07.415163+00:00", "event_type": "lane_started", "task_id": "test_risk_low", "lane": "ollama"}
+{"timestamp": "2026-05-25T17:02:07.431348+00:00", "event_type": "lane_completed", "task_id": "test_risk_low", "lane": "ollama", "status": "ERROR"}
+{"timestamp": "2026-05-25T17:02:07.460012+00:00", "event_type": "memory_gate_done", "task_id": "test_risk_medium", "passed": true, "elapsed_s": 0.005411863327026367}
+{"timestamp": "2026-05-25T17:02:07.464091+00:00", "event_type": "risk_gate_done", "task_id": "test_risk_medium", "risk_level": "medium", "elapsed_s": 1.4781951904296875e-05}
+{"timestamp": "2026-05-25T17:02:07.489492+00:00", "event_type": "intent_decoded", "task_id": "test_risk_medium", "intent": "write_code", "elapsed_s": 1.1920928955078125e-06}
+{"timestamp": "2026-05-25T17:02:07.512568+00:00", "event_type": "route_decided", "task_id": "test_risk_medium", "primary_lane": "codex_gpt55", "fallback_lane": "ollama"}
+{"timestamp": "2026-05-25T17:02:07.533421+00:00", "event_type": "lane_started", "task_id": "test_risk_medium", "lane": "codex_gpt55"}
+{"timestamp": "2026-05-25T17:02:07.552347+00:00", "event_type": "lane_completed", "task_id": "test_risk_medium", "lane": "codex_gpt55", "status": "ERROR"}
+{"timestamp": "2026-05-25T17:02:07.578243+00:00", "event_type": "memory_gate_done", "task_id": "test_risk_high", "passed": true, "elapsed_s": 0.005326986312866211}
+{"timestamp": "2026-05-25T17:02:07.581153+00:00", "event_type": "risk_gate_done", "task_id": "test_risk_high", "risk_level": "high", "elapsed_s": 1.9073486328125e-06}
+{"timestamp": "2026-05-25T17:02:07.596090+00:00", "event_type": "intent_decoded", "task_id": "test_risk_high", "intent": "unknown", "elapsed_s": 3.504753112792969e-05}
+{"timestamp": "2026-05-25T17:02:07.612073+00:00", "event_type": "route_decided", "task_id": "test_risk_high", "primary_lane": "codex_gpt55", "fallback_lane": "ollama"}
+{"timestamp": "2026-05-25T17:02:07.632091+00:00", "event_type": "lane_started", "task_id": "test_risk_high", "lane": "codex_gpt55"}
+{"timestamp": "2026-05-25T17:02:07.645315+00:00", "event_type": "lane_completed", "task_id": "test_risk_high", "lane": "codex_gpt55", "status": "ERROR"}
+{"timestamp": "2026-05-25T17:02:07.681204+00:00", "event_type": "memory_gate_done", "task_id": "test_intent_write", "passed": true, "elapsed_s": 0.004616737365722656}
+{"timestamp": "2026-05-25T17:02:07.683956+00:00", "event_type": "risk_gate_done", "task_id": "test_intent_write", "risk_level": "medium", "elapsed_s": 1.430511474609375e-06}
+{"timestamp": "2026-05-25T17:02:07.705686+00:00", "event_type": "intent_decoded", "task_id": "test_intent_write", "intent": "write_code", "elapsed_s": 1.8596649169921875e-05}
+{"timestamp": "2026-05-25T17:02:07.722277+00:00", "event_type": "route_decided", "task_id": "test_intent_write", "primary_lane": "codex_gpt55", "fallback_lane": "ollama"}
+{"timestamp": "2026-05-25T17:02:07.741479+00:00", "event_type": "lane_started", "task_id": "test_intent_write", "lane": "codex_gpt55"}
+{"timestamp": "2026-05-25T17:02:07.756509+00:00", "event_type": "lane_completed", "task_id": "test_intent_write", "lane": "codex_gpt55", "status": "ERROR"}
+{"timestamp": "2026-05-25T17:02:07.784373+00:00", "event_type": "memory_gate_done", "task_id": "test_intent_fix", "passed": true, "elapsed_s": 0.005429983139038086}
+{"timestamp": "2026-05-25T17:02:07.787499+00:00", "event_type": "risk_gate_done", "task_id": "test_intent_fix", "risk_level": "medium", "elapsed_s": 1.430511474609375e-06}
+{"timestamp": "2026-05-25T17:02:07.803948+00:00", "event_type": "intent_decoded", "task_id": "test_intent_fix", "intent": "fix_bug", "elapsed_s": 1.9073486328125e-05}
+{"timestamp": "2026-05-25T17:02:07.822577+00:00", "event_type": "route_decided", "task_id": "test_intent_fix", "primary_lane": "codex_gpt55", "fallback_lane": "ollama"}
+{"timestamp": "2026-05-25T17:02:07.841444+00:00", "event_type": "lane_started", "task_id": "test_intent_fix", "lane": "codex_gpt55"}
+{"timestamp": "2026-05-25T17:02:07.854665+00:00", "event_type": "lane_completed", "task_id": "test_intent_fix", "lane": "codex_gpt55", "status": "ERROR"}
+{"timestamp": "2026-05-25T17:02:07.878508+00:00", "event_type": "memory_gate_done", "task_id": "test_intent_review", "passed": true, "elapsed_s": 0.005357980728149414}
+{"timestamp": "2026-05-25T17:02:07.882460+00:00", "event_type": "risk_gate_done", "task_id": "test_intent_review", "risk_level": "medium", "elapsed_s": 2.6226043701171875e-06}
+{"timestamp": "2026-05-25T17:02:07.898031+00:00", "event_type": "intent_decoded", "task_id": "test_intent_review", "intent": "write_code", "elapsed_s": 1.430511474609375e-05}
+{"timestamp": "2026-05-25T17:02:07.913155+00:00", "event_type": "route_decided", "task_id": "test_intent_review", "primary_lane": "codex_gpt55", "fallback_lane": "ollama"}
+{"timestamp": "2026-05-25T17:02:07.934720+00:00", "event_type": "lane_started", "task_id": "test_intent_review", "lane": "codex_gpt55"}
+{"timestamp": "2026-05-25T17:02:07.948209+00:00", "event_type": "lane_completed", "task_id": "test_intent_review", "lane": "codex_gpt55", "status": "ERROR"}
+{"timestamp": "2026-05-25T17:02:07.974668+00:00", "event_type": "memory_gate_done", "task_id": "test_intent_classify", "passed": true, "elapsed_s": 0.005863189697265625}
+{"timestamp": "2026-05-25T17:02:07.978382+00:00", "event_type": "risk_gate_done", "task_id": "test_intent_classify", "risk_level": "medium", "elapsed_s": 1.9073486328125e-06}
+{"timestamp": "2026-05-25T17:02:07.994291+00:00", "event_type": "intent_decoded", "task_id": "test_intent_classify", "intent": "fix_bug", "elapsed_s": 2.9087066650390625e-05}
+{"timestamp": "2026-05-25T17:02:08.007906+00:00", "event_type": "route_decided", "task_id": "test_intent_classify", "primary_lane": "codex_gpt55", "fallback_lane": "ollama"}
+{"timestamp": "2026-05-25T17:02:08.028277+00:00", "event_type": "lane_started", "task_id": "test_intent_classify", "lane": "codex_gpt55"}
+{"timestamp": "2026-05-25T17:02:08.038640+00:00", "event_type": "lane_completed", "task_id": "test_intent_classify", "lane": "codex_gpt55", "status": "ERROR"}
+{"timestamp": "2026-05-25T17:02:08.078225+00:00", "event_type": "memory_gate_done", "task_id": "coding_intent", "passed": true, "elapsed_s": 0.005960702896118164}
+{"timestamp": "2026-05-25T17:02:08.080587+00:00", "event_type": "risk_gate_done", "task_id": "coding_intent", "risk_level": "low", "elapsed_s": 9.5367431640625e-07}
+{"timestamp": "2026-05-25T17:02:08.094047+00:00", "event_type": "intent_decoded", "task_id": "coding_intent", "intent": "write_code", "elapsed_s": 9.5367431640625e-07}
+{"timestamp": "2026-05-25T17:02:08.106581+00:00", "event_type": "route_decided", "task_id": "coding_intent", "primary_lane": "codex_gpt55", "fallback_lane": "ollama"}
+{"timestamp": "2026-05-25T17:02:08.125742+00:00", "event_type": "lane_started", "task_id": "coding_intent", "lane": "codex_gpt55"}
+{"timestamp": "2026-05-25T17:02:08.138043+00:00", "event_type": "lane_completed", "task_id": "coding_intent", "lane": "codex_gpt55", "status": "ERROR"}
+{"timestamp": "2026-05-25T17:02:08.164500+00:00", "event_type": "memory_gate_done", "task_id": "review_intent", "passed": true, "elapsed_s": 0.006145000457763672}
+{"timestamp": "2026-05-25T17:02:08.168269+00:00", "event_type": "risk_gate_done", "task_id": "review_intent", "risk_level": "low", "elapsed_s": 1.1920928955078125e-06}
+{"timestamp": "2026-05-25T17:02:08.183570+00:00", "event_type": "intent_decoded", "task_id": "review_intent", "intent": "review", "elapsed_s": 9.5367431640625e-07}
+{"timestamp": "2026-05-25T17:02:08.197995+00:00", "event_type": "route_decided", "task_id": "review_intent", "primary_lane": "claude", "fallback_lane": "codex_gpt55"}
+{"timestamp": "2026-05-25T17:02:08.216694+00:00", "event_type": "lane_started", "task_id": "review_intent", "lane": "claude"}
+{"timestamp": "2026-05-25T17:02:08.229121+00:00", "event_type": "lane_completed", "task_id": "review_intent", "lane": "claude", "status": "ERROR"}
+{"timestamp": "2026-05-25T17:02:08.251813+00:00", "event_type": "memory_gate_done", "task_id": "search_intent", "passed": true, "elapsed_s": 0.005086183547973633}
+{"timestamp": "2026-05-25T17:02:08.255039+00:00", "event_type": "risk_gate_done", "task_id": "search_intent", "risk_level": "low", "elapsed_s": 1.1920928955078125e-06}
+{"timestamp": "2026-05-25T17:02:08.273001+00:00", "event_type": "intent_decoded", "task_id": "search_intent", "intent": "search", "elapsed_s": 1.1920928955078125e-06}
+{"timestamp": "2026-05-25T17:02:08.287539+00:00", "event_type": "route_decided", "task_id": "search_intent", "primary_lane": "gemini", "fallback_lane": "ollama"}
+{"timestamp": "2026-05-25T17:02:08.306873+00:00", "event_type": "lane_started", "task_id": "search_intent", "lane": "gemini"}
+{"timestamp": "2026-05-25T17:02:08.320247+00:00", "event_type": "lane_completed", "task_id": "search_intent", "lane": "gemini", "status": "ERROR"}
+{"timestamp": "2026-05-25T17:02:08.350957+00:00", "event_type": "memory_gate_done", "task_id": "classify_intent", "passed": true, "elapsed_s": 0.006163835525512695}
+{"timestamp": "2026-05-25T17:02:08.354756+00:00", "event_type": "risk_gate_done", "task_id": "classify_intent", "risk_level": "low", "elapsed_s": 1.1920928955078125e-06}
+{"timestamp": "2026-05-25T17:02:08.367158+00:00", "event_type": "intent_decoded", "task_id": "classify_intent", "intent": "classify", "elapsed_s": 1.1920928955078125e-06}
+{"timestamp": "2026-05-25T17:02:08.382249+00:00", "event_type": "route_decided", "task_id": "classify_intent", "primary_lane": "ollama", "fallback_lane": null}
+{"timestamp": "2026-05-25T17:02:08.399547+00:00", "event_type": "lane_started", "task_id": "classify_intent", "lane": "ollama"}
+{"timestamp": "2026-05-25T17:02:08.415358+00:00", "event_type": "lane_completed", "task_id": "classify_intent", "lane": "ollama", "status": "ERROR"}
+{"timestamp": "2026-05-25T17:02:08.453333+00:00", "event_type": "memory_gate_done", "task_id": "test_hermes_block_high_risk", "passed": true, "elapsed_s": 0.0054090023040771484}
+{"timestamp": "2026-05-25T17:02:08.455772+00:00", "event_type": "risk_gate_done", "task_id": "test_hermes_block_high_risk", "risk_level": "high", "elapsed_s": 1.430511474609375e-06}
+{"timestamp": "2026-05-25T17:02:08.471852+00:00", "event_type": "intent_decoded", "task_id": "test_hermes_block_high_risk", "intent": "unknown", "elapsed_s": 3.5762786865234375e-05}
+{"timestamp": "2026-05-25T17:02:08.488199+00:00", "event_type": "route_decided", "task_id": "test_hermes_block_high_risk", "primary_lane": "codex_gpt55", "fallback_lane": "ollama"}
+{"timestamp": "2026-05-25T17:02:08.506341+00:00", "event_type": "lane_started", "task_id": "test_hermes_block_high_risk", "lane": "codex_gpt55"}
+{"timestamp": "2026-05-25T17:02:08.520831+00:00", "event_type": "lane_completed", "task_id": "test_hermes_block_high_risk", "lane": "codex_gpt55", "status": "ERROR"}
+{"timestamp": "2026-05-25T17:02:08.556727+00:00", "event_type": "memory_gate_done", "task_id": "test_hermes_allow_low_risk", "passed": true, "elapsed_s": 0.006702899932861328}
+{"timestamp": "2026-05-25T17:02:08.559853+00:00", "event_type": "risk_gate_done", "task_id": "test_hermes_allow_low_risk", "risk_level": "low", "elapsed_s": 1.1920928955078125e-06}
+{"timestamp": "2026-05-25T17:02:08.574816+00:00", "event_type": "intent_decoded", "task_id": "test_hermes_allow_low_risk", "intent": "tool_call", "elapsed_s": 9.5367431640625e-07}
+{"timestamp": "2026-05-25T17:02:08.589150+00:00", "event_type": "route_decided", "task_id": "test_hermes_allow_low_risk", "primary_lane": "hermes", "fallback_lane": "powershell_sfsr"}
+{"timestamp": "2026-05-25T17:02:08.606984+00:00", "event_type": "lane_started", "task_id": "test_hermes_allow_low_risk", "lane": "hermes"}
+{"timestamp": "2026-05-25T17:02:08.623506+00:00", "event_type": "lane_completed", "task_id": "test_hermes_allow_low_risk", "lane": "hermes", "status": "ERROR"}
+{"timestamp": "2026-05-25T17:02:08.659690+00:00", "event_type": "memory_gate_done", "task_id": "test_fallback_chain", "passed": true, "elapsed_s": 0.0062847137451171875}
+{"timestamp": "2026-05-25T17:02:08.662170+00:00", "event_type": "risk_gate_done", "task_id": "test_fallback_chain", "risk_level": "medium", "elapsed_s": 9.5367431640625e-07}
+{"timestamp": "2026-05-25T17:02:08.677730+00:00", "event_type": "intent_decoded", "task_id": "test_fallback_chain", "intent": "write_code", "elapsed_s": 1.1920928955078125e-06}
+{"timestamp": "2026-05-25T17:02:08.693365+00:00", "event_type": "route_decided", "task_id": "test_fallback_chain", "primary_lane": "codex_gpt55", "fallback_lane": "ollama"}
+{"timestamp": "2026-05-25T17:02:08.711680+00:00", "event_type": "lane_started", "task_id": "test_fallback_chain", "lane": "codex_gpt55"}
+{"timestamp": "2026-05-25T17:02:08.724898+00:00", "event_type": "lane_completed", "task_id": "test_fallback_chain", "lane": "codex_gpt55", "status": "ERROR"}
+{"timestamp": "2026-05-25T17:02:08.765335+00:00", "event_type": "memory_gate_done", "task_id": "test_proof_schema", "passed": true, "elapsed_s": 0.0072286128997802734}
+{"timestamp": "2026-05-25T17:02:08.768521+00:00", "event_type": "risk_gate_done", "task_id": "test_proof_schema", "risk_level": "low", "elapsed_s": 1.1920928955078125e-06}
+{"timestamp": "2026-05-25T17:02:08.784817+00:00", "event_type": "intent_decoded", "task_id": "test_proof_schema", "intent": "write_code", "elapsed_s": 1.430511474609375e-06}
+{"timestamp": "2026-05-25T17:02:08.801005+00:00", "event_type": "route_decided", "task_id": "test_proof_schema", "primary_lane": "codex_gpt55", "fallback_lane": "ollama"}
+{"timestamp": "2026-05-25T17:02:08.820528+00:00", "event_type": "lane_started", "task_id": "test_proof_schema", "lane": "codex_gpt55"}
+{"timestamp": "2026-05-25T17:02:08.833321+00:00", "event_type": "lane_completed", "task_id": "test_proof_schema", "lane": "codex_gpt55", "status": "ERROR"}
+{"timestamp": "2026-05-25T17:02:08.868687+00:00", "event_type": "memory_gate_done", "task_id": "test_proof_file_write", "passed": true, "elapsed_s": 0.0050678253173828125}
+{"timestamp": "2026-05-25T17:02:08.871634+00:00", "event_type": "risk_gate_done", "task_id": "test_proof_file_write", "risk_level": "low", "elapsed_s": 9.5367431640625e-07}
+{"timestamp": "2026-05-25T17:02:08.888927+00:00", "event_type": "intent_decoded", "task_id": "test_proof_file_write", "intent": "classify", "elapsed_s": 1.1920928955078125e-06}
+{"timestamp": "2026-05-25T17:02:08.904108+00:00", "event_type": "route_decided", "task_id": "test_proof_file_write", "primary_lane": "ollama", "fallback_lane": null}
+{"timestamp": "2026-05-25T17:02:08.921408+00:00", "event_type": "lane_started", "task_id": "test_proof_file_write", "lane": "ollama"}
+{"timestamp": "2026-05-25T17:02:08.937487+00:00", "event_type": "lane_completed", "task_id": "test_proof_file_write", "lane": "ollama", "status": "ERROR"}
+{"timestamp": "2026-05-25T17:02:09.001062+00:00", "event_type": "memory_gate_done", "task_id": "test_gate_timeouts", "passed": true, "elapsed_s": 0.004118919372558594}
+{"timestamp": "2026-05-25T17:02:09.003625+00:00", "event_type": "risk_gate_done", "task_id": "test_gate_timeouts", "risk_level": "medium", "elapsed_s": 1.6689300537109375e-06}
+{"timestamp": "2026-05-25T17:02:09.020363+00:00", "event_type": "intent_decoded", "task_id": "test_gate_timeouts", "intent": "write_code", "elapsed_s": 9.5367431640625e-07}
+{"timestamp": "2026-05-25T17:02:09.036698+00:00", "event_type": "route_decided", "task_id": "test_gate_timeouts", "primary_lane": "codex_gpt55", "fallback_lane": "ollama"}
+{"timestamp": "2026-05-25T17:02:09.053969+00:00", "event_type": "lane_started", "task_id": "test_gate_timeouts", "lane": "codex_gpt55"}
+{"timestamp": "2026-05-25T17:02:09.066659+00:00", "event_type": "lane_completed", "task_id": "test_gate_timeouts", "lane": "codex_gpt55", "status": "ERROR"}
+{"timestamp": "2026-05-25T17:02:09.106541+00:00", "event_type": "memory_gate_done", "task_id": "test_gates_passed", "passed": true, "elapsed_s": 0.005826711654663086}
+{"timestamp": "2026-05-25T17:02:09.109428+00:00", "event_type": "risk_gate_done", "task_id": "test_gates_passed", "risk_level": "low", "elapsed_s": 1.430511474609375e-06}
+{"timestamp": "2026-05-25T17:02:09.125678+00:00", "event_type": "intent_decoded", "task_id": "test_gates_passed", "intent": "review", "elapsed_s": 9.5367431640625e-07}
+{"timestamp": "2026-05-25T17:02:09.141163+00:00", "event_type": "route_decided", "task_id": "test_gates_passed", "primary_lane": "claude", "fallback_lane": "codex_gpt55"}
+{"timestamp": "2026-05-25T17:02:09.159921+00:00", "event_type": "lane_started", "task_id": "test_gates_passed", "lane": "claude"}
+{"timestamp": "2026-05-25T17:02:09.171360+00:00", "event_type": "lane_completed", "task_id": "test_gates_passed", "lane": "claude", "status": "ERROR"}
+{"timestamp": "2026-05-25T17:02:09.207791+00:00", "event_type": "memory_gate_done", "task_id": "test_risk_escalation", "passed": true, "elapsed_s": 0.005852937698364258}
+{"timestamp": "2026-05-25T17:02:09.211119+00:00", "event_type": "risk_gate_done", "task_id": "test_risk_escalation", "risk_level": "low", "elapsed_s": 1.1920928955078125e-06}
+{"timestamp": "2026-05-25T17:02:09.225979+00:00", "event_type": "intent_decoded", "task_id": "test_risk_escalation", "intent": "unknown", "elapsed_s": 2.0265579223632812e-05}
+{"timestamp": "2026-05-25T17:02:09.241873+00:00", "event_type": "route_decided", "task_id": "test_risk_escalation", "primary_lane": "codex_gpt55", "fallback_lane": "ollama"}
+{"timestamp": "2026-05-25T17:02:09.259954+00:00", "event_type": "lane_started", "task_id": "test_risk_escalation", "lane": "codex_gpt55"}
+{"timestamp": "2026-05-25T17:02:09.272674+00:00", "event_type": "lane_completed", "task_id": "test_risk_escalation", "lane": "codex_gpt55", "status": "ERROR"}
+{"timestamp": "2026-05-25T17:02:09.302024+00:00", "event_type": "memory_gate_done", "task_id": "complete_cycle_test", "passed": true, "elapsed_s": 0.003427267074584961}
+{"timestamp": "2026-05-25T17:02:09.304394+00:00", "event_type": "risk_gate_done", "task_id": "complete_cycle_test", "risk_level": "medium", "elapsed_s": 1.430511474609375e-06}
+{"timestamp": "2026-05-25T17:02:09.319704+00:00", "event_type": "intent_decoded", "task_id": "complete_cycle_test", "intent": "write_code", "elapsed_s": 9.5367431640625e-07}
+{"timestamp": "2026-05-25T17:02:09.335440+00:00", "event_type": "route_decided", "task_id": "complete_cycle_test", "primary_lane": "codex_gpt55", "fallback_lane": "ollama"}
+{"timestamp": "2026-05-25T17:02:09.353728+00:00", "event_type": "lane_started", "task_id": "complete_cycle_test", "lane": "codex_gpt55"}
+{"timestamp": "2026-05-25T17:02:09.364702+00:00", "event_type": "lane_completed", "task_id": "complete_cycle_test", "lane": "codex_gpt55", "status": "ERROR"}
+{"timestamp": "2026-05-25T17:02:09.394402+00:00", "event_type": "memory_gate_done", "task_id": "schema_test", "passed": true, "elapsed_s": 0.0034112930297851562}
+{"timestamp": "2026-05-25T17:02:09.396649+00:00", "event_type": "risk_gate_done", "task_id": "schema_test", "risk_level": "low", "elapsed_s": 1.1920928955078125e-06}
+{"timestamp": "2026-05-25T17:02:09.410013+00:00", "event_type": "intent_decoded", "task_id": "schema_test", "intent": "design", "elapsed_s": 1.6689300537109375e-06}
+{"timestamp": "2026-05-25T17:02:09.425164+00:00", "event_type": "route_decided", "task_id": "schema_test", "primary_lane": "claude", "fallback_lane": "codex_gpt55"}
+{"timestamp": "2026-05-25T17:02:09.443225+00:00", "event_type": "lane_started", "task_id": "schema_test", "lane": "claude"}
+{"timestamp": "2026-05-25T17:02:09.454270+00:00", "event_type": "lane_completed", "task_id": "schema_test", "lane": "claude", "status": "ERROR"}
+{"timestamp": "2026-05-25T17:02:09.487083+00:00", "event_type": "memory_gate_done", "task_id": "test-proof-file", "passed": true, "elapsed_s": 0.004007101058959961}
+{"timestamp": "2026-05-25T17:02:09.490341+00:00", "event_type": "risk_gate_done", "task_id": "test-proof-file", "risk_level": "low", "elapsed_s": 9.5367431640625e-07}
+{"timestamp": "2026-05-25T17:02:09.505105+00:00", "event_type": "intent_decoded", "task_id": "test-proof-file", "intent": "write_code", "elapsed_s": 9.5367431640625e-07}
+{"timestamp": "2026-05-25T17:02:09.521137+00:00", "event_type": "route_decided", "task_id": "test-proof-file", "primary_lane": "codex_gpt55", "fallback_lane": "ollama"}
+{"timestamp": "2026-05-25T17:02:09.540148+00:00", "event_type": "lane_started", "task_id": "test-proof-file", "lane": "codex_gpt55"}
+{"timestamp": "2026-05-25T17:02:09.552202+00:00", "event_type": "lane_completed", "task_id": "test-proof-file", "lane": "codex_gpt55", "status": "ERROR"}
+{"timestamp": "2026-05-25T17:02:09.583113+00:00", "event_type": "memory_gate_done", "task_id": "e2e-review", "passed": true, "elapsed_s": 0.004101753234863281}
+{"timestamp": "2026-05-25T17:02:09.585357+00:00", "event_type": "risk_gate_done", "task_id": "e2e-review", "risk_level": "low", "elapsed_s": 1.1920928955078125e-06}
+{"timestamp": "2026-05-25T17:02:09.600429+00:00", "event_type": "intent_decoded", "task_id": "e2e-review", "intent": "review", "elapsed_s": 1.430511474609375e-06}
+{"timestamp": "2026-05-25T17:02:09.614878+00:00", "event_type": "route_decided", "task_id": "e2e-review", "primary_lane": "claude", "fallback_lane": "codex_gpt55"}
+{"timestamp": "2026-05-25T17:02:09.630924+00:00", "event_type": "lane_started", "task_id": "e2e-review", "lane": "claude"}
+{"timestamp": "2026-05-25T17:02:09.643374+00:00", "event_type": "lane_completed", "task_id": "e2e-review", "lane": "claude", "status": "ERROR"}
+{"timestamp": "2026-05-25T17:02:09.678578+00:00", "event_type": "memory_gate_done", "task_id": "e2e-write-code", "passed": true, "elapsed_s": 0.0046885013580322266}
+{"timestamp": "2026-05-25T17:02:09.681538+00:00", "event_type": "risk_gate_done", "task_id": "e2e-write-code", "risk_level": "medium", "elapsed_s": 3.5762786865234375e-06}
+{"timestamp": "2026-05-25T17:02:09.695194+00:00", "event_type": "intent_decoded", "task_id": "e2e-write-code", "intent": "write_code", "elapsed_s": 1.1920928955078125e-06}
+{"timestamp": "2026-05-25T17:02:09.710036+00:00", "event_type": "route_decided", "task_id": "e2e-write-code", "primary_lane": "codex_gpt55", "fallback_lane": "ollama"}
+{"timestamp": "2026-05-25T17:02:09.729010+00:00", "event_type": "lane_started", "task_id": "e2e-write-code", "lane": "codex_gpt55"}
+{"timestamp": "2026-05-25T17:02:09.742438+00:00", "event_type": "lane_completed", "task_id": "e2e-write-code", "lane": "codex_gpt55", "status": "ERROR"}
