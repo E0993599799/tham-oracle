@@ -1,6 +1,6 @@
 # Active Memory Index
 
-Last updated: 2026-05-21
+Last updated: 2026-05-27
 
 ## Baselines
 
@@ -8,7 +8,7 @@ Last updated: 2026-05-21
 |-----|-------|
 | Repo | `/root/ghq/github.com/E0993599799/tham-oracle` |
 | GitHub | `https://github.com/E0993599799/tham-oracle` |
-| Branch | `main` |
+| Branch | `sync/alpha-main` (active) |
 | Skills installed | 60 |
 | Brain areas | 7 (identity, memory, projects, skills, decisions, proofs, reflections) |
 | ψ vault dirs | 10 (inbox/memory/learn/writing/lab/active/archive/outbox + learnings/retrospectives) |
@@ -36,8 +36,11 @@ Last updated: 2026-05-21
 - Memory cache does not override live proof. If proof/logs contradict memory, proof/logs win.
 
 ## Active Projects
-- `tham-oracle` — Oracle repo complete (Steps 01-11 done)
+- `tham-oracle` — Oracle repo complete, branch `sync/alpha-main`, 286 files committed 2026-05-27
 - `forge-omega-integration` — integration complete, Omega (Core agent) deployed at D:/Git/omega-oracle
+- `MFLEET` — Fleet Recovery mission dispatched to 50-tham:codex-gpt55, in progress (2026-05-27)
+- `forge-omega-v2` — Dashboard built at D:/Git/forge-omega-v2, pending MFLEET + portproxy verify
+- `Backlog queue` — 7 missions in ψ/inbox/codex/ (~30h Codex work), MFLEET is next gate
 
 ## Providers (verified 2026-05-13)
 
@@ -48,15 +51,17 @@ Last updated: 2026-05-21
 | Tham oracle-v2 | port 47778 | — | manual start |
 | Omega oracle-v2 | port 47779 | — | manual start |
 
-Available via 9router (74+ models):
-- **Ollama**: `minimax-m2.5`, `minimax-m2.7`, `gpt-oss:120b`, `qwen3.5`, `glm-4.7-flash`, `glm-5`, `kimi-k2.5`
-- **GLM-CN**: `glm-5.1`, `glm-5`
-- **Gemini**: `gemini-3.1-pro-preview`, `gemini-3-flash-preview`
-- **Claude**: `cc/claude-sonnet-4-6`
-- **Codex**: `cx/gpt-5.5` + variants
-- **NVIDIA**: `minimaxai/minimax-m2.7`
-- **OpenRouter**: multiple providers
-- **Others**: openrouter, ollama-local
+Available via 9router (43 models, verified 2026-05-27):
+- **GLM-CN**: `glm-5.1`, `glm-5`, `glm-4.6`, `glm-4.7`, `GLM-4.7-Flash`, `glm-4.5-air`
+- **Gemini**: `gemini-3.1-pro-preview`, `gemini-3-flash-preview`, `gemini-3.1-flash-lite-preview`, `gemma-4-31b-it`
+- **Claude**: `cc/claude-sonnet-4-6`, `cc/claude-opus-4-6`, `cc/claude-opus-4-7`, `cc/claude-haiku-4-5-20251001`
+- **Kimi**: `kimi-k2.5`, `kimi-k2.5-thinking`, `kimi-k2.6`, `kimi-latest`
+- **NVIDIA**: `minimaxai/minimax-m2.7`, `z-ai/glm4.7`
+- **Ollama**: `glm-4.7-flash`, `glm-5`, `gpt-oss:120b`, `kimi-k2.5`, `minimax-m2.5`, `qwen3.5`
+- **Ollama-local**: `gemma3:4b-cloud`, `gemma4:31b-cloud`, `qwen2.5-coder:7b`
+- **OpenRouter**: qwen3-coder:free, gemma-4-31b-it:free, nemotron-*
+- **⚠️ REMOVED**: `cx/gpt-5.5` — fictional, not in 9router
+- **9router access**: WSL via `http://172.21.112.1:20128` (Windows host IP)
 
 ## Forge Omega V2 Command Center
 - Location: `D:/Git/forge-omega-v2/` (Next.js 16 + React 19 + TypeScript 5)
@@ -71,7 +76,7 @@ Available via 9router (74+ models):
 - oracle-v2 vector search needs external embedding API (bge-m3/qwen3/nomic) — currently FTS5 only
 - Omega (Core agent) deployed + connected to Forge queue (2026-05-13)
 - Supabase credentials not yet configured
-- WSL→Windows portproxy not yet configured (blocks Hermes from WSL) — setup script ready at `scripts/setup-hermes-portproxy.ps1`
+- WSL→Windows portproxy: ✅ configured 2026-05-27 — `0.0.0.0:20128 → 127.0.0.1:20128` (conflict with old rule; use Windows host IP `172.21.112.1:20128` from WSL)
 - mission-control project has `node dev` bug (incorrect dev command caller) — investigation pending (Windows Task Scheduler check)
 - Critical safety regression recorded 2026-05-14: do not send foreground PowerShell for Core/SFSR work; previous failure split path at `D:\01` because of unsafe argument handling.
 
@@ -82,9 +87,12 @@ Available via 9router (74+ models):
 - Omega (Core agent) deployed: D:/Git/omega-oracle — CLAUDE.md, .mcp.json, ψ vault, hooks (2026-05-13)
 - Omega ↔ Forge queue bridge: forge-queue-claim.sh + forge-proof-write.sh ✅ (2026-05-13)
 - SFSR-23 COMPLETE ✅ — Hermes verdict: REQUIREMENTS_MET 1-8, VERDICT=COMPLETE (2026-05-13)
-- SFSR-24–28 pending
-- 2026-05-14 memory update: Read-memory cache rule added; foreground local runner prohibition strengthened; path-space ProcessStartInfo rule added.
-- 2026-05-17: Telegram integration pushed (18 commits), monitor script debugged + Unicode decode fixed, Hermes portproxy setup script + docs created, Forge Omega V2 dashboard components ready
+- 2026-05-14 memory update: Read-memory cache rule added; foreground local runner prohibition strengthened.
+- 2026-05-17: Telegram integration pushed (18 commits), Hermes portproxy docs, Forge Omega V2 dashboard components ready
+- 2026-05-21: M0 WORKFLOW-AUDIT complete — Hermes middle-hop ineffective, cx/gpt-5.5 fictional, config drift in 4 files
+- 2026-05-27: 4 commits (286 files) — executor lane router, dashboard-next, configs, docs/schemas/reports
+- 2026-05-27: oracle-v2 HTTP started ✅, 12 documents populated (FTS5 active)
+- 2026-05-27: MFLEET dispatched → 50-tham:codex-gpt55 (in progress)
 
 ## Hermes Activation (2026-05-18)
 
