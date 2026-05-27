@@ -70,6 +70,19 @@
             max-height: 500px;
             overflow-y: auto;
         }
+        .terminal-frame {
+            width: 100%;
+            height: 420px;
+            border: 1px solid #00ff41;
+            border-radius: 6px;
+            background: #0d1017;
+        }
+        .terminal-actions {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
         .proof-item {
             background: rgba(0, 0, 0, 0.3);
             padding: 12px;
@@ -125,13 +138,31 @@
             background: rgba(0, 255, 65, 0.2);
             box-shadow: 0 0 10px rgba(0, 255, 65, 0.2);
         }
-        input[type="date"] {
+        input[type="date"], input[type="text"], select {
             background: rgba(0, 0, 0, 0.5);
             border: 1px solid #00ff41;
             color: #00ff41;
             padding: 8px;
             border-radius: 4px;
             font-family: inherit;
+        }
+        input[type="text"]::placeholder {
+            color: #607080;
+        }
+        .terminal-form {
+            display: grid;
+            gap: 10px;
+        }
+        .terminal-form .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .terminal-note {
+            color: #808080;
+            font-size: 0.85em;
+            line-height: 1.5;
+            white-space: pre-wrap;
         }
         .stats-grid {
             display: grid;
@@ -234,21 +265,68 @@
                             <div class="stat-value" id="stat-clients">0</div>
                         </div>
                     </div>
+                    <div id="dashboard-summary" style="margin-top: 15px; color: #cfd8ff; font-size: 0.9em; line-height: 1.6; white-space: pre-wrap;">
+                        Live dashboard snapshot will appear here.
+                    </div>
+                </div>
+
+                <div class="section" style="margin-top: 20px;">
+                    <h2>⌨ Terminal Control</h2>
+                    <div class="terminal-form">
+                        <div class="row">
+                            <select id="terminal-pane-select"></select>
+                            <button onclick="refreshTerminalPanes()">↻ Refresh Panes</button>
+                        </div>
+                        <input type="text" id="terminal-command" placeholder="type a command for the selected pane…" />
+                        <div class="row">
+                            <button onclick="setCommandPreset('maw omega status')">maw omega status</button>
+                            <button onclick="setCommandPreset('git status --short')">git status</button>
+                        </div>
+                        <div class="row">
+                            <input type="text" id="terminal-api-input" placeholder="terminal api base (default http://localhost:3002)" />
+                            <button onclick="saveTerminalApi()">Save API</button>
+                        </div>
+                        <div class="row">
+                            <button onclick="sendTerminalCommand(false)">Type Only</button>
+                            <button onclick="sendTerminalCommand(true)">Run + Enter</button>
+                        </div>
+                        <div class="row">
+                            <button onclick="openTerminalDashboard()">Open Terminal Dashboard</button>
+                            <button onclick="openSecondBrain()">Open Second Brain</button>
+                            <button onclick="openObsidianBridge()">Open Obsidian Bridge</button>
+                        </div>
+                        <div id="terminal-target" class="terminal-note">No pane selected yet.</div>
+                        <div class="terminal-note">Tip: override the terminal server port with <code>?terminal_api=...</code> or the Save API button.</div>
+                    </div>
                 </div>
             </div>
 
             <!-- Right: Live Stream -->
-            <div class="section">
-                <h2>📤 Live Proof Stream</h2>
-                <div class="proof-stream" id="proof-stream">
-                    <div style="text-align: center; color: #808080; padding: 40px;">
-                        Waiting for proofs...
+            <div>
+                <div class="section">
+                    <h2>📤 Live Proof Stream</h2>
+                    <div class="proof-stream" id="proof-stream">
+                        <div style="text-align: center; color: #808080; padding: 40px;">
+                            Waiting for proofs...
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section" style="margin-top: 20px;">
+                    <h2>⌨ Terminal Monitor</h2>
+                    <div class="terminal-actions">
+                        <button onclick="window.open(TERMINAL_API, '_blank')">Open Terminal Dashboard</button>
+                        <button onclick="reloadTerminalFrame()">Reload Terminal</button>
+                    </div>
+                    <iframe id="terminal-frame" class="terminal-frame" src="about:blank" title="Terminal Dashboard"></iframe>
+                    <div style="margin-top: 10px; color: #808080; font-size: 0.85em; line-height: 1.5;">
+                        Type commands directly in the terminal dashboard above. It sends keystrokes to tmux panes and shows output like a real terminal, without routing through an LLM.
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="section">
+        <div class="section" style="margin-top: 20px;">
             <h2>📋 Recent Proofs</h2>
             <table id="proofs-table">
                 <thead>
@@ -268,17 +346,37 @@
 
         <div class="footer">
             <p>Phase 4 Real-time Dashboard — WebSocket + REST API</p>
-            <p>Connecting to: ws://localhost:8765 and http://localhost:8766</p>
+            <p>Connecting to: ws://localhost:8765, http://localhost:8766, and <span id="terminal-api-display">http://localhost:3002</span></p>
         </div>
     </div>
 
     <script>
         const API_URL = 'http://localhost:8766';
+        let TERMINAL_API = (() => {
+            const params = new URLSearchParams(window.location.search);
+            const fromQuery = params.get('terminal_api');
+            const stored = localStorage.getItem('omega-terminal-api');
+            const value = (fromQuery || stored || 'http://localhost:3002').replace(/\/$/, '');
+            if (fromQuery) localStorage.setItem('omega-terminal-api', value);
+            return value;
+        })();
         const PROOFS_LIMIT = 20;
         let proofs = [];
         let currentIndex = 0;
         let isPlaying = false;
         let playbackSpeed = 1;
+        let terminalPanes = [];
+        function loadStoredJson(key, fallback) {
+            try {
+                const raw = localStorage.getItem(key);
+                return raw ? JSON.parse(raw) : fallback;
+            } catch {
+                return fallback;
+            }
+        }
+
+        let terminalHistory = loadStoredJson('omega-terminal-history', []);
+        let terminalHistoryIndex = -1;
 
         // Set date picker to today
         document.getElementById('date-picker').valueAsDate = new Date();
@@ -300,6 +398,12 @@
                         const msg = JSON.parse(event.data);
                         if (msg.type === 'proof' && msg.data) {
                             addProofToStream(msg.data);
+                            updateStats();
+                        } else if (msg.type === 'dashboard' && msg.data) {
+                            updateDashboardSnapshot(msg.data);
+                        } else if (msg.type === 'recent' && Array.isArray(msg.data)) {
+                            proofs = msg.data.slice().reverse();
+                            renderProofTable();
                             updateStats();
                         }
                     } catch (e) {
@@ -344,13 +448,11 @@
         async function loadHistorical() {
             const date = document.getElementById('date-picker').value;
             try {
-                const response = await fetch(`${API_URL}/api/proofs?date=${date}`);
+                const response = await fetch(`${API_URL}/api/dashboard?date=${date}&recent=20`);
                 const data = await response.json();
-                proofs = data.proofs || [];
-                renderProofTable();
-                updateStats();
+                updateDashboardSnapshot(data);
             } catch (e) {
-                console.error('Error loading proofs:', e);
+                console.error('Error loading dashboard snapshot:', e);
             }
         }
 
@@ -416,6 +518,198 @@
             document.getElementById('stat-duration').textContent = avgDuration + 's';
         }
 
+        function updateDashboardSnapshot(snapshot) {
+            document.getElementById('stat-total').textContent = snapshot.total_proofs ?? 0;
+            document.getElementById('stat-success').textContent = Math.round((snapshot.success_rate || 0) * 100) + '%';
+            document.getElementById('stat-duration').textContent = (snapshot.avg_duration || 0).toFixed(2) + 's';
+            document.getElementById('stat-clients').textContent = snapshot.connected_clients ?? document.getElementById('stat-clients').textContent;
+
+            if (Array.isArray(snapshot.recent_proofs)) {
+                proofs = snapshot.recent_proofs.slice().reverse();
+                renderProofTable();
+            }
+
+            const laneLines = Object.entries(snapshot.lane_status || {}).map(([lane, info]) => {
+                const pct = Math.round((info.success_rate || 0) * 100);
+                return `${info.emoji || '⚪'} ${lane} — ${info.status} (${info.count || 0} tasks, ${pct}%)`;
+            });
+
+            const anomalyLines = (snapshot.anomalies || []).map(a => `${a.severity?.toUpperCase?.() || 'INFO'}: ${a.message}`);
+            const summary = [
+                `Updated: ${snapshot.generated_at || 'unknown'}`,
+                `Date: ${snapshot.date || document.getElementById('date-picker').value || 'today'}`,
+                '',
+                'Lane Status:',
+                ...(laneLines.length ? laneLines : ['⚪ no lanes yet']),
+                '',
+                'Anomalies:',
+                ...(anomalyLines.length ? anomalyLines : ['none detected']),
+            ].join('\n');
+            document.getElementById('dashboard-summary').textContent = summary;
+        }
+
+        async function refreshTerminalPanes() {
+            try {
+                const response = await fetch(`${TERMINAL_API}/api/panes`);
+                const data = await response.json();
+                terminalPanes = Array.isArray(data) ? data : [];
+                renderTerminalPaneOptions();
+                restoreTerminalSelection();
+            } catch (e) {
+                terminalPanes = [];
+                renderTerminalPaneOptions();
+                document.getElementById('terminal-target').textContent = `Terminal API unavailable: ${e.message}`;
+            }
+        }
+
+        function renderTerminalPaneOptions() {
+            const select = document.getElementById('terminal-pane-select');
+            if (!select) return;
+            select.innerHTML = '';
+            if (!terminalPanes.length) {
+                const opt = document.createElement('option');
+                opt.value = '';
+                opt.textContent = 'No panes available';
+                select.appendChild(opt);
+                document.getElementById('terminal-target').textContent = 'No tmux panes detected. Start the fleet first.';
+                return;
+            }
+            terminalPanes.forEach((pane, idx) => {
+                const opt = document.createElement('option');
+                opt.value = pane.id;
+                opt.textContent = `${pane.window} · ${pane.name} (${pane.id})`;
+                select.appendChild(opt);
+                if (idx === 0 && !select.value) select.value = pane.id;
+            });
+            updateTerminalTarget();
+        }
+
+        function saveTerminalSelection() {
+            const select = document.getElementById('terminal-pane-select');
+            const input = document.getElementById('terminal-command');
+            if (select?.value) localStorage.setItem('omega-terminal-pane', select.value);
+            if (typeof input?.value === 'string') localStorage.setItem('omega-terminal-command', input.value);
+        }
+
+        function restoreTerminalSelection() {
+            const select = document.getElementById('terminal-pane-select');
+            const input = document.getElementById('terminal-command');
+            const savedPane = localStorage.getItem('omega-terminal-pane');
+            const savedCommand = localStorage.getItem('omega-terminal-command');
+            if (input && savedCommand && !input.value) input.value = savedCommand;
+            if (select && savedPane && terminalPanes.some(p => p.id === savedPane)) {
+                select.value = savedPane;
+            }
+            updateTerminalTarget();
+        }
+
+        function pushTerminalHistory(command) {
+            const text = (command || '').trim();
+            if (!text) return;
+            terminalHistory = [text, ...terminalHistory.filter(item => item !== text)].slice(0, 12);
+            terminalHistoryIndex = -1;
+            localStorage.setItem('omega-terminal-history', JSON.stringify(terminalHistory));
+        }
+
+        function recallTerminalHistory(delta) {
+            if (!terminalHistory.length) return;
+            terminalHistoryIndex = Math.min(Math.max(terminalHistoryIndex + delta, -1), terminalHistory.length - 1);
+            const input = document.getElementById('terminal-command');
+            if (!input) return;
+            if (terminalHistoryIndex === -1) {
+                input.value = localStorage.getItem('omega-terminal-command') || '';
+                return;
+            }
+            input.value = terminalHistory[terminalHistoryIndex] || '';
+        }
+
+        function setCommandPreset(command) {
+            const input = document.getElementById('terminal-command');
+            if (!input) return;
+            input.value = command;
+            input.focus();
+            saveTerminalSelection();
+        }
+
+        function saveTerminalApi() {
+            const input = document.getElementById('terminal-api-input');
+            if (!input) return;
+            const value = (input.value || '').trim().replace(/\/$/, '');
+            if (!value) {
+                input.value = TERMINAL_API;
+                return;
+            }
+            TERMINAL_API = value;
+            localStorage.setItem('omega-terminal-api', value);
+            input.value = value;
+            document.getElementById('terminal-target').textContent = `Terminal API set to ${value}`;
+            syncTerminalUi();
+        }
+
+        function syncTerminalUi() {
+            const frame = document.getElementById('terminal-frame');
+            const display = document.getElementById('terminal-api-display');
+            if (frame) frame.src = TERMINAL_API;
+            if (display) display.textContent = TERMINAL_API;
+        }
+
+        function updateTerminalTarget() {
+            const select = document.getElementById('terminal-pane-select');
+            const target = document.getElementById('terminal-target');
+            const pane = terminalPanes.find(p => p.id === select?.value);
+            target.textContent = pane
+                ? `Target: ${pane.id} · ${pane.window} / ${pane.name} · ${pane.cmd || 'idle'}`
+                : 'No pane selected yet.';
+        }
+
+        async function sendTerminalCommand(enter = true) {
+            const select = document.getElementById('terminal-pane-select');
+            const input = document.getElementById('terminal-command');
+            const target = document.getElementById('terminal-target');
+            const paneId = select?.value;
+            const keys = input?.value || '';
+            if (!paneId) {
+                target.textContent = 'Select a pane first.';
+                return;
+            }
+            if (!keys.trim() && enter) {
+                target.textContent = 'Command is empty.';
+                return;
+            }
+            try {
+                const response = await fetch(`${TERMINAL_API}/api/send`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: paneId, keys, enter }),
+                });
+                const data = await response.json();
+                target.textContent = data.ok
+                    ? `Sent to ${paneId}: ${keys || '[keys only]'}${enter ? ' + Enter' : ''}`
+                    : `Send failed: ${data.error || 'unknown error'}`;
+                if (data.ok) {
+                    if (enter) pushTerminalHistory(keys);
+                    input.value = '';
+                    localStorage.removeItem('omega-terminal-command');
+                }
+                if (data.ok) loadHistorical();
+            } catch (e) {
+                target.textContent = `Send error: ${e.message}`;
+            }
+        }
+
+        function openTerminalDashboard() {
+            window.open(TERMINAL_API, '_blank');
+        }
+
+        function openSecondBrain() {
+            window.open(`${TERMINAL_API}/second-brain.html`, '_blank');
+        }
+
+        function openObsidianBridge() {
+            const note = 'D:\\obsidian\\wiki\\domains\\projects\\tham-oracle-second-brain.md';
+            window.open(`obsidian://open?path=${encodeURIComponent(note)}`, '_blank');
+        }
+
         function togglePlayback() {
             isPlaying = !isPlaying;
             document.getElementById('play-btn').textContent = isPlaying ? '⏸ Pause' : '▶ Play';
@@ -449,10 +743,32 @@
             a.click();
         }
 
+        function reloadTerminalFrame() {
+            const frame = document.getElementById('terminal-frame');
+            if (!frame) return;
+            frame.src = TERMINAL_API;
+        }
+
         // Initialize
         connectWebSocket();
         loadHistorical();
         setInterval(loadHistorical, 5000);
+        refreshTerminalPanes();
+        setInterval(refreshTerminalPanes, 5000);
+        document.getElementById('terminal-pane-select').addEventListener('change', updateTerminalTarget);
+        document.getElementById('terminal-pane-select').addEventListener('change', saveTerminalSelection);
+        document.getElementById('terminal-api-input').value = TERMINAL_API;
+        document.getElementById('terminal-api-input').addEventListener('change', saveTerminalApi);
+        syncTerminalUi();
+        document.getElementById('terminal-command').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                sendTerminalCommand(true);
+            }
+            if (e.key === 'ArrowUp') { e.preventDefault(); recallTerminalHistory(1); }
+            if (e.key === 'ArrowDown') { e.preventDefault(); recallTerminalHistory(-1); }
+            saveTerminalSelection();
+        });
     </script>
 </body>
 </html>

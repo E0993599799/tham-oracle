@@ -1,0 +1,33 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="28" y1="18" x2="228" y2="238" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#07101F"/>
+      <stop offset="1" stop-color="#111C2E"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="72" y1="54" x2="184" y2="202" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8EA6FF"/>
+      <stop offset="1" stop-color="#B57BFF"/>
+    </linearGradient>
+    <linearGradient id="petal" x1="98" y1="74" x2="160" y2="184" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F5FAFF"/>
+      <stop offset="1" stop-color="#CFE0FF"/>
+    </linearGradient>
+    <filter id="shadow" x="20" y="18" width="216" height="220" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="16" stdDeviation="14" flood-color="#000000" flood-opacity="0.42"/>
+    </filter>
+  </defs>
+  <rect x="14" y="14" width="228" height="228" rx="52" fill="url(#bg)" stroke="#253550"/>
+  <rect x="28" y="28" width="200" height="200" rx="42" fill="#0C1524" fill-opacity="0.65" stroke="#30415F"/>
+  <circle cx="128" cy="128" r="72" fill="url(#glow)" opacity="0.18"/>
+  <g filter="url(#shadow)">
+    <circle cx="128" cy="128" r="54" fill="#07101B" stroke="#DCE8FF" stroke-opacity="0.16"/>
+    <path d="M128 72C139.493 86.087 145.5 100.898 145.5 116.5C145.5 132.102 139.493 146.913 128 161C116.507 146.913 110.5 132.102 110.5 116.5C110.5 100.898 116.507 86.087 128 72Z" fill="url(#petal)"/>
+    <path d="M91 105C104.811 104.551 117.268 109.219 128 119C117.268 128.781 104.811 133.449 91 133C91.827 120.945 91.827 117.055 91 105Z" fill="#DDE9FF" fill-opacity="0.85"/>
+    <path d="M165 105C164.173 117.055 164.173 120.945 165 133C151.189 133.449 138.732 128.781 128 119C138.732 109.219 151.189 104.551 165 105Z" fill="#C7B0FF" fill-opacity="0.9"/>
+    <path d="M128 167C120.065 156.936 113.627 147.655 108.5 138.5C116.03 138.468 122.534 140.034 128 143.2C133.466 140.034 139.97 138.468 147.5 138.5C142.373 147.655 135.935 156.936 128 167Z" fill="#F4F8FF" fill-opacity="0.9"/>
+    <circle cx="128" cy="127" r="6" fill="#8EA6FF"/>
+    <circle cx="192" cy="90" r="5" fill="#B57BFF" opacity="0.9"/>
+    <circle cx="61" cy="98" r="4.5" fill="#BCE6FF" opacity="0.92"/>
+    <circle cx="193" cy="166" r="4.5" fill="#BCE6FF" opacity="0.92"/>
+  </g>
+</svg>

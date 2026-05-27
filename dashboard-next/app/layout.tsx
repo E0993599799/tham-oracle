@@ -1,9 +1,13 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'ธาม Oracle — Dashboard',
+  title: 'ธาม Oracle — Forge Omega',
   description: 'Tham Oracle Fleet & Memory Dashboard',
+}
+
+export const viewport: Viewport = {
+  themeColor: '#070b14',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -11,7 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="th">
       <head>
         <link
-          href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&family=Noto+Sans+Thai:wght@400;500;700&display=swap"
           rel="stylesheet"
         />
       </head>

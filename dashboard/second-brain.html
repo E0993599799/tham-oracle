@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Omega OS — Second Brain</title>
+  <style>
+    :root {
+      --bg: #081018;
+      --panel: rgba(14, 22, 34, 0.92);
+      --panel2: rgba(18, 28, 42, 0.96);
+      --border: #253042;
+      --text: #d8e3f0;
+      --muted: #7d8ca8;
+      --accent: #57a6ff;
+      --accent2: #8b5cf6;
+      --good: #2dd4bf;
+      --warn: #f59e0b;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; background: radial-gradient(circle at top, #12203a 0%, #081018 55%); color: var(--text); font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Ubuntu, Noto Sans Thai, sans-serif; }
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: radial-gradient(circle, rgba(87,166,255,.13) 1px, transparent 1px);
+      background-size: 24px 24px;
+      pointer-events: none;
+      opacity: .35;
+    }
+
+    .wrap { position: relative; z-index: 1; max-width: 1600px; margin: 0 auto; padding: 20px; }
+    .topbar {
+      display: flex; gap: 16px; align-items: center; justify-content: space-between;
+      padding: 18px 20px; border: 1px solid var(--border); border-radius: 16px;
+      background: linear-gradient(135deg, rgba(12,18,30,.96), rgba(18,30,50,.88));
+      box-shadow: 0 18px 60px rgba(0,0,0,.35);
+    }
+    .title { display: flex; flex-direction: column; gap: 4px; }
+    .title h1 { margin: 0; font-size: 1.25rem; color: #fff; }
+    .title p { margin: 0; color: var(--muted); font-size: .92rem; }
+    .badge-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .badge {
+      padding: 6px 10px; border: 1px solid var(--border); border-radius: 999px;
+      background: rgba(255,255,255,.03); color: #dce7f7; font-size: .82rem;
+    }
+    .badge strong { color: var(--accent); }
+
+    .controls {
+      margin-top: 16px;
+      display: grid; grid-template-columns: 1.3fr .9fr .6fr .7fr; gap: 10px;
+    }
+    input, select, button, textarea {
+      border-radius: 12px; border: 1px solid var(--border);
+      background: rgba(7, 13, 21, .9); color: var(--text);
+      padding: 10px 12px; font: inherit;
+      outline: none;
+    }
+    input::placeholder, textarea::placeholder { color: #60708d; }
+    button { cursor: pointer; background: rgba(87,166,255,.12); }
+    button:hover { border-color: var(--accent); }
+    .grid {
+      margin-top: 16px;
+      display: grid; grid-template-columns: 360px 1fr 420px; gap: 14px;
+      align-items: start;
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(0,0,0,.22);
+      overflow: hidden;
+    }
+    .panel-hdr {
+      display: flex; align-items: center; justify-content: space-between; gap: 10px;
+      padding: 14px 16px; background: var(--panel2); border-bottom: 1px solid var(--border);
+    }
+    .panel-hdr h2 { margin: 0; font-size: .9rem; text-transform: uppercase; letter-spacing: .12em; color: #cfe0ff; }
+    .panel-body { padding: 16px; }
+
+    .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .stat { padding: 12px; border-radius: 12px; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.06); }
+    .stat .k { display: block; color: var(--muted); font-size: .78rem; margin-bottom: 5px; }
+    .stat .v { font-size: 1.2rem; font-weight: 700; }
+
+    .list { display: flex; flex-direction: column; gap: 8px; }
+    .item {
+      width: 100%; text-align: left;
+      padding: 12px; border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.06);
+      background: rgba(255,255,255,.025);
+      transition: transform .12s ease, border-color .12s ease, background .12s ease;
+    }
+    .item:hover { transform: translateY(-1px); border-color: rgba(87,166,255,.6); background: rgba(87,166,255,.08); }
+    .item.active { border-color: var(--accent); background: rgba(87,166,255,.12); }
+    .item .name { font-weight: 700; margin-bottom: 4px; }
+    .item .meta { color: var(--muted); font-size: .82rem; display: flex; gap: 10px; flex-wrap: wrap; }
+    .item .summary { margin-top: 6px; color: #c9d6eb; font-size: .86rem; line-height: 1.45; }
+
+    .detail { display: grid; gap: 12px; }
+    .detail h3 { margin: 0; font-size: 1.05rem; color: #fff; }
+    .detail .small { color: var(--muted); font-size: .84rem; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+    .chip { padding: 5px 9px; border-radius: 999px; background: rgba(87,166,255,.08); border: 1px solid rgba(87,166,255,.22); color: #cae2ff; font-size: .78rem; }
+    .section { padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,.06); background: rgba(255,255,255,.025); }
+    .section h4 { margin: 0 0 8px; font-size: .85rem; text-transform: uppercase; letter-spacing: .08em; color: #b9c7df; }
+    .codebox {
+      white-space: pre-wrap; word-break: break-word;
+      color: #e8f1ff; background: #07111d; border: 1px solid #213149;
+      border-radius: 12px; padding: 12px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: .84rem; line-height: 1.55; max-height: 260px; overflow: auto;
+    }
+    .muted { color: var(--muted); }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .footer { margin-top: 14px; color: var(--muted); font-size: .84rem; display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+    .empty { color: var(--muted); padding: 18px; text-align: center; }
+
+    @media (max-width: 1280px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 900px) {
+      .controls { grid-template-columns: 1fr 1fr; }
+      .two-col, .stats { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="title">
+        <h1>Omega OS — Second Brain</h1>
+        <p>Hybrid code graph + HTML brain UI. เบา, ค้นหาเร็ว, ใช้ token น้อย</p>
+      </div>
+      <div class="badge-row" id="badges">
+        <span class="badge">status: <strong id="status">loading</strong></span>
+        <span class="badge">files: <strong id="count-files">0</strong></span>
+        <span class="badge">nodes: <strong id="count-nodes">0</strong></span>
+        <span class="badge">edges: <strong id="count-edges">0</strong></span>
+      </div>
+    </div>
+
+    <div class="controls">
+      <input id="query" type="text" placeholder="Search files, symbols, headings, summaries…" />
+      <select id="kind-filter">
+        <option value="all">All types</option>
+        <option value="file">Files</option>
+        <option value="symbol">Symbols</option>
+        <option value="heading">Headings</option>
+        <option value="title">Titles</option>
+      </select>
+      <select id="sort-filter">
+        <option value="tour">Recommended tour</option>
+        <option value="name">Name</option>
+        <option value="path">Path</option>
+        <option value="depth">Depth</option>
+      </select>
+      <div style="display:flex; gap:10px; flex-wrap:wrap;">
+        <button id="reload-btn">Reload Index</button>
+        <button id="open-terminals-btn">Open Terminals</button>
+        <button id="open-obsidian-btn">Open Obsidian Bridge</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <section class="panel">
+        <div class="panel-hdr">
+          <h2>Suggested Tour</h2>
+          <span class="muted" id="tour-note">—</span>
+        </div>
+        <div class="panel-body">
+          <div class="stats" id="stats"></div>
+          <div style="height:14px"></div>
+          <div class="list" id="tour-list"></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-hdr">
+          <h2>Index Explorer</h2>
+          <span class="muted" id="result-count">0 results</span>
+        </div>
+        <div class="panel-body">
+          <div class="list" id="results"></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-hdr">
+          <h2>Selected Node</h2>
+          <span class="muted" id="selected-path">—</span>
+        </div>
+        <div class="panel-body detail" id="detail">
+          <div class="empty">Click a node or search result to inspect it.</div>
+        </div>
+      </section>
+    </div>
+
+    <div class="footer">
+      <span>Backend: <code>/api/brain</code> via terminal dashboard server</span>
+      <span>UI: HTML second brain; data: hybrid indexer</span>
+    </div>
+  </div>
+
+  <script>
+    'use strict';
+
+    const API = (location.origin && location.origin !== 'null') ? location.origin : 'http://localhost:3002';
+    const OBSIDIAN_BRIDGE_NOTE = 'D:\\obsidian\\wiki\\domains\\projects\\tham-oracle-second-brain.md';
+    let brain = null;
+    let flatNodes = [];
+    let activeId = null;
+
+    const el = id => document.getElementById(id);
+
+    function normalize(s) {
+      return String(s || '').toLowerCase();
+    }
+
+    function nodeKindGroup(kind) {
+      if (!kind) return 'other';
+      if (kind.startsWith('heading-')) return 'heading';
+      return kind;
+    }
+
+    function scoreNode(node, q) {
+      const text = [node.name, node.path, node.summary, node.kind, node.meta?.language].join(' ').toLowerCase();
+      let score = 0;
+      if (!q) return score;
+      for (const term of q.split(/\s+/).filter(Boolean)) {
+        if (text.includes(term)) score += 4;
+        if ((node.path || '').toLowerCase().includes(term)) score += 6;
+        if ((node.name || '').toLowerCase().includes(term)) score += 5;
+        if ((node.summary || '').toLowerCase().includes(term)) score += 3;
+      }
+      return score;
+    }
+
+    function getTourList() {
+      if (!brain?.tour) return [];
+      return brain.tour.slice();
+    }
+
+    function buildNodeIndex() {
+      flatNodes = Array.isArray(brain?.nodes) ? brain.nodes.slice() : [];
+      flatNodes.sort((a, b) => (a.path || '').localeCompare(b.path || '') || (a.line || 0) - (b.line || 0));
+    }
+
+    function renderStats() {
+      const stats = brain?.counts || {};
+      const kind = brain?.kind_counts || {};
+      const items = [
+        ['Files', stats.files || 0],
+        ['Symbols', kind.symbol || 0],
+        ['Headings', stats.headings || 0],
+        ['Edges', stats.edges || 0],
+      ];
+      el('stats').innerHTML = items.map(([k, v]) => `
+        <div class="stat"><span class="k">${k}</span><span class="v">${v}</span></div>
+      `).join('');
+      el('count-files').textContent = stats.files || 0;
+      el('count-nodes').textContent = stats.nodes || 0;
+      el('count-edges').textContent = stats.edges || 0;
+      el('tour-note').textContent = brain?.generated_at ? new Date(brain.generated_at).toLocaleString() : '—';
+    }
+
+    function renderTour() {
+      const list = getTourList();
+      el('tour-list').innerHTML = list.slice(0, 20).map(item => `
+        <button class="item" data-path="${escapeHtml(item.path)}" data-line="${item.depth}">
+          <div class="name">${escapeHtml(item.name)}</div>
+          <div class="meta">
+            <span>depth ${item.depth}</span>
+            <span>${item.inbound} backlinks</span>
+            <span>${item.symbols} symbols</span>
+            <span>${item.headings} headings</span>
+          </div>
+          <div class="summary">${escapeHtml(item.summary || '—')}</div>
+        </button>
+      `).join('') || '<div class="empty">No tour data yet.</div>';
+
+      el('tour-list').querySelectorAll('.item').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const path = btn.getAttribute('data-path');
+          const node = flatNodes.find(n => n.path === path) || null;
+          if (node) selectNode(node);
+        });
+      });
+    }
+
+    function renderResults() {
+      const q = normalize(el('query').value);
+      const kind = el('kind-filter').value;
+      const sort = el('sort-filter').value;
+      let results = flatNodes.slice();
+
+      if (kind !== 'all') {
+        results = results.filter(node => nodeKindGroup(node.kind) === kind || (kind === 'heading' && String(node.kind || '').startsWith('heading-')));
+      }
+
+      if (q) {
+        results = results
+          .map(node => ({ node, score: scoreNode(node, q) }))
+          .filter(item => item.score > 0)
+          .sort((a, b) => b.score - a.score)
+          .map(item => item.node);
+      }
+
+      if (sort === 'name') results.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      if (sort === 'path') results.sort((a, b) => (a.path || '').localeCompare(b.path || ''));
+      if (sort === 'depth') {
+        const depths = brain?.depths || {};
+        results.sort((a, b) => (depths[b.path] || 0) - (depths[a.path] || 0));
+      }
+      if (sort === 'tour' && !q) {
+        // Re-order results to match the recommended tour order (file nodes first, by tour rank)
+        const tourPaths = (brain?.tour || []).map(t => t.path);
+        const tourRank = new Map(tourPaths.map((p, i) => [p, i]));
+        results.sort((a, b) => {
+          const ra = tourRank.has(a.path) ? tourRank.get(a.path) : Infinity;
+          const rb = tourRank.has(b.path) ? tourRank.get(b.path) : Infinity;
+          return ra - rb || (a.path || '').localeCompare(b.path || '') || (a.line || 0) - (b.line || 0);
+        });
+      }
+
+      el('result-count').textContent = `${results.length} results`;
+      el('results').innerHTML = results.slice(0, 200).map(node => `
+        <button class="item ${node.id === activeId ? 'active' : ''}" data-id="${escapeHtml(node.id)}">
+          <div class="name">${escapeHtml(node.name)}</div>
+          <div class="meta">
+            <span>${escapeHtml(node.kind)}</span>
+            <span>${escapeHtml(node.path)}${node.line ? ':' + node.line : ''}</span>
+          </div>
+          <div class="summary">${escapeHtml(node.summary || '—')}</div>
+        </button>
+      `).join('') || '<div class="empty">No matches.</div>';
+
+      el('results').querySelectorAll('.item').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const node = flatNodes.find(n => n.id === btn.getAttribute('data-id'));
+          if (node) selectNode(node);
+        });
+      });
+    }
+
+    function relatedEdges(node) {
+      const edges = Array.isArray(brain?.edges) ? brain.edges : [];
+      const outgoing = edges.filter(e => e.source === node.path);
+      const incoming = edges.filter(e => e.target === node.path);
+      return { outgoing, incoming };
+    }
+
+    function selectNode(node) {
+      activeId = node.id;
+      el('selected-path').textContent = `${node.path}${node.line ? ':' + node.line : ''}`;
+      const depths = brain?.depths || {};
+      const { outgoing, incoming } = relatedEdges(node);
+      const chips = [node.kind, node.meta?.language, `depth ${depths[node.path] || 0}`].filter(Boolean).map(escapeHtml);
+      const outgoingList = outgoing.slice(0, 8).map(e => `<div>→ ${escapeHtml(e.label || e.target)}</div>`).join('') || '<div class="muted">none</div>';
+      const incomingList = incoming.slice(0, 8).map(e => `<div>← ${escapeHtml(e.label || e.source)}</div>`).join('') || '<div class="muted">none</div>';
+      el('detail').innerHTML = `
+        <div>
+          <h3>${escapeHtml(node.name)}</h3>
+          <div class="small">${escapeHtml(node.path)}${node.line ? ':' + node.line : ''}</div>
+        </div>
+        <div class="chips">${chips.map(c => `<span class="chip">${c}</span>`).join('')}</div>
+        <div class="section">
+          <h4>Summary</h4>
+          <div class="codebox">${escapeHtml(node.summary || '—')}</div>
+        </div>
+        <div class="two-col">
+          <div class="section">
+            <h4>Outgoing</h4>
+            <div class="codebox">${outgoingList}</div>
+          </div>
+          <div class="section">
+            <h4>Backlinks</h4>
+            <div class="codebox">${incomingList}</div>
+          </div>
+        </div>
+      `;
+      renderResults();
+    }
+
+    function escapeHtml(value) {
+      return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function openObsidianBridge() {
+      const uri = `obsidian://open?path=${encodeURIComponent(OBSIDIAN_BRIDGE_NOTE)}`;
+      window.open(uri, '_blank');
+    }
+
+    async function loadBrain(force = false) {
+      try {
+        el('status').textContent = 'loading';
+        const res = await fetch(`${API}/api/brain${force ? '?refresh=1' : ''}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        brain = await res.json();
+        buildNodeIndex();
+        renderStats();
+        renderTour();
+        renderResults();
+        el('status').textContent = 'ready';
+        if (flatNodes.length && !activeId) selectNode(flatNodes[0]);
+      } catch (err) {
+        el('status').textContent = 'offline';
+        el('detail').innerHTML = `<div class="empty">${escapeHtml(err.message || 'Failed to load brain index')}</div>`;
+        el('results').innerHTML = '<div class="empty">No brain data. Run scripts/second_brain_indexer.py first.</div>';
+      }
+    }
+
+    el('query').addEventListener('input', renderResults);
+    el('kind-filter').addEventListener('change', renderResults);
+    el('sort-filter').addEventListener('change', renderResults);
+    el('reload-btn').addEventListener('click', () => loadBrain(true));
+    el('open-terminals-btn').addEventListener('click', () => window.open(API, '_blank'));
+    el('open-obsidian-btn').addEventListener('click', openObsidianBridge);
+
+    loadBrain();
+  </script>
+</body>
+</html>

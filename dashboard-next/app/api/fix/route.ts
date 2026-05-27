@@ -11,9 +11,9 @@ const FIX_COMMANDS: Record<string, { cmd: string; safe: boolean; description: st
     description: 'Restart oracle-v2 HTTP server on port 47778',
   },
   'dashboard': {
-    cmd: `bash ${REPO_ROOT}/scripts/start-tham-dashboard.sh &`,
+    cmd: `bash ${REPO_ROOT}/scripts/start-tham-dashboard.sh 3005 &`,
     safe: true,
-    description: 'Restart Tham dashboard on port 3000',
+    description: 'Restart Tham dashboard on port 3005',
   },
   'watchdog': {
     cmd: `bash ${REPO_ROOT}/scripts/housekeeper-run.sh 2>/dev/null || echo "housekeeper script not found"`,
@@ -42,8 +42,8 @@ function diagnose(service: string): string {
       checks.push(proc ? `Oracle processes: ${proc}` : 'No oracle processes found')
     }
     if (service === 'dashboard') {
-      const port = execSync('lsof -i:3000 2>/dev/null | head -3', { encoding: 'utf8', timeout: 2000 }).trim()
-      checks.push(port ? `Port 3000: ${port}` : 'Port 3000: nothing listening')
+      const port = execSync('lsof -i:3005 2>/dev/null | head -3', { encoding: 'utf8', timeout: 2000 }).trim()
+      checks.push(port ? `Port 3005: ${port}` : 'Port 3005: nothing listening')
     }
   } catch {
     // ignore errors in diagnostics

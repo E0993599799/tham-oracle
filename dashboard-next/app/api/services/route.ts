@@ -25,7 +25,7 @@ const REGISTRY: Omit<ServiceHealth, 'status' | 'latencyMs' | 'checkedAt' | 'deta
   { name: 'oracle-v2-swagger', label: 'Oracle v2 Swagger',   port: 47778, category: 'api',     fix: 'oracle-v2'        },
   { name: 'oracle-v2-omega',   label: 'Oracle v2 Omega',     port: 47779, category: 'api',     fix: 'oracle-v2'        },
   { name: 'forge-supervisor',  label: 'Forge Supervisor',    port: 8769,  category: 'runtime', fix: 'forge-supervisor' },
-  { name: 'dashboard',         label: 'Tham Dashboard',      port: 3000,  category: 'ui',      fix: 'dashboard'        },
+  { name: 'dashboard',         label: 'Tham Dashboard',      port: 3005,  category: 'ui',      fix: 'dashboard'        },
   { name: '9router',           label: '9router / OpenClaw',  port: 20128, category: 'router',  fix: ''                 },
   // Tools (exec-probed)
   { name: 'bun',               label: 'Bun Runtime',         port: null,  category: 'tool',    fix: ''                 },
@@ -42,7 +42,7 @@ const HTTP_URLS: Record<string, string> = {
   'oracle-v2-swagger': 'http://localhost:47778/swagger',
   'oracle-v2-omega':   'http://localhost:47779/',
   'forge-supervisor':  'http://localhost:8769/',
-  'dashboard':         'http://localhost:3000/api/git',
+  'dashboard':         'http://localhost:3005/api/git',
   '9router':           'http://localhost:20128/',
 }
 

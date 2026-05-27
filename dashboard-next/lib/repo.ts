@@ -1,9 +1,8 @@
 import path from 'path'
-import os from 'os'
 
-// Absolute path — never relative to process.cwd() which changes based on launch dir
+// Absolute path — prefer THAM_REPO_ROOT, fallback to current working directory parent if in dashboard-next
 export const REPO_ROOT = process.env.THAM_REPO_ROOT ||
-  path.join(os.homedir(), 'ghq/github.com/E0993599799/tham-oracle')
+  (process.cwd().endsWith('dashboard-next') ? path.join(process.cwd(), '..') : process.cwd())
 
 export const PSI = path.join(REPO_ROOT, 'ψ')
 

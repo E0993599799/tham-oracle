@@ -1,12 +1,9 @@
 import { NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
-import os from 'os'
+import { REPO_ROOT } from '@/lib/repo'
 
 export const dynamic = 'force-dynamic'
-
-const REPO_ROOT = process.env.THAM_REPO_ROOT ||
-  path.join(os.homedir(), 'ghq/github.com/E0993599799/tham-oracle')
 
 interface ConstitutionRule {
   id: string
@@ -22,7 +19,7 @@ export async function GET() {
   try {
     content = fs.readFileSync(filePath, 'utf8')
   } catch {
-    return NextResponse.json({ rules: [], error: 'constitution.md not found' })
+    return NextResponse.json({ rules: [], error: 'constitution.md not found' }, { status: 404 })
   }
 
   const rules: ConstitutionRule[] = []

@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { memo, useEffect, useState, useCallback, useRef, useTransition } from 'react'
+import { COMMAND_OPTIONS, type CommandId } from '@/lib/command-catalog'
 
 // ── Types ──────────────────────────────────────────────────────────────────
 interface Oracle {
@@ -22,7 +23,7 @@ interface GitData { commits: Commit[]; branch: string; dirtyFiles: number; error
 interface MemFile { key: string; path: string; exists: boolean; hash: string; lastModified: string; sizeKB: number; snippet: string }
 interface MemData { files: MemFile[]; constitutionRules: string[]; error?: string }
 interface MetricRow { when: string; session: string; done: string; stuck: string; win: string; friction: string; error: string }
-interface MetricsData { rows: MetricRow[]; retrosToday: number; learningsThisMonth: number; error?: string }
+interface MetricsData { rows: MetricRow[]; retrosToday: number; learningsThisMonth: number; brainLearnings: number; error?: string }
 interface FileEntry { name: string; mtime: string; sizeKB: number }
 interface InboxSection { count: number; files?: FileEntry[] | string[]; recent?: FileEntry[] | string[] }
 interface InboxData {
@@ -42,6 +43,20 @@ interface ServiceResult {
   detail: string
   source: string
   fix: string
+}
+interface CommandRunResult {
+  commandId: string
+  executable: string
+  args: string[]
+  cwd: string
+  stdout: string
+  stderr: string
+  exitCode: number | null
+  signal: string | null
+  durationMs: number
+  checked_at: string
+  ok: boolean
+  error: string
 }
 interface ServicesData {
   services: ServiceResult[]
@@ -113,12 +128,13 @@ interface ProvidersData {
   }
 }
 
-type Section = 'fleet' | 'tasks' | 'health' | 'git' | 'memory' | 'queue' | 'services' | 'constitution' | 'metrics' | 'providers' | 'provider-activity'
+type Section = 'fleet' | 'tasks' | 'health' | 'commands' | 'git' | 'memory' | 'queue' | 'services' | 'constitution' | 'metrics' | 'providers' | 'provider-activity' | 'erp'
 
 const SECTION_LABELS: Record<Section, string> = {
   fleet:        'Oracle Fleet',
   tasks:        'Task Board',
   health:       'Status Monitor',
+  commands:     'Command Runner',
   git:          'Git Activity',
   memory:       'Memory Gate',
   queue:        'Queue / ψ Vault',
@@ -127,6 +143,7 @@ const SECTION_LABELS: Record<Section, string> = {
   metrics:           'Session Metrics',
   providers:         'Quota Tracker',
   'provider-activity': 'Provider Activity',
+  erp:               'Omega/Oracle Bridge',
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -183,7 +200,9 @@ function StatCardsRow({ fleet, services, git }: {
     {
       label: 'Fleet Health',
       value: fleet
-        ? `${Math.round((fleet.summary.active / fleet.summary.total) * 100)}%`
+        ? (fleet.summary.total > 0
+          ? `${Math.round((fleet.summary.active / fleet.summary.total) * 100)}%`
+          : '—')
         : '—',
       sub: `${fleet?.summary.stale ?? 0} stale · ${fleet?.summary.cold ?? 0} cold`,
       color: 'var(--success)',
@@ -252,22 +271,24 @@ const NAV_ITEMS: { id: Section; label: string; icon: string }[] = [
   { id: 'fleet',        label: 'Fleet',          icon: '◉' },
   { id: 'tasks',        label: 'Task Board',     icon: '🗂️' },
   { id: 'health',       label: 'Status Monitor', icon: '⚡' },
+  { id: 'commands',     label: 'Command Runner', icon: '⌘' },
   { id: 'git',          label: 'Git',            icon: '⎇' },
   { id: 'memory',       label: 'Memory Gate',    icon: '🧠' },
   { id: 'queue',        label: 'Queue / ψ',      icon: '📥' },
-  { id: 'services',          label: 'Services',         icon: '🔌' },
-  { id: 'providers',         label: 'Quota Tracker',    icon: '🔋' },
-  { id: 'provider-activity', label: 'Provider Activity',icon: '📡' },
-  { id: 'constitution',      label: 'Constitution',     icon: '📜' },
-  { id: 'metrics',           label: 'Metrics',          icon: '📊' },
+  { id: 'services',    label: 'Services',       icon: '🔌' },
+  { id: 'providers',   label: 'Quota Tracker',  icon: '🔋' },
+  { id: 'provider-activity', label: 'Provider Activity', icon: '📈' },
+  { id: 'constitution', label: 'Constitution',   icon: '📜' },
+  { id: 'metrics',      label: 'Metrics',        icon: '📊' },
+  { id: 'erp',          label: 'Bridge',         icon: '🧭' },
 ]
 
 function Sidebar({ active, onNav }: { active: Section; onNav: (s: Section) => void }) {
   return (
     <div className="sidebar">
       <div className="sidebar-logo">
-        <span style={{ color: 'var(--accent)', fontSize: 16 }}>ธ</span>
-        <span style={{ color: 'var(--text-primary)', fontSize: 13, fontWeight: 700 }}>ธาม</span>
+        <img src="/icon.svg" alt="" aria-hidden="true" width={22} height={22} style={{ display: 'block' }} />
+        <span style={{ color: 'var(--text-primary)', fontSize: 14, fontWeight: 700 }}>ธาม</span>
       </div>
       <nav className="sidebar-nav">
         {NAV_ITEMS.map(item => (
@@ -282,7 +303,7 @@ function Sidebar({ active, onNav }: { active: Section; onNav: (s: Section) => vo
         ))}
       </nav>
       <div className="sidebar-footer">
-        <span style={{ fontSize: 10 }}>v2 · port 3000</span>
+        <span style={{ fontSize: 10 }}>v2 · port 3005</span>
       </div>
     </div>
   )
@@ -324,8 +345,18 @@ function FleetPanel({ data }: { data: FleetData | null }) {
     return true
   })
 
+  const notAwakened = data.oracles.filter(o => !o.hasAwaken).length
+
   return (
     <div>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+        <span className="badge badge-blue">◉ {data.summary.total} total</span>
+        <span className="badge badge-green">⚡ {data.summary.active} active</span>
+        <span className="badge badge-yellow">◔ {data.summary.stale} stale</span>
+        {data.summary.cold > 0 && <span className="badge badge-orange">◕ {data.summary.cold} cold</span>}
+        {data.summary.abandoned > 0 && <span className="badge badge-red">◑ {data.summary.abandoned} abandoned</span>}
+        {notAwakened > 0 && <span className="badge badge-gray">✧ {notAwakened} not awakened</span>}
+      </div>
       <StatBar s={data.summary} />
       <div style={{ display: 'flex', gap: 8, margin: '12px 0 10px', flexWrap: 'wrap' }}>
         {(['all','active','stale','cold','abandoned','not-awakened'] as FleetFilter[]).map(f => (
@@ -346,7 +377,7 @@ function FleetPanel({ data }: { data: FleetData | null }) {
                 {o.status} {o.name}
               </span>
               {o.hasAwaken && (
-                <span style={{ fontSize: 10, color: '#a855f7', background: 'rgba(76,29,149,0.13)', borderRadius: 4, padding: '1px 5px', border: '1px solid rgba(124,58,237,0.2)' }}>
+                <span style={{ fontSize: 10, color: 'var(--accent2)', background: 'rgba(166,107,255,0.14)', borderRadius: 4, padding: '1px 5px', border: '1px solid rgba(166,107,255,0.22)' }}>
                   ✦ awakened
                 </span>
               )}
@@ -357,6 +388,12 @@ function FleetPanel({ data }: { data: FleetData | null }) {
                 ? <span style={{ color: 'var(--success)' }}>today</span>
                 : ago(o.days)
               }
+            </div>
+            <div style={{ color: 'var(--text-muted)', fontSize: 10, marginTop: 4, wordBreak: 'break-word' }}>
+              {o.path}
+            </div>
+            <div style={{ color: 'var(--text-muted)', fontSize: 10, marginTop: 2 }}>
+              last commit {o.lastCommit ? fmtTime(o.lastCommit) : '—'}
             </div>
           </div>
         ))}
@@ -385,6 +422,7 @@ function GitPanel({ data }: { data: GitData | null }) {
           <tr>
             <th>hash</th>
             <th>subject</th>
+            <th>author</th>
             <th>ago</th>
           </tr>
         </thead>
@@ -395,6 +433,7 @@ function GitPanel({ data }: { data: GitData | null }) {
               <td style={{ maxWidth: 380, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {c.subject}
               </td>
+              <td style={{ color: 'var(--text-secondary)', fontSize: 11, whiteSpace: 'nowrap' }}>{c.author}</td>
               <td style={{ color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{c.ago}</td>
             </tr>
           ))}
@@ -408,8 +447,17 @@ function GitPanel({ data }: { data: GitData | null }) {
 function MemoryPanel({ data }: { data: MemData | null }) {
   if (!data) return <div style={{ color: 'var(--text-muted)' }}>loading memory…</div>
 
+  const existing = data.files.filter(f => f.exists).length
+
   return (
     <div>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12, alignItems: 'center' }}>
+        <span className="badge badge-blue">🧠 {data.files.length} memory files</span>
+        <span className="badge badge-green">✓ {existing} present</span>
+        {data.files.length - existing > 0 && <span className="badge badge-red">✗ {data.files.length - existing} missing</span>}
+        <span className="badge badge-purple">📜 {data.constitutionRules.length} constitution rules</span>
+      </div>
+
       <div style={{ marginBottom: 12 }}>
         {data.files.map(f => (
           <div key={f.key} style={{
@@ -420,13 +468,14 @@ function MemoryPanel({ data }: { data: MemData | null }) {
             marginBottom: 6,
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-              <span style={{ color: '#93c5fd', fontSize: 12, fontWeight: 600 }}>{f.key}</span>
+              <span style={{ color: 'var(--accent)', fontSize: 12, fontWeight: 600 }}>{f.key}</span>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                 {f.exists
                   ? <span className="badge badge-green">✓ exists</span>
                   : <span className="badge badge-red">✗ missing</span>
                 }
                 <span style={{ color: 'var(--text-muted)', fontSize: 10 }}>{f.sizeKB}KB</span>
+                {f.lastModified && <span style={{ color: 'var(--text-muted)', fontSize: 10 }}>{fmtTime(f.lastModified)}</span>}
                 {f.hash && f.hash !== 'untracked' && (
                   <span className="hash">{f.hash}</span>
                 )}
@@ -466,10 +515,13 @@ function MetricsPanel({ data }: { data: MetricsData | null }) {
 
   return (
     <div>
-      <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
+      <div style={{ display: 'flex', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
         <span className="badge badge-blue">📝 {data.retrosToday} retros today</span>
         <span className="badge badge-purple">
           💡 {data.learningsThisMonth} learnings this month
+        </span>
+        <span className="badge badge-green">
+          🧠 {data.brainLearnings} brain reflections
         </span>
       </div>
       {data.rows.length === 0 ? (
@@ -480,6 +532,8 @@ function MetricsPanel({ data }: { data: MetricsData | null }) {
             <tr>
               <th>when</th>
               <th>session</th>
+              <th>done</th>
+              <th>stuck</th>
               <th>win</th>
               <th>friction</th>
               <th>error</th>
@@ -490,6 +544,8 @@ function MetricsPanel({ data }: { data: MetricsData | null }) {
               <tr key={i}>
                 <td style={{ color: 'var(--text-muted)', fontSize: 10 }}>{r.when}</td>
                 <td><span className="hash">{r.session.slice(0, 8)}</span></td>
+                <td style={{ color: 'var(--text-secondary)', fontSize: 11 }}>{r.done.slice(0, 24)}</td>
+                <td style={{ color: 'var(--danger)', fontSize: 11 }}>{r.stuck.slice(0, 24)}</td>
                 <td style={{ color: 'var(--success)', fontSize: 11 }}>{r.win.slice(0, 40)}</td>
                 <td style={{ color: 'var(--warning)', fontSize: 11 }}>{r.friction.slice(0, 40)}</td>
                 <td style={{ color: 'var(--danger)', fontSize: 11 }}>{r.error.slice(0, 40)}</td>
@@ -586,6 +642,7 @@ function ServicesPanel({ data }: { data: ServicesData | null }) {
         <span className="badge badge-green">🟢 {s.online} online</span>
         {s.offline > 0 && <span className="badge badge-red">🔴 {s.offline} offline</span>}
         {s.unknown > 0 && <span className="badge badge-gray">⚪ {s.unknown} unknown</span>}
+        {s.attention > 0 && <span className="badge badge-orange">⚠ {s.attention} attention</span>}
         <span style={{ color: 'var(--text-muted)', fontSize: 10, marginLeft: 'auto' }}>
           probed {data.checked_at ? fmtTime(data.checked_at) : '—'} · auto-refresh 15s
         </span>
@@ -598,6 +655,7 @@ function ServicesPanel({ data }: { data: ServicesData | null }) {
             <th>port</th>
             <th>status</th>
             <th>latency</th>
+            <th>source</th>
             <th>detail</th>
           </tr>
         </thead>
@@ -611,6 +669,7 @@ function ServicesPanel({ data }: { data: ServicesData | null }) {
               <td style={{ color: svc.latencyMs != null && svc.latencyMs < 200 ? 'var(--success)' : 'var(--text-muted)' }}>
                 {svc.latencyMs != null ? `${svc.latencyMs}ms` : '—'}
               </td>
+              <td style={{ color: 'var(--text-secondary)', fontSize: 10 }}>{svc.source ?? '—'}</td>
               <td style={{ color: 'var(--text-muted)', fontSize: 11 }}>{svc.detail ?? '—'}</td>
             </tr>
           ))}
@@ -666,6 +725,7 @@ function StatusMonitorPanel({ data }: { data: HealthData | null }) {
       const res = await fetch('/api/fix', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        cache: 'no-store',
         body: JSON.stringify({ service }),
       })
       const json = await res.json()
@@ -691,7 +751,7 @@ function StatusMonitorPanel({ data }: { data: HealthData | null }) {
       }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 13 }}>{ok ? '🟢' : '🔴'}</span>
+            <span style={{ fontSize: 14 }}>{ok ? '🟢' : '🔴'}</span>
             <span style={{ color: ok ? 'var(--text-primary)' : 'var(--danger)', fontSize: 12, fontWeight: 600 }}>{name}</span>
             {category && <span style={{ color: 'var(--text-muted)', fontSize: 10 }}>{category}</span>}
           </div>
@@ -734,6 +794,7 @@ function StatusMonitorPanel({ data }: { data: HealthData | null }) {
         <span className={`badge ${allHealthy ? 'badge-green' : 'badge-red'}`}>
           {allHealthy ? '✓ All healthy' : `${summary.unhealthy} issue${summary.unhealthy > 1 ? 's' : ''}`}
         </span>
+        <span className="badge badge-blue">{summary.total} total</span>
         <span className="badge badge-green">{summary.healthy} healthy</span>
         {summary.unhealthy > 0 && <span className="badge badge-red">{summary.unhealthy} unhealthy</span>}
         {summary.git_dirty > 0 && <span className="badge badge-yellow">~ {summary.git_dirty} uncommitted</span>}
@@ -784,8 +845,210 @@ function StatusMonitorPanel({ data }: { data: HealthData | null }) {
   )
 }
 
-// ── Task Board Panel ───────────────────────────────────────────────────────
+function CommandRunnerPanel() {
+  const [selectedCommandId, setSelectedCommandId] = useState<CommandId>(COMMAND_OPTIONS[0]?.id ?? 'git-status')
+  const [runningCommandId, setRunningCommandId] = useState<CommandId | null>(null)
+  const [result, setResult] = useState<CommandRunResult | null>(null)
+
+  const selectedCommand = COMMAND_OPTIONS.find(option => option.id === selectedCommandId) ?? COMMAND_OPTIONS[0]
+
+  async function runSelectedCommand(commandId: CommandId = selectedCommandId) {
+    setRunningCommandId(commandId)
+    try {
+      const res = await fetch('/api/exec', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        cache: 'no-store',
+        body: JSON.stringify({ commandId }),
+      })
+      const json = await res.json()
+      setResult(json)
+    } catch (e) {
+      setResult({
+        commandId,
+        executable: '',
+        args: [],
+        cwd: '',
+        stdout: '',
+        stderr: String(e),
+        exitCode: null,
+        signal: null,
+        durationMs: 0,
+        checked_at: new Date().toISOString(),
+        ok: false,
+        error: String(e),
+      })
+    } finally {
+      setRunningCommandId(null)
+    }
+  }
+
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+        <span className="badge badge-blue">{COMMAND_OPTIONS.length} allowlisted commands</span>
+        <span className="badge badge-green">safe exec-file runner</span>
+        <span className="badge badge-yellow">no raw shell strings</span>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.5fr) minmax(280px, 1fr)', gap: 16 }}>
+        <div style={{
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border)',
+          borderRadius: 12,
+          padding: 16,
+        }}>
+          <div style={{ marginBottom: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
+            <div>
+              <div style={{ color: 'var(--text-primary)', fontSize: 14, fontWeight: 700 }}>Run command</div>
+              <div style={{ color: 'var(--text-muted)', fontSize: 11 }}>{selectedCommand?.description}</div>
+            </div>
+            <button
+              onClick={() => runSelectedCommand()}
+              disabled={!!runningCommandId}
+              style={{
+                padding: '7px 12px',
+                borderRadius: 8,
+                border: '1px solid var(--accent)',
+                background: runningCommandId ? 'rgba(99,102,241,0.18)' : 'transparent',
+                color: runningCommandId ? 'var(--text-muted)' : 'var(--accent)',
+                cursor: runningCommandId ? 'not-allowed' : 'pointer',
+                fontSize: 12,
+                fontFamily: 'inherit',
+                fontWeight: 600,
+              }}
+            >
+              {runningCommandId ? '⟳ running…' : '▶ Run'}
+            </button>
+          </div>
+
+          <label style={{ display: 'block', marginBottom: 10 }}>
+            <div style={{ color: 'var(--text-muted)', fontSize: 10, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              Allowlisted command
+            </div>
+            <select
+              value={selectedCommandId}
+              onChange={e => setSelectedCommandId(e.target.value as CommandId)}
+              style={{
+                width: '100%',
+                padding: '12px 14px',
+                borderRadius: 10,
+                border: '1px solid var(--border)',
+                background: 'var(--bg-card)',
+                color: 'var(--text-primary)',
+                fontSize: 14,
+              }}
+            >
+              {COMMAND_OPTIONS.map(option => (
+                <option key={option.id} value={option.id}>
+                  {option.label} — {option.description}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+            {COMMAND_OPTIONS.map(option => (
+              <button
+                key={option.id}
+                onClick={() => setSelectedCommandId(option.id)}
+                style={{
+                  padding: '6px 10px',
+                  borderRadius: 999,
+                  border: option.id === selectedCommandId ? '1px solid var(--accent)' : '1px solid var(--border)',
+                  background: option.id === selectedCommandId ? 'rgba(99,102,241,0.14)' : 'transparent',
+                  color: option.id === selectedCommandId ? 'var(--accent)' : 'var(--text-secondary)',
+                  cursor: 'pointer',
+                  fontSize: 11,
+                  fontWeight: 600,
+                }}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+
+          <div style={{ marginTop: 12, color: 'var(--text-muted)', fontSize: 11, lineHeight: 1.5 }}>
+            This runner only executes allowlisted commands defined server-side. It will not run arbitrary shell text.
+          </div>
+        </div>
+
+        <div style={{
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border)',
+          borderRadius: 12,
+          padding: 16,
+        }}>
+          <div style={{ color: 'var(--text-primary)', fontSize: 14, fontWeight: 700, marginBottom: 10 }}>Last result</div>
+          {result ? (
+            <div style={{ display: 'grid', gap: 10 }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                <span className={`badge ${result.ok ? 'badge-green' : 'badge-red'}`}>
+                  {result.ok ? '✓ success' : `✕ exit ${result.exitCode ?? 'n/a'}`}
+                </span>
+                <span className="badge badge-blue">{result.commandId}</span>
+                <span className="badge badge-yellow">{result.durationMs}ms</span>
+              </div>
+              <div style={{ color: 'var(--text-muted)', fontSize: 11 }}>
+                {result.executable} {result.args.join(' ')}
+              </div>
+              <div style={{ color: 'var(--text-muted)', fontSize: 11 }}>
+                cwd: {result.cwd || '—'}
+              </div>
+              <div>
+                <div style={{ color: 'var(--text-muted)', fontSize: 10, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.08em' }}>stdout</div>
+                <pre style={{
+                  margin: 0,
+                  padding: 12,
+                  background: 'var(--bg-surface)',
+                  border: '1px solid var(--border-sub)',
+                  borderRadius: 8,
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
+                  color: 'var(--text-primary)',
+                  fontSize: 11,
+                  lineHeight: 1.6,
+                  minHeight: 72,
+                }}>{result.stdout || '—'}</pre>
+              </div>
+              <div>
+                <div style={{ color: 'var(--text-muted)', fontSize: 10, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.08em' }}>stderr</div>
+                <pre style={{
+                  margin: 0,
+                  padding: 12,
+                  background: 'var(--bg-surface)',
+                  border: '1px solid var(--border-sub)',
+                  borderRadius: 8,
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
+                  color: 'var(--danger)',
+                  fontSize: 11,
+                  lineHeight: 1.6,
+                  minHeight: 56,
+                }}>{result.stderr || '—'}</pre>
+              </div>
+              {result.error && (
+                <div style={{ color: 'var(--warning)', fontSize: 11 }}>
+                  error: {result.error}
+                </div>
+              )}
+              <div style={{ color: 'var(--text-muted)', fontSize: 10 }}>
+                checked {new Date(result.checked_at).toLocaleTimeString('th-TH')}
+              </div>
+            </div>
+          ) : (
+            <div style={{ color: 'var(--text-muted)', fontSize: 11, lineHeight: 1.5 }}>
+              Pick a command and click Run to execute it on the server.
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 const COLUMN_CONFIG = [
+
   { key: 'inbox',   label: 'Inbox',   color: 'var(--accent)',    icon: '📥' },
   { key: 'active',  label: 'Active',  color: 'var(--warning)',   icon: '⚡' },
   { key: 'outbox',  label: 'Outbox',  color: 'var(--success)',   icon: '📤' },
@@ -929,11 +1192,13 @@ function QuotaTrackerPanel({ data }: { data: ProvidersData | null }) {
         <thead>
           <tr>
             <th>provider</th>
+            <th>account</th>
             <th>type</th>
             <th>model</th>
             <th>status</th>
             <th>latency</th>
             <th>quota limit</th>
+            <th>reset</th>
             <th>quota status</th>
             <th>source</th>
           </tr>
@@ -944,6 +1209,7 @@ function QuotaTrackerPanel({ data }: { data: ProvidersData | null }) {
             return (
               <tr key={p.id}>
                 <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{p.providerName}</td>
+                <td style={{ fontSize: 10, color: 'var(--text-secondary)' }}>{q?.accountLabel ?? '—'}</td>
                 <td><span className="badge badge-gray" style={{ fontSize: 10 }}>{p.type}</span></td>
                 <td style={{ fontSize: 11, color: 'var(--text-secondary)' }}>{p.model}</td>
                 <td><ProviderStatusBadge status={p.status} /></td>
@@ -953,6 +1219,7 @@ function QuotaTrackerPanel({ data }: { data: ProvidersData | null }) {
                 <td style={{ fontSize: 11 }}>
                   {q?.limit != null ? q.limit.toLocaleString() : 'unknown'}
                 </td>
+                <td style={{ fontSize: 10, color: 'var(--text-secondary)' }}>{q?.resetInText ?? '—'}</td>
                 <td>
                   {q ? <ProviderStatusBadge status={q.status} /> : <span className="badge badge-gray">⚪ unknown</span>}
                 </td>
@@ -963,7 +1230,7 @@ function QuotaTrackerPanel({ data }: { data: ProvidersData | null }) {
             )
           })}
           {visibleProviders.length === 0 && (
-            <tr><td colSpan={8} style={{ color: 'var(--text-muted)', textAlign: 'center', padding: 16 }}>
+            <tr><td colSpan={10} style={{ color: 'var(--text-muted)', textAlign: 'center', padding: 16 }}>
               No providers match filter: {filter}
             </td></tr>
           )}
@@ -1021,9 +1288,11 @@ function ProviderActivityPanel({ data }: { data: ProvidersData | null }) {
           <tr>
             <th>time</th>
             <th>provider</th>
+            <th>account</th>
             <th>event</th>
             <th>code</th>
             <th>model</th>
+            <th>endpoint</th>
             <th>latency</th>
             <th>message</th>
             <th>severity</th>
@@ -1034,16 +1303,18 @@ function ProviderActivityPanel({ data }: { data: ProvidersData | null }) {
             <tr key={a.id}>
               <td style={{ fontSize: 10, color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{fmtTime(a.timestamp)}</td>
               <td style={{ fontWeight: 600, fontSize: 11 }}>{a.providerName}</td>
+              <td style={{ fontSize: 10, color: 'var(--text-secondary)' }}>{a.accountLabel || '—'}</td>
               <td style={{ fontSize: 11 }}>
                 {eventIcons[a.eventType] ?? '•'} {a.eventType.replace(/_/g, ' ')}
               </td>
               <td>
                 {a.statusCode
-                  ? <span className={`hash ${a.statusCode >= 400 ? 'style={{color:"var(--danger)"}}' : ''}`}>{a.statusCode}</span>
+                  ? <span className="hash" style={a.statusCode >= 400 ? { color: 'var(--danger)' } : undefined}>{a.statusCode}</span>
                   : <span style={{ color: 'var(--text-muted)' }}>—</span>
                 }
               </td>
               <td style={{ fontSize: 10, color: 'var(--text-secondary)' }}>{a.model?.split('/').pop() ?? '—'}</td>
+              <td style={{ fontSize: 10, color: 'var(--text-secondary)', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.endpoint || '—'}</td>
               <td style={{ fontSize: 11, color: 'var(--text-muted)' }}>
                 {a.latencyMs != null ? `${a.latencyMs}ms` : '—'}
               </td>
@@ -1054,7 +1325,7 @@ function ProviderActivityPanel({ data }: { data: ProvidersData | null }) {
             </tr>
           ))}
           {visible.length === 0 && (
-            <tr><td colSpan={8} style={{ color: 'var(--text-muted)', textAlign: 'center', padding: 16 }}>
+            <tr><td colSpan={10} style={{ color: 'var(--text-muted)', textAlign: 'center', padding: 16 }}>
               No activity events{sevFilter !== 'all' ? ` with severity: ${sevFilter}` : ''}
             </td></tr>
           )}
@@ -1064,9 +1335,174 @@ function ProviderActivityPanel({ data }: { data: ProvidersData | null }) {
   )
 }
 
+// ── Omega / Oracle Bridge Panel ────────────────────────────────────────────
+interface ObsidianBridgeNote {
+  key: string
+  title: string
+  path: string
+  exists: boolean
+  mtime: string
+  sizeKB: number
+  preview: string[]
+}
+
+interface ObsidianBridgeData {
+  vaultPath: string
+  wikiReady: boolean
+  bridgeReady: boolean
+  notes: ObsidianBridgeNote[]
+  hotHighlights: string[]
+  logHighlights: string[]
+  error?: string
+}
+
+function ERPReferencePanel({ refreshTick }: { refreshTick: number }) {
+  const [data, setData] = useState<ObsidianBridgeData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let alive = true
+    setLoading(true)
+    setError('')
+    fetch('/api/obsidian', { cache: 'no-store' })
+      .then(r => r.json())
+      .then((json: ObsidianBridgeData) => {
+        if (!alive) return
+        if (json?.error) {
+          setError(json.error)
+        }
+        setData(json)
+      })
+      .catch((e) => {
+        if (alive) setError(String(e))
+      })
+      .finally(() => {
+        if (alive) setLoading(false)
+      })
+    return () => { alive = false }
+  }, [refreshTick])
+
+  if (loading && !data) return <div style={{ color: 'var(--text-muted)' }}>loading Obsidian bridge…</div>
+
+  const bridge = data ?? {
+    vaultPath: '—',
+    wikiReady: false,
+    bridgeReady: false,
+    notes: [],
+    hotHighlights: [],
+    logHighlights: [],
+  }
+
+  return (
+    <div style={{ display: 'grid', gap: 16 }}>
+      {error && (
+        <div className="badge badge-red" style={{ borderRadius: 12, padding: '8px 12px', justifyContent: 'flex-start', whiteSpace: 'normal', lineHeight: 1.4 }}>
+          ⚠ Obsidian bridge error: {error}
+        </div>
+      )}
+      <div className="card" style={{ background: 'linear-gradient(180deg, rgba(15, 20, 28, 0.98), rgba(10, 14, 20, 0.98))', borderColor: 'rgba(60, 73, 95, 0.9)' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.2fr) minmax(260px, 0.8fr)', gap: 16, alignItems: 'start' }}>
+          <div>
+            <div className="card-header" style={{ marginBottom: 10 }}>
+              <span className="dot" style={{ background: 'var(--accent2)' }} />
+              Omega / Oracle Bridge — Obsidian wiki
+            </div>
+            <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.1 }}>Live bridge into the Obsidian vault</div>
+            <div style={{ marginTop: 8, color: 'var(--text-secondary)', maxWidth: 820 }}>
+              This panel reads the wiki home, index, hot cache, and log so Omega and Oracle can reason from the same durable notes.
+            </div>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 14 }}>
+              <span className="badge badge-blue">📁 {bridge.vaultPath}</span>
+              <span className={bridge.wikiReady ? 'badge badge-green' : 'badge badge-red'}>
+                {bridge.wikiReady ? '✓ wiki ready' : '✕ wiki missing'}
+              </span>
+              <span className={bridge.bridgeReady ? 'badge badge-green' : 'badge badge-yellow'}>
+                {bridge.bridgeReady ? '✓ bridge ready' : '⚠ bridge warming'}
+              </span>
+            </div>
+          </div>
+          <div className="constitution-card" style={{ background: 'linear-gradient(180deg, rgba(17, 24, 35, 0.98), rgba(11, 16, 23, 0.98))' }}>
+            <div style={{ color: 'var(--text-primary)', fontWeight: 700, marginBottom: 8 }}>Bridge checklist</div>
+            <div style={{ display: 'grid', gap: 8, color: 'var(--text-secondary)', fontSize: 12 }}>
+              <div>✓ Read `wiki/home.md` and `wiki/index.md` first</div>
+              <div>✓ Keep `wiki/hot.md` short and current</div>
+              <div>✓ Treat `wiki/log.md` as append-only</div>
+              <div>✓ Use the same notes for Omega and Oracle reasoning</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 12 }}>
+        <div className="card" style={{ background: 'linear-gradient(180deg, rgba(15, 20, 28, 0.98), rgba(10, 14, 20, 0.98))' }}>
+          <div className="card-header" style={{ marginBottom: 10 }}><span className="dot" style={{ background: 'var(--info)' }} />Wiki notes</div>
+          <div style={{ display: 'grid', gap: 8 }}>
+            {bridge.notes.map(note => (
+              <div key={note.key} className="oracle-card" style={{ borderColor: note.exists ? 'rgba(53, 66, 90, 0.9)' : 'rgba(168, 85, 247, 0.45)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'baseline' }}>
+                  <div style={{ color: 'var(--text-primary)', fontWeight: 700 }}>{note.title}</div>
+                  <span className={`badge ${note.exists ? 'badge-green' : 'badge-yellow'}`}>{note.exists ? 'present' : 'missing'}</span>
+                </div>
+                <div style={{ color: 'var(--text-muted)', fontSize: 10, marginTop: 4, wordBreak: 'break-all' }}>{note.path}</div>
+                {note.exists && (
+                  <div style={{ marginTop: 6, display: 'flex', gap: 8, flexWrap: 'wrap', color: 'var(--text-muted)', fontSize: 10 }}>
+                    <span>{fmtTime(note.mtime)}</span>
+                    <span>{note.sizeKB}KB</span>
+                  </div>
+                )}
+                {note.preview.length > 0 && (
+                  <div style={{ marginTop: 8, color: 'var(--text-secondary)', fontSize: 11, lineHeight: 1.5 }}>
+                    {note.preview.slice(0, 3).map((line, idx) => <div key={idx}>• {line}</div>)}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gap: 12 }}>
+          <div className="card" style={{ background: 'linear-gradient(180deg, rgba(15, 20, 28, 0.98), rgba(10, 14, 20, 0.98))' }}>
+            <div className="card-header" style={{ marginBottom: 10 }}><span className="dot" style={{ background: 'var(--success)' }} />Hot cache</div>
+            <div style={{ display: 'grid', gap: 6, color: 'var(--text-secondary)', fontSize: 12, lineHeight: 1.55 }}>
+              {bridge.hotHighlights.length === 0 ? (
+                <div style={{ color: 'var(--text-muted)' }}>no highlights yet</div>
+              ) : bridge.hotHighlights.map((line, idx) => <div key={idx}>• {line}</div>)}
+            </div>
+          </div>
+
+          <div className="card" style={{ background: 'linear-gradient(180deg, rgba(15, 20, 28, 0.98), rgba(10, 14, 20, 0.98))' }}>
+            <div className="card-header" style={{ marginBottom: 10 }}><span className="dot" style={{ background: 'var(--warning)' }} />Recent log</div>
+            <div style={{ display: 'grid', gap: 6, color: 'var(--text-secondary)', fontSize: 12, lineHeight: 1.55 }}>
+              {bridge.logHighlights.length === 0 ? (
+                <div style={{ color: 'var(--text-muted)' }}>no log entries yet</div>
+              ) : bridge.logHighlights.map((line, idx) => <div key={idx}>• {line}</div>)}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+const MemoStatCardsRow = memo(StatCardsRow)
+const MemoFleetPanel = memo(FleetPanel)
+const MemoTaskBoardPanel = memo(TaskBoardPanel)
+const MemoStatusMonitorPanel = memo(StatusMonitorPanel)
+const MemoCommandRunnerPanel = memo(CommandRunnerPanel)
+const MemoGitPanel = memo(GitPanel)
+const MemoMemoryPanel = memo(MemoryPanel)
+const MemoInboxPanel = memo(InboxPanel)
+const MemoServicesPanel = memo(ServicesPanel)
+const MemoConstitutionPanel = memo(ConstitutionPanel)
+const MemoMetricsPanel = memo(MetricsPanel)
+const MemoQuotaTrackerPanel = memo(QuotaTrackerPanel)
+const MemoProviderActivityPanel = memo(ProviderActivityPanel)
+
 // ── Main Page ──────────────────────────────────────────────────────────────
 export default function Dashboard() {
   const [activeSection, setActiveSection] = useState<Section>('fleet')
+  const [isPending, startTransition] = useTransition()
   const [fleet,         setFleet]         = useState<FleetData | null>(null)
   const [git,           setGit]           = useState<GitData | null>(null)
   const [mem,           setMem]           = useState<MemData | null>(null)
@@ -1079,45 +1515,149 @@ export default function Dashboard() {
   const [providers,     setProviders]     = useState<ProvidersData | null>(null)
   const [lastRefresh,   setLastRefresh]   = useState<string>('')
   const [refreshing,    setRefreshing]    = useState(false)
+  const [erpRefreshTick, setErpRefreshTick] = useState(0)
+  const refreshSeqRef = useRef(0)
+  const loadedSectionsRef = useRef<Record<Section, boolean>>({
+    commands: false,
+    fleet: false,
+    tasks: false,
+    health: false,
+    git: false,
+    memory: false,
+    queue: false,
+    services: false,
+    constitution: false,
+    metrics: false,
+    providers: false,
+    'provider-activity': false,
+    erp: false,
+  })
 
-  const refresh = useCallback(async () => {
+  const refreshCore = useCallback(async () => {
+    const refreshSeq = ++refreshSeqRef.current
     setRefreshing(true)
-    await Promise.all([
-      fetch('/api/fleet').then(r => r.json()).then(setFleet).catch(() => {}),
-      fetch('/api/git').then(r => r.json()).then(setGit).catch(() => {}),
-      fetch('/api/memory').then(r => r.json()).then(setMem).catch(() => {}),
-      fetch('/api/metrics').then(r => r.json()).then(setMetrics).catch(() => {}),
-      fetch('/api/inbox').then(r => r.json()).then(setInbox).catch(() => {}),
-      fetch('/api/constitution').then(r => r.json()).then(setConstitution).catch(() => {}),
-      fetch('/api/health').then(r => r.json()).then(setHealth).catch(() => {}),
-      fetch('/api/tasks').then(r => r.json()).then(setTasks).catch(() => {}),
+
+    const [fleetData, gitData, servicesData, providersData] = await Promise.all([
+      fetch('/api/fleet', { cache: 'no-store' }).then(r => r.json()).catch(() => null),
+      fetch('/api/git', { cache: 'no-store' }).then(r => r.json()).catch(() => null),
+      fetch('/api/services', { cache: 'no-store' }).then(r => r.json()).catch(() => null),
+      fetch('/api/forge-omega/providers/status', { cache: 'no-store' }).then(r => r.json()).catch(() => null),
     ])
+
+    if (refreshSeq !== refreshSeqRef.current) return
+
+    startTransition(() => {
+      if (fleetData) setFleet(fleetData)
+      if (gitData) setGit(gitData)
+      if (servicesData) setServices(servicesData)
+      if (providersData) setProviders(providersData)
+    })
+
+    loadedSectionsRef.current.fleet = true
+    loadedSectionsRef.current.git = true
+    loadedSectionsRef.current.services = true
+    loadedSectionsRef.current.providers = true
+    loadedSectionsRef.current['provider-activity'] = true
     setLastRefresh(new Date().toLocaleTimeString('th-TH'))
     setRefreshing(false)
-  }, [])
+  }, [startTransition])
 
-  const refreshProviders = useCallback(async () => {
-    fetch('/api/forge-omega/providers/status').then(r => r.json()).then(setProviders).catch(() => {})
-  }, [])
+  const loadSectionData = useCallback(async (section: Section, force = false) => {
+    if (!force && loadedSectionsRef.current[section]) return
 
-  const refreshServices = useCallback(async () => {
-    fetch('/api/services').then(r => r.json()).then(setServices).catch(() => {})
-}, [])
+    const markLoaded = (...sections: Section[]) => {
+      sections.forEach(s => { loadedSectionsRef.current[s] = true })
+    }
+
+    switch (section) {
+      case 'fleet':
+        loadedSectionsRef.current.fleet = true
+        return
+      case 'git': {
+        const data = await fetch('/api/git', { cache: 'no-store' }).then(r => r.json()).catch(() => null)
+        if (data) startTransition(() => setGit(data))
+        markLoaded('git')
+        return
+      }
+      case 'memory': {
+        const data = await fetch('/api/memory', { cache: 'no-store' }).then(r => r.json()).catch(() => null)
+        if (data) startTransition(() => setMem(data))
+        markLoaded('memory')
+        return
+      }
+      case 'metrics': {
+        const data = await fetch('/api/metrics', { cache: 'no-store' }).then(r => r.json()).catch(() => null)
+        if (data) startTransition(() => setMetrics(data))
+        markLoaded('metrics')
+        return
+      }
+      case 'queue': {
+        const data = await fetch('/api/inbox', { cache: 'no-store' }).then(r => r.json()).catch(() => null)
+        if (data) startTransition(() => setInbox(data))
+        markLoaded('queue')
+        return
+      }
+      case 'health': {
+        const data = await fetch('/api/health', { cache: 'no-store' }).then(r => r.json()).catch(() => null)
+        if (data) startTransition(() => setHealth(data))
+        markLoaded('health')
+        return
+      }
+      case 'tasks': {
+        const data = await fetch('/api/tasks', { cache: 'no-store' }).then(r => r.json()).catch(() => null)
+        if (data) startTransition(() => setTasks(data))
+        markLoaded('tasks')
+        return
+      }
+      case 'constitution': {
+        const data = await fetch('/api/constitution', { cache: 'no-store' }).then(r => r.json()).catch(() => null)
+        if (data) startTransition(() => setConstitution(data))
+        markLoaded('constitution')
+        return
+      }
+      case 'services': {
+        const data = await fetch('/api/services', { cache: 'no-store' }).then(r => r.json()).catch(() => null)
+        if (data) startTransition(() => setServices(data))
+        markLoaded('services')
+        return
+      }
+      case 'providers':
+      case 'provider-activity': {
+        const data = await fetch('/api/forge-omega/providers/status', { cache: 'no-store' }).then(r => r.json()).catch(() => null)
+        if (data) startTransition(() => setProviders(data))
+        markLoaded('providers', 'provider-activity')
+        return
+      }
+      case 'commands':
+        loadedSectionsRef.current.commands = true
+        return
+      case 'erp':
+        loadedSectionsRef.current.erp = true
+        setErpRefreshTick(tick => tick + 1)
+        return
+    }
+  }, [startTransition])
+
+  const handleNav = useCallback((section: Section) => {
+    startTransition(() => {
+      setActiveSection(section)
+    })
+  }, [startTransition])
 
   useEffect(() => {
-    refresh()
-    refreshServices()
-    refreshProviders()
-    const timer = setInterval(refresh, 30000)
-    const svcTimer = setInterval(refreshServices, 15000)
-    const provTimer = setInterval(refreshProviders, 30000)
-    return () => { clearInterval(timer); clearInterval(svcTimer); clearInterval(provTimer) }
-  }, [refresh, refreshServices, refreshProviders])
+    void refreshCore()
+    void loadSectionData(activeSection, true)
+    const timer = setInterval(() => {
+      void refreshCore()
+      void loadSectionData(activeSection, true)
+    }, 30000)
+    return () => { clearInterval(timer) }
+  }, [refreshCore, loadSectionData, activeSection])
 
   return (
     <div style={{ minHeight: '100vh' }}>
       {/* Sidebar */}
-      <Sidebar active={activeSection} onNav={setActiveSection} />
+      <Sidebar active={activeSection} onNav={handleNav} />
 
       {/* Main content */}
       <div className="main-content">
@@ -1126,7 +1666,7 @@ export default function Dashboard() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)' }}>ธาม Oracle</span>
             <span style={{ color: 'var(--border)' }}>—</span>
-            <span style={{ color: '#93c5fd', fontSize: 13, fontWeight: 600 }}>
+            <span style={{ color: 'var(--accent)', fontSize: 14, fontWeight: 600 }}>
               {SECTION_LABELS[activeSection]}
             </span>
           </div>
@@ -1138,7 +1678,7 @@ export default function Dashboard() {
               </div>
             )}
             <button
-              onClick={() => { refresh(); refreshServices() }}
+              onClick={async () => { await refreshCore(); await loadSectionData(activeSection, true) }}
               className={`refresh-btn${refreshing ? ' refresh-btn-active' : ''}`}
             >
               {refreshing ? '⟳ refreshing…' : '⟳ refresh'}
@@ -1150,120 +1690,141 @@ export default function Dashboard() {
         <div style={{ padding: '16px 20px 64px' }}>
 
           {/* Stat Cards — always visible */}
-          <StatCardsRow fleet={fleet} services={services} git={git} />
+          <MemoStatCardsRow fleet={fleet} services={services} git={git} />
 
-          {activeSection === 'fleet' && (
-            <div className="card">
-              <div className="card-header">
-                <span className="dot" style={{ background: 'var(--success)' }} />
-                Oracle Fleet
+          <div className={`section-panel${isPending ? ' is-pending' : ''}`} aria-busy={isPending}>
+            {activeSection === 'fleet' && (
+              <div className="card">
+                <div className="card-header">
+                  <span className="dot" style={{ background: 'var(--success)' }} />
+                  Oracle Fleet
+                </div>
+                <MemoFleetPanel data={fleet} />
               </div>
-              <FleetPanel data={fleet} />
-            </div>
-          )}
+            )}
 
-          {activeSection === 'tasks' && (
-            <div className="card">
-              <div className="card-header">
-                <span className="dot" style={{ background: 'var(--warning)' }} />
-                Task Board (ψ Vault)
+            {activeSection === 'tasks' && (
+              <div className="card">
+                <div className="card-header">
+                  <span className="dot" style={{ background: 'var(--warning)' }} />
+                  Task Board (ψ Vault)
+                </div>
+                <MemoTaskBoardPanel data={tasks} />
               </div>
-              <TaskBoardPanel data={tasks} />
-            </div>
-          )}
+            )}
 
-          {activeSection === 'health' && (
-            <div className="card">
-              <div className="card-header">
-                <span className="dot" style={{ background: 'var(--success)' }} />
-                Status Monitor — Health Probe + Fix
+            {activeSection === 'health' && (
+              <div className="card">
+                <div className="card-header">
+                  <span className="dot" style={{ background: 'var(--success)' }} />
+                  Status Monitor — Health Probe + Fix
+                </div>
+                <MemoStatusMonitorPanel data={health} />
               </div>
-              <StatusMonitorPanel data={health} />
-            </div>
-          )}
+            )}
 
-          {activeSection === 'git' && (
-            <div className="card">
-              <div className="card-header">
-                <span className="dot" style={{ background: 'var(--accent)' }} />
-                Git Activity — tham-oracle
+            {activeSection === 'commands' && (
+              <div className="card">
+                <div className="card-header">
+                  <span className="dot" style={{ background: 'var(--accent)' }} />
+                  Command Runner — Allowlisted Server Commands
+                </div>
+                <MemoCommandRunnerPanel />
               </div>
-              <GitPanel data={git} />
-            </div>
-          )}
+            )}
 
-          {activeSection === 'memory' && (
-            <div className="card">
-              <div className="card-header">
-                <span className="dot" style={{ background: '#a855f7' }} />
-                Memory Gate
+            {activeSection === 'git' && (
+              <div className="card">
+                <div className="card-header">
+                  <span className="dot" style={{ background: 'var(--accent)' }} />
+                  Git Activity — tham-oracle
+                </div>
+                <MemoGitPanel data={git} />
               </div>
-              <MemoryPanel data={mem} />
-            </div>
-          )}
+            )}
 
-          {activeSection === 'queue' && (
-            <div className="card">
-              <div className="card-header">
-                <span className="dot" style={{ background: 'var(--warning)' }} />
-                Queue / ψ Vault
+            {activeSection === 'memory' && (
+              <div className="card">
+                <div className="card-header">
+                  <span className="dot" style={{ background: 'var(--accent2)' }} />
+                  Memory Gate
+                </div>
+                <MemoMemoryPanel data={mem} />
               </div>
-              <InboxPanel data={inbox} />
-            </div>
-          )}
+            )}
 
-          {activeSection === 'services' && (
-            <div className="card">
-              <div className="card-header">
-                <span className="dot service-online-dot" style={{ background: 'var(--success)' }} />
-                Services Health
+            {activeSection === 'queue' && (
+              <div className="card">
+                <div className="card-header">
+                  <span className="dot" style={{ background: 'var(--warning)' }} />
+                  Queue / ψ Vault
+                </div>
+                <MemoInboxPanel data={inbox} />
               </div>
-              <ServicesPanel data={services} />
-            </div>
-          )}
+            )}
 
-          {activeSection === 'constitution' && (
-            <div className="card">
-              <div className="card-header">
-                <span className="dot" style={{ background: 'var(--accent)' }} />
-                Constitution — Immutable Core Rules
+            {activeSection === 'services' && (
+              <div className="card">
+                <div className="card-header">
+                  <span className="dot service-online-dot" style={{ background: 'var(--success)' }} />
+                  Services Health
+                </div>
+                <MemoServicesPanel data={services} />
               </div>
-              <ConstitutionPanel data={constitution} />
-            </div>
-          )}
+            )}
 
-          {activeSection === 'metrics' && (
-            <div className="card">
-              <div className="card-header">
-                <span className="dot" style={{ background: 'var(--info)' }} />
-                Session Metrics
+            {activeSection === 'constitution' && (
+              <div className="card">
+                <div className="card-header">
+                  <span className="dot" style={{ background: 'var(--accent)' }} />
+                  Constitution — Immutable Core Rules
+                </div>
+                <MemoConstitutionPanel data={constitution} />
               </div>
-              <MetricsPanel data={metrics} />
-            </div>
-          )}
+            )}
 
-          {activeSection === 'providers' && (
-            <div className="card">
-              <div className="card-header">
-                <span className="dot" style={{ background: 'var(--accent2)' }} />
-                🔋 Quota Tracker
-                <button onClick={refreshProviders} className="refresh-btn" style={{ marginLeft: 'auto' }}>↻ refresh</button>
+            {activeSection === 'metrics' && (
+              <div className="card">
+                <div className="card-header">
+                  <span className="dot" style={{ background: 'var(--info)' }} />
+                  Session Metrics
+                </div>
+                <MemoMetricsPanel data={metrics} />
               </div>
-              <QuotaTrackerPanel data={providers} />
-            </div>
-          )}
+            )}
 
-          {activeSection === 'provider-activity' && (
-            <div className="card">
-              <div className="card-header">
-                <span className="dot" style={{ background: 'var(--info)' }} />
-                📡 API Provider Connection Activity
-                <button onClick={refreshProviders} className="refresh-btn" style={{ marginLeft: 'auto' }}>↻ refresh</button>
+            {activeSection === 'providers' && (
+              <div className="card">
+                <div className="card-header">
+                  <span className="dot" style={{ background: 'var(--accent2)' }} />
+                  🔋 Quota Tracker
+                  <button onClick={async () => { await refreshCore(); await loadSectionData('providers', true) }} className="refresh-btn" style={{ marginLeft: 'auto' }}>↻ refresh</button>
+                </div>
+                <MemoQuotaTrackerPanel data={providers} />
               </div>
-              <ProviderActivityPanel data={providers} />
-            </div>
-          )}
+            )}
 
+            {activeSection === 'provider-activity' && (
+              <div className="card">
+                <div className="card-header">
+                  <span className="dot" style={{ background: 'var(--info)' }} />
+                  Provider Activity
+                  <button onClick={async () => { await refreshCore(); await loadSectionData('providers', true) }} className="refresh-btn" style={{ marginLeft: 'auto' }}>↻ refresh</button>
+                </div>
+                <MemoProviderActivityPanel data={providers} />
+              </div>
+            )}
+
+            {activeSection === 'erp' && (
+              <div className="card">
+                <div className="card-header">
+                  <span className="dot" style={{ background: 'var(--accent2)' }} />
+                  ERP Reference Map
+                </div>
+                <ERPReferencePanel refreshTick={erpRefreshTick} />
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Status bar */}
@@ -1288,7 +1849,7 @@ export default function Dashboard() {
               </span>
             </>
           )}
-          <span style={{ marginLeft: 'auto', color: 'var(--text-muted)' }}>port 3000</span>
+          <span style={{ marginLeft: 'auto', color: 'var(--text-muted)' }}>port 3005</span>
         </div>
       </div>
     </div>

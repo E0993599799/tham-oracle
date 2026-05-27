@@ -29,7 +29,7 @@ export async function GET() {
   const httpServices = [
     { name: 'oracle-v2',      label: 'Oracle v2 API',     url: 'http://localhost:47778/',        category: 'service', fix: 'oracle-v2' },
     { name: 'oracle-v2-swagger', label: 'Oracle v2 Swagger', url: 'http://localhost:47778/swagger', category: 'service', fix: 'oracle-v2' },
-    { name: 'dashboard',      label: 'Tham Dashboard',    url: 'http://localhost:3000/',         category: 'service', fix: 'dashboard' },
+    { name: 'dashboard',      label: 'Tham Dashboard',    url: 'http://localhost:3005/',         category: 'service', fix: 'dashboard' },
   ]
   const probeResults = await Promise.all(httpServices.map(async s => ({
     ...s,
