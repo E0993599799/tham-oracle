@@ -9,6 +9,10 @@
     ]
   },
   "model": "sonnet",
+  "statusLine": {
+    "type": "command",
+    "command": "bash /route/mission-control/tham-oracle/scripts/tham-statusline.sh"
+  },
   "hooks": {
     "Stop": [
       {

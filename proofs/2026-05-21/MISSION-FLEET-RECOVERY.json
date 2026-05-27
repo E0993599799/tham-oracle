@@ -1,0 +1,136 @@
+{
+  "mission_id": "MISSION-FLEET-RECOVERY-20260521",
+  "executed_by": "Tham Oracle (Governor role — observe + advise, no direct execution)",
+  "status": "partial",
+  "timestamp": "2026-05-27T12:37:00+07:00",
+  "partial_reason": "Phase 5 respawn deferred — spawn script kills entire session (including tham pane); requires พี่เอก confirmation before running",
+
+  "phase_results": {
+    "PHASE_1_GATE": {
+      "status": "passed",
+      "m0_status": "completed",
+      "m0_verifications": "all pass per MISSION-0-workflow-fix.json",
+      "notes": "M0 left core/bob on cx/gpt-5.5; codex set to openai-direct/gpt-5.5 (also fictional). Phase 2 fixes all."
+    },
+
+    "PHASE_2_MODEL_FIX": {
+      "status": "completed",
+      "primary_model_chosen": "nvidia/minimaxai/minimax-m2.7",
+      "backup_model_chosen": "openrouter/qwen/qwen3-coder:free",
+      "probe_results": [
+        { "model": "nvidia/minimaxai/minimax-m2.7", "probe": "ok", "evidence": "200 OK, valid completion JSON returned (chatcmpl-1c7fac15)" },
+        { "model": "glm-cn/glm-5.1",                "probe": "fail", "error": "429 - 余额不足 (no credits)" },
+        { "model": "glm-cn/glm-4.7",                "probe": "fail", "error": "429 - 余额不足 (no credits)" },
+        { "model": "openrouter/qwen/qwen3-coder:free","probe": "fail", "error": "429 - rate limited (clears, usable as backup when quota resets)" },
+        { "model": "kimi/kimi-k2.6",                 "probe": "fail", "error": "401 - authentication_error" },
+        { "model": "ollama/glm-4.7-flash",           "probe": "fail", "error": "404 - not loaded in Ollama" },
+        { "model": "ollama/glm-5",                   "probe": "fail", "error": "403 - subscription required" },
+        { "model": "gemini/gemini-3.1-pro-preview",  "probe": "rate-limited", "error": "429 - transient, not auth failure; gemini-team stays on this model" }
+      ],
+      "9router_location_fix": {
+        "old_base_url": "http://127.0.0.1:20128/v1",
+        "new_base_url": "http://172.21.112.1:20128/v1",
+        "reason": "9router runs on Windows host; WSL2 does not forward 127.0.0.1:20128 to Windows. Spawn script resolves correctly via /etc/resolv.conf nameserver but agents.yaml was hardcoded to wrong IP."
+      },
+      "files_changed": [
+        ".agents/agents.yaml — cx/gpt-5.5 → nvidia/minimaxai/minimax-m2.7 for all 5 codex workers (dheva/zeus/warden/verity/stratum); base_url fixed to 172.21.112.1; backup_model added; gemini workers base_url also fixed",
+        "configs/lane-cards/codex-builder.json — model/fallback updated, description updated, health_check updated",
+        "configs/agent-registry.json — _version 2.1 → 2.2, _updated 2026-05-27, primary_model/backup_model/base_url added to Codex and Gemini provider entries"
+      ],
+      "validation": {
+        "agent_registry_json": "python3 -m json.tool: OK",
+        "codex_builder_json": "python3 -m json.tool: OK",
+        "agents_yaml": "yaml.safe_load: OK"
+      }
+    },
+
+    "PHASE_3_GEMINI_CLI": {
+      "status": "bypassed",
+      "resolution": "Branch A — agents call 9router HTTP, not gemini CLI binary",
+      "diagnostic": {
+        "gemini_which": "/mnt/c/Users/User/AppData/Local/Volta/bin/gemini",
+        "shim_content": "#!/bin/bash\\nvolta run $(basename $0) $@",
+        "volta_installed": true,
+        "volta_version": "2.0.2",
+        "gemini_shim_test": "exit 124 (timeout — shim hangs, volta cannot locate Windows gemini package from WSL)",
+        "spawn_script_gemini_calls": "NONE — line 67 names a tmux window 'gemini', does not invoke gemini binary",
+        "agents_runtime": "runtime: gemini-cli uses base_url 9router HTTP (not the broken shim)"
+      },
+      "action_taken": "No change to spawn scripts needed. Gemini agents route via 9router HTTP. Broken shim is irrelevant to fleet operation.",
+      "recommendation": "If gemini CLI is ever needed standalone: run `npm install -g @google/gemini-cli` (no Volta) and set GEMINI_API_KEY."
+    },
+
+    "PHASE_4_OLLAMA": {
+      "status": "skipped",
+      "decision": "Option A — fleet recovers without Ollama",
+      "findings": {
+        "ollama_via_9router_proxy": "available (ollama/* prefix in model list) but 403 subscription required",
+        "ollama_local": "502 ECONNREFUSED — ollama-local service not running",
+        "impact": "none — Phase 2 primary model (nvidia/minimaxai/minimax-m2.7) does not depend on Ollama"
+      },
+      "registry_note": "Ollama marked optional in agent-registry providers; activate only if พี่เอก explicitly requests."
+    },
+
+    "PHASE_5_RESPAWN": {
+      "status": "deferred — awaiting พี่เอก confirmation",
+      "reason": "scripts/spawn-agents-tmux.sh kills entire tham-oracle-stack session (including tham pane at codex-team.0). Constraint: MUST NOT kill tham pane.",
+      "current_fleet_state": {
+        "tham_oracle_stack_codex_team": "6 panes, all idle bash shells — no agents running",
+        "tham_oracle_stack_gemini_team": "3 panes, all idle bash shells",
+        "50_tham": "DO NOT TOUCH — 2 windows (bash, codex-gpt55)"
+      },
+      "respawn_readiness": {
+        "9router": "UP at 172.21.112.1:20128",
+        "model_configs": "updated — ready for real model IDs",
+        "spawn_script": "works (auto-resolves Windows host IP via resolv.conf) but kills entire session"
+      },
+      "recommended_action": {
+        "option_A_safe": "Kill individual non-tham panes manually (codex-team.1-5 + gemini-team.1-2), then run per-agent start commands in each pane with new model config",
+        "option_B_full_respawn": "Close/detach tham session first → run bash scripts/spawn-agents-tmux.sh → reopen tham in new pane (fastest, but brief tham session interruption)"
+      }
+    }
+  },
+
+  "model_probe_results": [
+    {
+      "worker": "dheva/zeus/warden/verity/stratum",
+      "model": "nvidia/minimaxai/minimax-m2.7",
+      "probe": "ok",
+      "http_status": 200,
+      "rtt_ms": 172,
+      "chatcmpl_id": "chatcmpl-1a4b6a51-d072-4490-a87f-69269782c1c4",
+      "finish_reason": "length",
+      "note": "reasoning model — content in reasoning_content field; valid completion confirmed"
+    },
+    {
+      "worker": "luxi/lens",
+      "model": "gemini/gemini-3.1-pro-preview",
+      "probe": "rate-limited-429",
+      "note": "transient rate limit; model IS configured correctly in 9router; not an auth failure"
+    }
+  ],
+
+  "decisions": [
+    { "id": "D1", "decision": "primary=nvidia/minimaxai/minimax-m2.7", "reason": "only model returning 200 OK in 9router model list during probe; glm-cn credits exhausted" },
+    { "id": "D2", "decision": "backup=openrouter/qwen/qwen3-coder:free", "reason": "only free model in list; currently 429 (rate limit) but will clear; not auth-blocked" },
+    { "id": "D3", "decision": "gemini_cli=bypassed", "reason": "spawn script and agents do not invoke gemini binary; 9router HTTP path confirmed" },
+    { "id": "D4", "decision": "ollama=skip", "reason": "all ollama/* models return 403 (subscription) or 502 (local offline); no Ollama needed for primary path" },
+    { "id": "D5", "decision": "base_url=172.21.112.1:20128", "reason": "9router on Windows host; 127.0.0.1:20128 refuses connection from WSL2" }
+  ],
+
+  "files_changed": [
+    ".agents/agents.yaml",
+    "configs/lane-cards/codex-builder.json",
+    "configs/agent-registry.json"
+  ],
+
+  "rollback_plan": "git diff is reversible; no tmux restart or commit performed. To revert: git checkout configs/agent-registry.json configs/lane-cards/codex-builder.json .agents/agents.yaml",
+
+  "escalations_for_pii_eek": [
+    "glm-cn credits exhausted — recharge needed to restore glm-cn/glm-5.1 as primary",
+    "kimi/kimi-k2.5/k2.6 returning 401 — check KIMI_API_KEY in 9router config",
+    "Phase 5 respawn blocked — choose option A or B above to complete fleet recovery"
+  ],
+
+  "next_action": "พี่เอก approves respawn approach (option A or B) → complete Phase 5 → free Mission A dispatch"
+}

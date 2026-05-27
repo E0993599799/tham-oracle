@@ -42,12 +42,24 @@ Last updated: 2026-05-27
 - `forge-omega-v2` — Dashboard built at D:/Git/forge-omega-v2, pending MFLEET + portproxy verify
 - `Backlog queue` — 7 missions in ψ/inbox/codex/ (~30h Codex work), MFLEET is next gate
 
-## Providers (verified 2026-05-13)
+## Agent Fleet (v3.0 — consolidated 2026-05-27)
+
+| Agent | Role | Soul | Provider | Pane |
+|-------|------|------|----------|------|
+| **tham** | Observer/Governor/Memory | CTO/Mission Control — govern, route, verify | Native Claude | fleet-ops.0 |
+| **forge** | Builder/Runner/Maintenance | Builds, fixes, maintains, automates | Codex → nvidia/minimaxai/minimax-m2.7 | fleet-ops.1 |
+| **mind** | Planner/Coordinator/Legacy | Plans path, decomposes tasks, bridges old/new | Codex → nvidia/minimaxai/minimax-m2.7 | fleet-ops.2 |
+| **eye** | Inspector/Researcher/Monitor | Sees what builders miss — review, research, health | Gemini → gemini-3.1-pro-preview | fleet-ops.3 |
+
+Merged (archived): codex+core+housekeeper+powershell → forge | bob+hermes → mind | gemini+watchdog → eye
+
+## Providers (verified 2026-05-27)
 
 | Provider | Endpoint | Model | Status |
 |----------|----------|-------|--------|
 | 9router (OpenClaw) | port 20128 | — | ✅ active |
-| Hermes (via 9router) | port 20128 | `gemini/gemini-3.1-pro-preview` | ✅ updated 2026-05-21 |
+| Codex lane | 172.21.112.1:20128 | `nvidia/minimaxai/minimax-m2.7` | ✅ primary (MFLEET fixed) |
+| Gemini lane | 172.21.112.1:20128 | `gemini/gemini-3.1-pro-preview` | ✅ active |
 | Tham oracle-v2 | port 47778 | — | manual start |
 | Omega oracle-v2 | port 47779 | — | manual start |
 
@@ -80,6 +92,12 @@ Available via 9router (43 models, verified 2026-05-27):
 - mission-control project has `node dev` bug (incorrect dev command caller) — investigation pending (Windows Task Scheduler check)
 - Critical safety regression recorded 2026-05-14: do not send foreground PowerShell for Core/SFSR work; previous failure split path at `D:\01` because of unsafe argument handling.
 
+## Routing Quick-Ref
+- code/fix/build/cleanup/scripts/automation → **forge**
+- plan/decompose/coordinate/legacy/migrate → **mind**
+- review/research/monitor/validate/health → **eye**
+- memory/decision/govern/final-answer → **tham**
+
 ## Last Proof
 - Commit `2dbb8af` — steps 04-10 complete (2026-05-12)
 - Forge/Omega integration: configs/, docs/forge-omega-integration.md, scripts/forge-omega-health.sh (2026-05-13)
@@ -92,7 +110,9 @@ Available via 9router (43 models, verified 2026-05-27):
 - 2026-05-21: M0 WORKFLOW-AUDIT complete — Hermes middle-hop ineffective, cx/gpt-5.5 fictional, config drift in 4 files
 - 2026-05-27: 4 commits (286 files) — executor lane router, dashboard-next, configs, docs/schemas/reports
 - 2026-05-27: oracle-v2 HTTP started ✅, 12 documents populated (FTS5 active)
-- 2026-05-27: MFLEET dispatched → 50-tham:codex-gpt55 (in progress)
+- 2026-05-27: MFLEET COMPLETE (Phase 1-4, 6 ✅) — cx/gpt-5.5 replaced, 9router URL fixed, proof emitted
+- 2026-05-27: Fleet consolidation v3.0 — 8 agents → 4 (tham/forge/mind/eye), fleet-ops window active
+- 2026-05-27: statusLine configured → shows ⏱dur · out:Xk · cache:XM | ธาม
 
 ## Hermes Activation (2026-05-18)
 

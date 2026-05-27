@@ -19,8 +19,9 @@ agents:
     worktree_path: agents/dheva
     runtime: codex
     provider: 9router-codex
-    base_url: http://127.0.0.1:20128/v1
-    model: cx/gpt-5.5
+    base_url: http://172.21.112.1:20128/v1
+    model: nvidia/minimaxai/minimax-m2.7
+    backup_model: openrouter/qwen/qwen3-coder:free
     role: orry-dheva-builder
     spawn: worker
     team: codex-team
@@ -32,8 +33,9 @@ agents:
     worktree_path: agents/zeus
     runtime: codex
     provider: 9router-codex
-    base_url: http://127.0.0.1:20128/v1
-    model: cx/gpt-5.5
+    base_url: http://172.21.112.1:20128/v1
+    model: nvidia/minimaxai/minimax-m2.7
+    backup_model: openrouter/qwen/qwen3-coder:free
     role: codex-swarm-worker
     spawn: worker
     team: codex-team
@@ -45,8 +47,9 @@ agents:
     worktree_path: agents/warden
     runtime: codex
     provider: 9router-codex
-    base_url: http://127.0.0.1:20128/v1
-    model: cx/gpt-5.5
+    base_url: http://172.21.112.1:20128/v1
+    model: nvidia/minimaxai/minimax-m2.7
+    backup_model: openrouter/qwen/qwen3-coder:free
     role: safety-warden
     spawn: worker
     team: codex-team
@@ -58,8 +61,9 @@ agents:
     worktree_path: agents/verity
     runtime: codex
     provider: 9router-codex
-    base_url: http://127.0.0.1:20128/v1
-    model: cx/gpt-5.5
+    base_url: http://172.21.112.1:20128/v1
+    model: nvidia/minimaxai/minimax-m2.7
+    backup_model: openrouter/qwen/qwen3-coder:free
     role: verification-auditor
     spawn: worker
     team: codex-team
@@ -71,8 +75,9 @@ agents:
     worktree_path: agents/stratum
     runtime: codex
     provider: 9router-codex
-    base_url: http://127.0.0.1:20128/v1
-    model: cx/gpt-5.5
+    base_url: http://172.21.112.1:20128/v1
+    model: nvidia/minimaxai/minimax-m2.7
+    backup_model: openrouter/qwen/qwen3-coder:free
     role: systems-architect
     spawn: worker
     team: codex-team
@@ -84,7 +89,7 @@ agents:
     worktree_path: agents/luxi
     runtime: gemini-cli
     provider: 9router-gemini
-    base_url: http://127.0.0.1:20128/v1
+    base_url: http://172.21.112.1:20128/v1
     model: gemini/gemini-3.1-pro-preview
     role: research-inspector
     spawn: worker
@@ -97,7 +102,7 @@ agents:
     worktree_path: agents/lens
     runtime: gemini-cli
     provider: 9router-gemini
-    base_url: http://127.0.0.1:20128/v1
+    base_url: http://172.21.112.1:20128/v1
     model: gemini/gemini-3.1-pro-preview
     role: inspection-lens
     spawn: worker

@@ -1,214 +1,156 @@
 {
-  "_comment": "Tham Oracle fleet registry. Two tmux team windows. RTK Context Engine is internal to tham-oracle; it is not an agent.",
-  "_version": "2.1",
-  "_updated": "2026-05-22",
+  "_comment": "Tham Oracle fleet registry v3.0 — consolidated 4-agent fleet (tham + forge + mind + eye). Old 8-agent registry archived in configs/lane-cards/archive/.",
+  "_version": "3.0",
+  "_updated": "2026-05-27",
+  "_changelog": "v3.0: Consolidated 8 agents → 4 (forge=codex+core+housekeeper+powershell, mind=bob+hermes, eye=gemini+watchdog). Fleet window: tham-oracle-stack:fleet-ops",
+
   "fleet": {
-    "agent_count": 8,
+    "agent_count": 4,
     "provider_count": 3,
-    "prompt_engineer_agents": 0,
-    "internal_engines": [
-      "RTK Context Engine"
-    ]
-  },
-  "layout": {
-    "session": "tham-oracle-stack",
-    "windows": [
-      {
-        "name": "codex-team",
-        "agents": [
-          "tham-oracle",
-          "core",
-          "codex",
-          "bob",
-          "hermes",
-          "housekeeper"
-        ]
-      },
-      {
-        "name": "gemini-team",
-        "agents": [
-          "tham-oracle",
-          "gemini",
-          "watchdog"
-        ]
+    "internal_engines": ["RTK Context Engine"],
+    "layout": {
+      "session": "tham-oracle-stack",
+      "window": "fleet-ops",
+      "panes": {
+        "0": "tham (upper-left — Governor)",
+        "1": "forge (lower-left — Builder)",
+        "2": "mind (right-top — Planner)",
+        "3": "eye (right-mid — Inspector)",
+        "4": "reserve (right-bot — overflow / ad-hoc)"
       }
-    ]
+    }
   },
+
   "providers": [
     {
-      "id": "Codex",
-      "use_for": "code execution, implementation, repo operations, patches, scripts, deterministic build work"
-    },
-    {
-      "id": "Gemini",
-      "use_for": "large-context review, inspection, multimodal understanding, validation, anomaly detection"
-    },
-    {
       "id": "Native Claude",
-      "use_for": "Tham Oracle governance, memory, reasoning, instruction hierarchy, final synthesis"
+      "use_for": "Tham Oracle governance, memory, reasoning, instruction hierarchy, final synthesis",
+      "note": "tham-oracle project uses native Claude API (env: .env.tham reverts ANTHROPIC_API_BASE_URL)"
+    },
+    {
+      "id": "Codex (via 9router)",
+      "primary_model": "nvidia/minimaxai/minimax-m2.7",
+      "backup_model": "openrouter/qwen/qwen3-coder:free",
+      "base_url": "http://172.21.112.1:20128/v1",
+      "use_for": "code execution, implementation, planning, coordination, maintenance, Windows automation"
+    },
+    {
+      "id": "Gemini (via 9router)",
+      "primary_model": "gemini/gemini-3.1-pro-preview",
+      "fallback_model": "gemini/gemini-3-flash-preview",
+      "base_url": "http://172.21.112.1:20128/v1",
+      "use_for": "large-context review, research, health monitoring, anomaly detection, second-pass validation"
     }
   ],
+
   "agents": [
     {
-      "id": "core",
-      "role": "Bridge/Gate",
-      "provider": "Codex",
-      "runtime": "codex",
-      "team": "codex-team",
-      "use_for": "system bridge, gatekeeping, execution preparation, lightweight coordination",
-      "status": "active",
-      "repo": "E0993599799/tham-oracle",
-      "local_path": "/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle",
-      "memory_access": "stateless by default",
-      "tmux_target": "tham-oracle-stack:codex-team.1",
-      "output_contract": [
-        "RESULT",
-        "PROOF",
-        "RISKS",
-        "MEMORY_DELTA"
-      ]
-    },
-    {
-      "id": "codex",
-      "role": "Builder",
-      "provider": "Codex",
-      "runtime": "codex",
-      "team": "codex-team",
-      "use_for": "coding, patching, implementation, scripts, repo work, build fixes",
-      "status": "active",
-      "repo": "E0993599799/tham-oracle",
-      "local_path": "/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle",
-      "memory_access": "stateless by default",
-      "tmux_target": "tham-oracle-stack:codex-team.2",
-      "output_contract": [
-        "RESULT",
-        "PROOF",
-        "RISKS",
-        "MEMORY_DELTA"
-      ]
-    },
-    {
-      "id": "gemini",
-      "role": "Inspector",
-      "provider": "Gemini",
-      "runtime": "gemini-cli",
-      "team": "gemini-team",
-      "use_for": "review, large-context inspection, comparison, visual/doc analysis, second-pass reasoning",
-      "status": "active",
-      "repo": "E0993599799/tham-oracle",
-      "local_path": "/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle",
-      "memory_access": "stateless by default",
-      "tmux_target": "tham-oracle-stack:gemini-team.1",
-      "output_contract": [
-        "RESULT",
-        "PROOF",
-        "RISKS",
-        "MEMORY_DELTA"
-      ]
-    },
-    {
-      "id": "bob",
-      "role": "Coordinator",
-      "provider": "Codex",
-      "runtime": "codex",
-      "team": "codex-team",
-      "use_for": "task decomposition, ops coordination, queue shaping, multi-step execution plan",
-      "status": "active",
-      "repo": "E0993599799/tham-oracle",
-      "local_path": "/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle",
-      "memory_access": "stateless by default",
-      "tmux_target": "tham-oracle-stack:codex-team.3",
-      "output_contract": [
-        "RESULT",
-        "PROOF",
-        "RISKS",
-        "MEMORY_DELTA"
-      ]
-    },
-    {
-      "id": "hermes",
-      "role": "Legacy Specialist",
-      "provider": "Codex",
-      "runtime": "codex",
-      "team": "codex-team",
-      "use_for": "old code, compatibility, migration, integration with legacy systems",
-      "status": "active",
-      "repo": "E0993599799/tham-oracle",
-      "local_path": "/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle",
-      "memory_access": "stateless by default",
-      "tmux_target": "tham-oracle-stack:codex-team.4",
-      "output_contract": [
-        "RESULT",
-        "PROOF",
-        "RISKS",
-        "MEMORY_DELTA"
-      ]
-    },
-    {
-      "id": "housekeeper",
-      "role": "Maintenance",
-      "provider": "Codex",
-      "runtime": "codex",
-      "team": "codex-team",
-      "use_for": "cleanup, refactor, formatting, file organization, dependency hygiene",
-      "status": "active",
-      "repo": "E0993599799/tham-oracle",
-      "local_path": "/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle",
-      "memory_access": "stateless by default",
-      "tmux_target": "tham-oracle-stack:codex-team.5",
-      "output_contract": [
-        "RESULT",
-        "PROOF",
-        "RISKS",
-        "MEMORY_DELTA"
-      ]
-    },
-    {
-      "id": "watchdog",
-      "role": "Monitoring",
-      "provider": "Gemini",
-      "runtime": "gemini-cli",
-      "team": "gemini-team",
-      "use_for": "health checks, regression watch, status validation, anomaly detection",
-      "status": "active",
-      "repo": "E0993599799/tham-oracle",
-      "local_path": "/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle",
-      "memory_access": "stateless by default",
-      "tmux_target": "tham-oracle-stack:gemini-team.2",
-      "output_contract": [
-        "RESULT",
-        "PROOF",
-        "RISKS",
-        "MEMORY_DELTA"
-      ]
-    },
-    {
-      "id": "tham-oracle",
-      "role": "Observer/Governor",
+      "id": "tham",
+      "display_name": "ธาม",
+      "role": "Observer / Governor / Memory Owner",
+      "soul": "ธาม — CTO/Mission Control. ไม่ execute เอง แต่ govern, delegate, และ verify proof ทุกครั้ง",
       "provider": "Native Claude",
       "runtime": "claude-code",
-      "team": "both",
-      "use_for": "memory ownership, final decision, routing, verification, human-facing response",
+      "lane_card": "configs/lane-cards/tham-orchestrator.json",
+      "tmux_target": "tham-oracle-stack:fleet-ops.0",
       "status": "active",
-      "repo": "E0993599799/tham-oracle",
-      "local_path": "/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle",
-      "memory_access": "full owner",
-      "tmux_targets": [
-        "tham-oracle-stack:codex-team.0",
-        "tham-oracle-stack:gemini-team.0"
+      "memory_access": "full owner (ψ vault, brain/, oracle-v2 DB)",
+      "capabilities": ["govern", "route", "verify-proof", "memory-write", "human-interface", "final-synthesis"],
+      "routing": "receives all intent from พี่เอก, delegates to forge/mind/eye"
+    },
+    {
+      "id": "forge",
+      "display_name": "FORGE",
+      "role": "Builder / Runner / Maintenance",
+      "soul": "Forges code into existence. Builds, fixes, maintains, automates. Windows to Linux.",
+      "provider": "Codex (via 9router)",
+      "runtime": "claude-code (via 9router)",
+      "lane_card": "configs/lane-cards/forge-builder.json",
+      "merged_from": ["codex", "core", "housekeeper", "powershell-sfsr"],
+      "tmux_target": "tham-oracle-stack:fleet-ops.1",
+      "status": "active",
+      "memory_access": "read-only (ψ vault, CLAUDE.md)",
+      "capabilities": [
+        "write-code", "fix-bug", "refactor", "code-review", "security-audit",
+        "cleanup", "file-organization", "dependency-hygiene",
+        "powershell-automation", "wsl-linux-setup",
+        "git-safe-workflow", "github-cli-workflow", "shell-execution"
       ],
-      "internal_engines": [
-        "RTK Context Engine"
-      ]
+      "output_contract": ["RESULT", "PROOF", "RISKS", "MEMORY_DELTA"]
+    },
+    {
+      "id": "mind",
+      "display_name": "MIND",
+      "role": "Planner / Coordinator / Legacy Integrator",
+      "soul": "Plans the path through chaos. Breaks problems, coordinates agents, bridges old to new.",
+      "provider": "Codex (via 9router)",
+      "runtime": "claude-code (via 9router)",
+      "lane_card": "configs/lane-cards/mind-planner.json",
+      "merged_from": ["bob", "hermes"],
+      "tmux_target": "tham-oracle-stack:fleet-ops.2",
+      "status": "active",
+      "memory_access": "read-only",
+      "capabilities": [
+        "task-decomposition", "agent-assignment", "ops-coordination",
+        "multi-step-planning", "legacy-integration", "migration-planning",
+        "compatibility-analysis", "risk-assessment",
+        "queue-management", "inter-oracle-relay"
+      ],
+      "output_contract": ["PLAN", "AGENT_ASSIGNMENTS", "RISK_FLAGS", "PROOF"]
+    },
+    {
+      "id": "eye",
+      "display_name": "EYE",
+      "role": "Inspector / Researcher / Monitor",
+      "soul": "Sees what builders miss. Reviews, researches, monitors. No hallucinations — only evidence.",
+      "provider": "Gemini (via 9router)",
+      "runtime": "gemini-cli (via 9router)",
+      "lane_card": "configs/lane-cards/eye-inspector.json",
+      "merged_from": ["gemini", "watchdog"],
+      "tmux_target": "tham-oracle-stack:fleet-ops.3",
+      "status": "active",
+      "memory_access": "read-only",
+      "capabilities": [
+        "code-review", "large-context-inspection", "research-synthesis",
+        "fact-verification", "pattern-recognition", "second-pass-reasoning",
+        "health-monitoring", "anomaly-detection", "security-scanning",
+        "multimodal-analysis"
+      ],
+      "output_contract": ["FINDINGS", "SOURCES", "CONFIDENCE", "ANOMALIES", "PROOF"]
     }
   ],
+
   "routing_rules": {
-    "code": "codex",
-    "qa": "gemini",
-    "research": "gemini",
-    "ops": "bob",
-    "memory": "tham-oracle",
-    "planning": "bob",
-    "general": "tham-oracle"
+    "code": "forge",
+    "fix": "forge",
+    "build": "forge",
+    "cleanup": "forge",
+    "scripts": "forge",
+    "powershell": "forge",
+    "automation": "forge",
+    "plan": "mind",
+    "coordinate": "mind",
+    "decompose": "mind",
+    "legacy": "mind",
+    "migrate": "mind",
+    "review": "eye",
+    "research": "eye",
+    "monitor": "eye",
+    "validate": "eye",
+    "health": "eye",
+    "memory": "tham",
+    "decision": "tham",
+    "govern": "tham",
+    "human-interface": "tham",
+    "general": "tham"
+  },
+
+  "fleet_ops_pane_labels": {
+    "note": "Label panes: tmux select-pane -t 'tham-oracle-stack:fleet-ops.N' -T 'NAME'",
+    "0": "THAM — ธาม Oracle",
+    "1": "FORGE — Builder",
+    "2": "MIND — Planner",
+    "3": "EYE — Inspector",
+    "4": "RESERVE"
   }
 }

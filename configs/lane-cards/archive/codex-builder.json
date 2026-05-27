@@ -1,7 +1,7 @@
 {
   "lane_id": "codex-builder",
   "agent": "codex",
-  "description": "Codex Builder — code implementation, bug fix, refactor, security audit. Routes via 9router (OpenAI-compatible) to cx/gpt-5.5 or fallback cx/gpt-4o.",
+  "description": "Codex Builder — code implementation, bug fix, refactor, security audit. Routes via 9router (OpenAI-compatible) to nvidia/minimaxai/minimax-m2.7 (primary) or fallback openrouter/qwen/qwen3-coder:free.",
   "input_format": "structured JSON task contract with {intent: string, context: object, proof_criteria: array}",
   "output_format": "proof JSON {proof_path, code_changes, test_results, security_check, next_action}",
   "risk_gate": "inherit from Tham (LOW/MEDIUM/HIGH risk filters apply)",
@@ -10,8 +10,8 @@
   "status": "active",
   "provider": "openai-compat",
   "base_url": "http://172.21.112.1:20128/v1",
-  "model": "cx/gpt-5.5",
-  "fallback_model": "cx/gpt-4o",
+  "model": "nvidia/minimaxai/minimax-m2.7",
+  "fallback_model": "openrouter/qwen/qwen3-coder:free",
   "port": 20128,
   "routes_through": "9router/OpenClaw (Windows, port 20128)",
   "deployed": "2026-05-17",
@@ -39,7 +39,7 @@
     "Security check passed (basic OWASP scan or Codex confidence ≥ 0.9)",
     "Linting clean (black / prettier / shellcheck depending on language)"
   ],
-  "health_check": "curl -s http://172.21.112.1:20128/v1/models | jq '.data[] | select(.id | contains(\"gpt-5\"))'",
+  "health_check": "curl -s http://172.21.112.1:20128/v1/models | jq '.data[] | select(.id | contains(\"minimax\"))'",
   "health_check_interval": "every 60s",
   "timeout_primary": 180,
   "timeout_fallback": 180,
