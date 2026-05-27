@@ -1,0 +1,50 @@
+{
+  "mission_id": "MISSION-TESTS-TASK002-20260521",
+  "lane": "codex-builder",
+  "delegated_by": "Tham Oracle",
+  "delegated_to": "Codex GPT-5.5 (or fleet worker)",
+  "timestamp": "2026-05-21T23:00:00+07:00",
+  "priority": "P2",
+  "depends_on": ["MISSION-FLEET-RECOVERY-20260521"],
+  "title": "TASK-002 Test Suite Completion (was 70% — finish remaining 25 tests + coverage report)",
+
+  "background": "Per ACTIVE_TASKS.md, TASK-002 had 90/115 tests complete (streaming-api 40, proof-watcher 30, dashboard.integration 20). Remaining: api-routes.integration.ts (25 tests) + coverage report (target ≥80%).",
+
+  "context_files_to_read_first": [
+    "ACTIVE_TASKS.md",
+    "reports/TASK-002-proof.json (if present)",
+    "server/proof-playback-api.py (target of the remaining 25 tests)",
+    "server/proof-watcher.py",
+    "server/websocket-server.py",
+    "dashboard-next/app/api/   (Next.js API routes to test)"
+  ],
+
+  "deliverables": [
+    "tests/api-routes.integration.ts — 25 tests covering: GET /proofs, GET /proofs/:id, GET /stats, WebSocket connect, WebSocket subscribe, error paths (404, 500, malformed query), pagination, date range filters",
+    "Coverage report (run via npm test -- --coverage or pytest --cov depending on stack) saved to reports/TASK-002-coverage.json",
+    "All 115 tests pass (90 existing + 25 new)",
+    "Update reports/TASK-002-proof.json: { status: 'COMPLETED', tests: { total: 115, passing: 115, failing: 0 }, coverage_pct: <≥80> }"
+  ],
+
+  "constraints": [
+    "Do not modify production code to make tests pass — fix tests or report bugs",
+    "If coverage < 80% after best effort, document the gap explicitly in proof",
+    "Stop and write block file if any of the 90 existing tests are broken"
+  ],
+
+  "expected_output": {
+    "proof_file": "proofs/2026-05-21/MISSION-TESTS-task002.json",
+    "proof_schema": {
+      "tests_total": 0,
+      "tests_passing": 0,
+      "tests_failing": 0,
+      "coverage_pct": 0,
+      "coverage_report_path": "",
+      "remaining_gaps": []
+    }
+  },
+
+  "proof_required": true,
+  "estimated_hours": 2,
+  "timeout_hours": 6
+}

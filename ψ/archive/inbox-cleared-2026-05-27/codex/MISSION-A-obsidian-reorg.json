@@ -1,0 +1,157 @@
+{
+  "mission_id": "MISSION-A-OBSIDIAN-REORG-20260521",
+  "lane": "codex-builder",
+  "delegated_by": "Tham Oracle",
+  "delegated_to": "Codex GPT-5.5 @ 50-tham:codex-gpt55",
+  "timestamp": "2026-05-21T22:15:00+07:00",
+  "priority": "P1",
+  "depends_on": ["MISSION-0-WORKFLOW-FIX-20260521"],
+
+  "task": "Reorganize /mnt/d/Obsidian per claude-obsidian/WIKI.md schema — FULL MIGRATION + best-effort wikilinks",
+  "decision_from_user": "Full migration (พี่เอก selected — 2026-05-21). 2,318 files in Memory/Marcuz/ get re-homed into wiki/ per Mode B (GitHub/Repository) + Mode C (Business/Project) hybrid.",
+
+  "vault_path": "/mnt/d/Obsidian",
+  "reference_repo": "/mnt/d/Obsidian/claude-obsidian (already cloned)",
+  "schema_doc": "/mnt/d/Obsidian/claude-obsidian/WIKI.md",
+
+  "context_files_to_read_first": [
+    "/mnt/d/Obsidian/claude-obsidian/WIKI.md",
+    "/mnt/d/Obsidian/claude-obsidian/CLAUDE.md",
+    "/mnt/d/Obsidian/CLAUDE.md",
+    "/mnt/d/Obsidian/wiki/index.md",
+    "/mnt/d/Obsidian/wiki/hot.md",
+    "/mnt/d/Obsidian/FORGE_OMEGA_SOT.md"
+  ],
+
+  "phased_execution": {
+    "PHASE_1_BACKUP_AND_SCAFFOLD": {
+      "goal": "No-loss safety baseline + WIKI.md scaffold",
+      "steps": [
+        "Init git in /mnt/d/Obsidian if not initialized; commit current state as 'pre-migration-2026-05-21'",
+        "If git already initialized, create git tag 'pre-migration-2026-05-21' and commit any pending changes first",
+        "Create folders per WIKI.md §1: .raw/{articles,transcripts,screenshots,data,assets}, wiki/{sources,entities,concepts,domains,comparisons,questions,meta}, _templates/, _attachments/",
+        "Copy claude-obsidian/_templates/*.md → /mnt/d/Obsidian/_templates/ (source.md, entity.md, concept.md, comparison.md, question.md)",
+        "Create .obsidian/snippets/vault-colors.css per WIKI.md §7",
+        "Update wiki/index.md, wiki/hot.md, wiki/log.md (prepend PHASE_1 entry)"
+      ],
+      "proof_partial": "proofs/2026-05-21/MISSION-A-phase1.json (scaffold complete, no data moved)"
+    },
+
+    "PHASE_2_ROOT_CLEANUP": {
+      "goal": "Clean up vault root — empty stubs + FORGE_OMEGA_SOT migration",
+      "steps": [
+        "DELETE 18 zero-byte stub files at root: 010 Entity Map.md, 2026-05-11.md, Agent Memory.md, Agent.md, Dream Memory Engine.md, Evidence.md, Queue System.md, UPGRADE-GUIDE.md, activities.md, agent_runs.md, gateways.md, messages.md, orchestrator_wake_requests.md, provider_models.md, skill_versions.md, tham-oracle repo.md, users.md, workflow_templates.md",
+        "MOVE /mnt/d/Obsidian/FORGE_OMEGA_SOT.md → /mnt/d/Obsidian/wiki/domains/forge-omega/sot.md — add frontmatter (type: domain, status: mature)",
+        "MOVE /mnt/d/Obsidian/Agent Roster.md → /mnt/d/Obsidian/wiki/entities/_agent-roster.md (or split into individual entity pages if rows>3)",
+        "MOVE /mnt/d/Obsidian/Untitled Kanban.md → /mnt/d/Obsidian/wiki/meta/kanban.md (frontmatter type: meta)",
+        "DELETE Untitled.base, Untitled.canvas if both empty/near-empty (39 + 2 bytes)",
+        "MOVE /mnt/d/Obsidian/Chats/* → /mnt/d/Obsidian/.raw/conversations/",
+        "MOVE /mnt/d/Obsidian/copilot/{copilot-conversations,memory}/* → /mnt/d/Obsidian/.raw/conversations/copilot/",
+        "MOVE /mnt/d/Obsidian/scripts/repair-garbled-text.ps1 → /mnt/d/Obsidian/.raw/scripts/",
+        "Leave /mnt/d/Obsidian/iCloudDrive untouched (assumed user data)",
+        "Leave /mnt/d/Obsidian/.neural_db, .neural_memory, .repair-backups, .smart-env, .tmp.driveupload, .env untouched"
+      ],
+      "proof_partial": "proofs/2026-05-21/MISSION-A-phase2.json"
+    },
+
+    "PHASE_3_ENTITY_AND_CONCEPT_PAGES": {
+      "goal": "Build Tham Oracle entity/concept layer — these are referenced by all domains",
+      "create_pages": [
+        "wiki/entities/_index.md (Entities Index per WIKI.md §5)",
+        "wiki/entities/Tham.md (already exists — verify + augment frontmatter)",
+        "wiki/entities/Marcuz.md (พี่เอก / Ekkarat)",
+        "wiki/entities/Hermes.md (Gemini-3.1-Pro specialist adapter)",
+        "wiki/entities/Codex.md (GPT-5.5 builder lane)",
+        "wiki/entities/Gemini.md (Gemini-3.1-Pro inspector lane)",
+        "wiki/entities/Omega-Core.md (Codex bridge/gate at D:\\Git\\omega-oracle)",
+        "wiki/entities/9router.md (OpenClaw routing layer on port 20128)",
+        "wiki/entities/BoB.md (inter-oracle coordinator)",
+        "wiki/entities/Housekeeper.md, Watchdog.md (maintenance + monitor)",
+        "wiki/concepts/_index.md",
+        "wiki/concepts/SFSR.md, wiki/concepts/Evidence-First.md, wiki/concepts/Agent-Soul-Contract.md, wiki/concepts/Forge-Loop.md (port from Memory/Marcuz/Projects/Marcuzx Forge V3/Wiki/nodes/concepts/)",
+        "wiki/concepts/LLM-Wiki-Pattern.md (already in claude-obsidian — link only, do not duplicate)",
+        "wiki/concepts/Oracle-Governance.md (Tham's observe/govern/coordinate model)"
+      ],
+      "frontmatter_required": "every page MUST have: type, title, created (2026-05-21 for new), updated, tags, status",
+      "cross_link_rule": "every entity page links to all concepts it embodies and vice versa — bidirectional"
+    },
+
+    "PHASE_4_DOMAIN_MIGRATION": {
+      "goal": "Re-home /mnt/d/Obsidian/Memory/Marcuz/Projects/ (2,318 files) into wiki/domains/",
+      "target_layout": {
+        "wiki/domains/forge-v3/": "former Memory/Marcuz/Projects/Marcuzx Forge V3/*",
+        "wiki/domains/forge-omega/": "former Memory/Marcuz/Projects/MarcuzX Omega OS/*",
+        "wiki/domains/tham-oracle/": "tham-oracle repo brain/ projection (wikilinks only — files stay in repo)",
+        "wiki/domains/smd-ha-collector/": "SMD HA Sensor Collector related notes"
+      },
+      "categorization_rules": [
+        "Source-of-truth blueprints (00 - Source of Truth/, 00 - Core Blueprint Registry/) → wiki/domains/<domain>/sot/ + frontmatter type: domain, status: mature",
+        "Architecture decisions (02 - Architecture Decisions/, 03 - Memory and Governance/) → wiki/domains/<domain>/decisions/ + frontmatter type: decision",
+        "Run logs (04 - Run Logs/) → wiki/sources/<domain>/runs/ + frontmatter type: source, source_type: run-log",
+        "Agent memory (03 - Agent Memory/) → wiki/entities/<agent>/memory/ (Tham/Hermes/Core/etc)",
+        "Knowledge nodes (03 - Knowledge/, 01 - Core Knowledge Graph/) → wiki/concepts/<concept>.md (one concept per file, dedupe by title)",
+        "Skills (04 - Skills/) → wiki/concepts/skills/<skill>.md",
+        "Prompt library (06 - Prompt Library/) → wiki/sources/prompts/ + frontmatter type: source, source_type: prompt-template",
+        "Templates (07 - Templates/) → /mnt/d/Obsidian/_templates/forge/<name>.md",
+        "Archives (99 - Archive/) → wiki/sources/<domain>/archive/ (keep, frontmatter status: archived)",
+        "Change logs (99 - Change Log/) → wiki/domains/<domain>/changelog.md (consolidate into 1 file if reasonable)",
+        "MOCs (09 - Maps of Content/) → wiki/domains/<domain>/_index.md (merge/promote to sub-index)"
+      ],
+      "naming_conversion": "rename folder prefixes like '00 - Source of Truth' → 'sot', '02 - Architecture Decisions' → 'decisions' — lowercase-with-dashes per WIKI.md §13",
+      "frontmatter_addition": "every migrated .md file gets minimal frontmatter if missing: { type: <inferred>, title: <from H1 or filename>, created: <from git log first-touch>, updated: <today>, tags: [<domain>], status: <inferred> }",
+      "wikilink_rewrite": "convert any [text](path/to/file.md) → [[Page Name]] using filename basename (since WIKI.md requires unique filenames)",
+      "deduplication": "if same Title appears in both Forge V3 and Omega OS, create wiki/comparisons/<topic>.md instead of duplicating; flag with > [!contradiction] if claims disagree",
+      "batch_size": "process in batches of 200 files; emit progress to wiki/log.md after each batch",
+      "checkpoint": "save progress index to proofs/2026-05-21/MISSION-A-phase4-progress.json after each batch — allow resume"
+    },
+
+    "PHASE_5_INDEX_REBUILD_AND_LINT": {
+      "goal": "Rebuild master indexes and run health check",
+      "steps": [
+        "Regenerate wiki/index.md (Master) per WIKI.md §5 — list all domains, entities, concepts, sources, questions",
+        "Regenerate every wiki/<folder>/_index.md sub-index",
+        "Update wiki/hot.md — reflect the migration; mention 'Migrated 2,318 files from Memory/Marcuz' as Last Updated; keep under 500 words",
+        "Append to wiki/log.md — TOP entry: '## [2026-05-21] migration | Full Memory/Marcuz reorg per claude-obsidian schema' with Sources counts + Pages created/updated counts",
+        "Create wiki/meta/dashboard.base (Bases) and wiki/meta/dashboard.md (Dataview legacy) per WIKI.md §9",
+        "Run lint (WIKI.md §4.5): write report to wiki/meta/lint-report-2026-05-21.md — orphans, dead links, stale claims, frontmatter gaps, empty sections",
+        "If Memory/ tree is now empty, leave the empty folders for one cycle (do not rmdir) — พี่เอก confirms removal in follow-up"
+      ]
+    }
+  },
+
+  "expected_output": {
+    "proof_file": "proofs/2026-05-21/MISSION-A-obsidian-reorg.json",
+    "proof_schema": {
+      "mission_id": "MISSION-A-OBSIDIAN-REORG-20260521",
+      "status": "completed | partial | failed",
+      "phases": {
+        "phase1_scaffold": { "status": "...", "files_created": 0 },
+        "phase2_root_cleanup": { "status": "...", "files_deleted": 0, "files_moved": 0 },
+        "phase3_entities_concepts": { "status": "...", "entities_created": 0, "concepts_created": 0 },
+        "phase4_domain_migration": { "status": "...", "files_processed": 0, "files_renamed": 0, "wikilinks_rewritten": 0, "contradictions_flagged": 0 },
+        "phase5_index_and_lint": { "status": "...", "indexes_rebuilt": 0, "orphans": 0, "dead_links": 0 }
+      },
+      "git_log_tail": "show last 5 commits inside /mnt/d/Obsidian",
+      "lint_report_link": "[[lint-report-2026-05-21]]",
+      "remaining_blockers": ["any item that requires พี่เอก decision"]
+    }
+  },
+
+  "constraints": [
+    "MUST init git or tag BEFORE touching files — full reversibility required",
+    "Do not modify /mnt/d/Obsidian/claude-obsidian/* (plugin repo — read-only reference)",
+    "Do not modify /mnt/d/Obsidian/iCloudDrive/* (user data — out of scope)",
+    "Do not delete the original .raw/ source if it ever existed; only adds new structure",
+    "Filenames: unique across vault (WIKI.md §13) — if collision, append - 2, - 3 suffix",
+    "Every wiki page MUST have YAML frontmatter — no exceptions",
+    "Wikilinks over paths: [[Page Name]] not [text](path.md)",
+    "Atomic notes: one concept per page; split long pages >300 lines",
+    "Conform to LLM Wiki rules (WIKI.md §summary 1-10)",
+    "If autonomous detection of categorization is uncertain (>15% of files), STOP and ask via proofs/2026-05-21/MISSION-A-block-categorization.md"
+  ],
+
+  "proof_required": true,
+  "estimated_hours": 6,
+  "timeout_hours": 24,
+  "checkpointing": "every batch (200 files) writes phase4-progress.json — allow resume"
+}

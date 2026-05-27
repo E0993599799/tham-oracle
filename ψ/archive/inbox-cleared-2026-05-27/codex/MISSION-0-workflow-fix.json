@@ -1,0 +1,107 @@
+{
+  "mission_id": "MISSION-0-WORKFLOW-FIX-20260521",
+  "lane": "codex-builder",
+  "delegated_by": "Tham Oracle",
+  "delegated_to": "Codex GPT-5.5 @ 50-tham:codex-gpt55",
+  "timestamp": "2026-05-21T22:10:00+07:00",
+  "priority": "P1",
+  "depends_on": [],
+  "blocks": ["MISSION-A-OBSIDIAN-REORG", "MISSION-B-LANGGRAPH-WIKI"],
+
+  "task": "Fix Tham→Codex routing workflow — config sync F2+F3+F4+F5 (per WORKFLOW-AUDIT-2026-05-21)",
+  "reason": "Hermes-in-middle adds latency without value. Registries point at broken pane (tham-oracle-stack:codex) and ghost model (cx/gpt-5.5). Direct Tham→Codex@50-tham:codex-gpt55 is the working path.",
+
+  "context_files_to_read_first": [
+    "proofs/2026-05-21/WORKFLOW-AUDIT.md",
+    "configs/agent-registry.json",
+    "configs/pane-registry.json",
+    "configs/lane-cards/hermes-optional.json",
+    ".agents/agents.yaml",
+    "skills/hermes-legacy-adapter/SKILL.md",
+    "scripts/spawn-autonomous-fleet-now.sh",
+    "CLAUDE.md"
+  ],
+
+  "structured_input": {
+    "F2_pane_registry": {
+      "file": "configs/pane-registry.json",
+      "changes": [
+        "windows.codex.description: 'Codex build layer (live: 50-tham:codex-gpt55)'",
+        "agents.codex.tmux_target: '50-tham:codex-gpt55'",
+        "agents.codex.provider: 'openai-direct'",
+        "agents.codex.model: 'gpt-5.5'"
+      ]
+    },
+    "F3_agent_registry": {
+      "file_a": "configs/agent-registry.json",
+      "file_a_changes": [
+        "agents[id=codex].provider: 'openai-direct'",
+        "agents[id=codex].model: 'gpt-5.5'",
+        "agents[id=codex].base_url: REMOVE",
+        "agents[id=codex].routes_through: REMOVE",
+        "agents[id=codex].tmux_target: '50-tham:codex-gpt55'  (add this field)",
+        "agents[id=codex].validation: 'tmux pane health + code proof verification'"
+      ],
+      "file_b": ".agents/agents.yaml",
+      "file_b_changes": [
+        "agents.codex.provider: 'openai-direct'",
+        "agents.codex.model: 'gpt-5.5'",
+        "agents.codex.base_url: REMOVE"
+      ],
+      "file_c": "scripts/spawn-agents-tmux.sh",
+      "file_c_changes": [
+        "CODEX_MODEL default: gpt-5.5 (was cx/gpt-5.5) — adjust only for the codex/builder lane; core/bob may stay on cx/gpt-5.5 if they actually go through 9router; verify each first."
+      ]
+    },
+    "F4_autonomous_fleet_codex_sh": {
+      "file": "scripts/spawn-autonomous-fleet-now.sh (and/or its generated codex.sh template)",
+      "bug_evidence": "tham-oracle-stack:codex shows: codex.sh: line 16: agent exit status: \\STATUS: command not found",
+      "root_cause": "Shell escape error — likely unquoted heredoc or backslash-N escape that produced literal '\\STATUS:' as a command",
+      "instruction": "Find the generator that emits codex.sh, locate line 16 (or equivalent), fix the escape/quoting so the line is a comment/echo, not an executed command. Verify by regenerating and re-running."
+    },
+    "F5_hermes_redefine": {
+      "file_a": "configs/lane-cards/hermes-optional.json",
+      "file_a_changes": [
+        "REMOVE the entire 'codex_executor_route' block (lines 36-41)",
+        "rules: prepend rule 'Hermes is Gemini specialist review only — never used as Codex middleware'",
+        "description: update to 'Gemini-3.1-Pro specialist review/multimodal/long-context adapter — explicit Tham route only'"
+      ],
+      "file_b": "skills/hermes-legacy-adapter/SKILL.md",
+      "file_b_changes": [
+        "Drop the 'Codex Executor Route' section (lines 13, 19, 54-59)",
+        "Add explicit rule: 'For coding tasks Tham routes DIRECT to Codex GPT-5.5 at 50-tham:codex-gpt55 — do not relay through Hermes.'"
+      ]
+    }
+  },
+
+  "expected_output": {
+    "code_changes": "4 files edited (pane-registry.json, agent-registry.json, agents.yaml, hermes-optional.json) + 1 SKILL.md + 1 shell script fix",
+    "proof_file": "proofs/2026-05-21/MISSION-0-workflow-fix.json",
+    "proof_schema": {
+      "mission_id": "MISSION-0-WORKFLOW-FIX-20260521",
+      "status": "completed | partial | failed",
+      "files_changed": ["list of paths with brief diff summary"],
+      "verification": {
+        "pane_registry_codex_target": "expected: 50-tham:codex-gpt55",
+        "agent_registry_codex_provider": "expected: openai-direct",
+        "hermes_codex_route_removed": "expected: true",
+        "autonomous_fleet_codex_sh_clean_run": "expected: no shell error in capture-pane after rerun"
+      },
+      "git_status_before_commit": "snapshot",
+      "next_action": "free Mission A + Mission B to dispatch"
+    }
+  },
+
+  "constraints": [
+    "Do not touch any agent BUT codex in the registries unless that agent is verifiably mis-routed — keep blast radius small",
+    "Preserve existing JSON formatting (2-space indent, trailing newline)",
+    "Bump _version and _updated fields in registries",
+    "Do not commit; leave a clean diff for พี่เอก to review",
+    "If autonomous-fleet codex.sh fix would require restarting tham-oracle-stack, mark as 'requires_human_restart' in proof and STOP — do not restart sessions",
+    "If anything is ambiguous, write to proofs/2026-05-21/MISSION-0-block-<reason>.md and stop"
+  ],
+
+  "proof_required": true,
+  "estimated_minutes": 25,
+  "timeout_minutes": 60
+}

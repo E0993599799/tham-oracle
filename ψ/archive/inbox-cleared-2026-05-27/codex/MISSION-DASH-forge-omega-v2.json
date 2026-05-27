@@ -1,0 +1,99 @@
+{
+  "mission_id": "MISSION-DASH-FORGE-OMEGA-V2-20260521",
+  "lane": "codex-builder",
+  "delegated_by": "Tham Oracle",
+  "delegated_to": "Codex GPT-5.5 (or fleet worker post-MFLEET)",
+  "timestamp": "2026-05-21T22:55:00+07:00",
+  "priority": "P1",
+  "depends_on": ["MISSION-FLEET-RECOVERY-20260521"],
+  "title": "Forge Omega V2 Dashboard — Phase 1-3 UX/UI delivery (was awaiting Codex acceptance since 2026-05-18)",
+
+  "background": {
+    "active_task_file": "ψ/active/TASK_forge_omega_dashboard.md",
+    "research_ready": "brain/decisions/2026-05-17_omega-uxui-research-findings.md (Gemini 314-item UX/UI research)",
+    "dashboard_repo": "/mnt/d/Git/forge-omega-v2/",
+    "stack": "Next.js 16.2.6 + React 19 + TypeScript 5 + Tailwind CSS 4 (0 TypeScript errors)",
+    "components_ready": "10+ components already built — visual/UX improvements needed, not full rewrites",
+    "blocker_prior": "TASK marked 'Awaiting Codex acceptance' but Codex never picked it up — now manually queued",
+    "windows_only_note": "Run from Windows PowerShell only (Turbopack WSL bug). Builds + screenshots happen Windows-side. Code edits can happen from WSL."
+  },
+
+  "context_files_to_read_first": [
+    "ψ/active/TASK_forge_omega_dashboard.md",
+    "brain/decisions/2026-05-17_omega-uxui-research-findings.md   (research evidence)",
+    "/mnt/d/Git/forge-omega-v2/app/globals.css",
+    "/mnt/d/Git/forge-omega-v2/components/",
+    "/mnt/d/Git/forge-omega-v2/hermes-review-contract.json (if present)"
+  ],
+
+  "phases": {
+    "PHASE_1_CRITICAL_UX": {
+      "deliverables": [
+        "Fleet Health Summary Card — 7/8 agents healthy with visual bar; green/yellow/red by health %; live indicator (connected/reconnecting/offline)",
+        "Status Badges (consistent) — color + icon + text (never color-only); WCAG AA contrast",
+        "Visual Hierarchy — primary metrics 2-3x larger than secondary; consistent spacing scale (Tailwind 4 with design tokens)",
+        "Live indicator — exact 3 states: connected (green dot pulse), reconnecting (yellow spin), offline (red)"
+      ],
+      "acceptance": [
+        "Components compile with 0 TypeScript errors",
+        "Storybook (if exists) or app pages render the new card",
+        "Screenshot saved to /mnt/d/Git/forge-omega-v2/screenshots/phase1/"
+      ]
+    },
+    "PHASE_2_REAL_TIME_FEEDBACK": {
+      "deliverables": [
+        "Loading skeletons — every fetch shows skeleton placeholder, not spinner",
+        "Optimistic UI — actions render immediately, rollback on error",
+        "Error messages — explain WHAT happened + WHY + WHEN resolves + WHAT to do (e.g., 'Quota exhausted. Resets in 18h 42m. [Retry?]')",
+        "Toast notifications — bottom-right, auto-dismiss 4-6s, success/error/warning variants"
+      ],
+      "acceptance": [
+        "Each component documented inline with usage example",
+        "Toast container is global and accessible (aria-live polite/assertive)"
+      ]
+    },
+    "PHASE_3_INTERACTIVITY": {
+      "deliverables": [
+        "Confirmation dialogs for destructive actions — Cancel is default focus; consequence in 1-2 sentences",
+        "Form validation — progressive (on blur), inline errors with red text + help text",
+        "Keyboard navigation — full tab order, focus rings visible, escape closes modals"
+      ],
+      "acceptance": [
+        "All forms validate on blur (not submit-only)",
+        "Lighthouse Accessibility ≥ 95 on the dashboard page"
+      ]
+    }
+  },
+
+  "global_acceptance": [
+    "TypeScript check: 0 errors (npm run typecheck)",
+    "No regressions in existing components",
+    "Phase commits separately with descriptive messages — push only after พี่ review",
+    "Report progress at each phase completion",
+    "Run on Windows: cd D:\\Git\\forge-omega-v2 && npm run dev (port 3000)"
+  ],
+
+  "constraints": [
+    "Code edits happen from WSL; builds + screenshots from Windows PowerShell only",
+    "Do not run foreground PowerShell from WSL — write a no-window launcher and surface to พี่",
+    "Do not commit secrets (.env.local stays out of git)",
+    "Stop and report after each phase if any acceptance criterion fails"
+  ],
+
+  "expected_output": {
+    "proof_file": "proofs/2026-05-21/MISSION-DASH-forge-omega-v2.json",
+    "proof_schema": {
+      "phases": {
+        "phase1": { "status": "...", "files_changed": [], "screenshot_path": "" },
+        "phase2": { "status": "...", "files_changed": [], "screenshot_path": "" },
+        "phase3": { "status": "...", "files_changed": [], "lighthouse_a11y": 0 }
+      },
+      "typecheck_result": "0 errors",
+      "remaining_blockers": []
+    }
+  },
+
+  "proof_required": true,
+  "estimated_hours": 4,
+  "timeout_hours": 12
+}

@@ -1,0 +1,130 @@
+{
+  "mission_id": "MISSION-FLEET-RECOVERY-20260521",
+  "lane": "codex-builder",
+  "delegated_by": "Tham Oracle",
+  "delegated_to": "Codex GPT-5.5 @ 50-tham:codex-gpt55",
+  "timestamp": "2026-05-21T22:35:00+07:00",
+  "priority": "P1",
+  "depends_on": ["MISSION-0-WORKFLOW-FIX-20260521"],
+  "blocks": [],
+  "rationale": "Fleet Down report (20:35) misdiagnosed. Workers actually completed their tasks; the visible 'crash' is the codex.sh:16 escape bug that M0 fixes (F4). Beyond that, 3 real infra issues remain: (1) Ollama service down, (2) Gemini CLI volta path broken, (3) cx/gpt-5.5 model assignment is fictional in 9router.",
+
+  "task": "Recover the tham-oracle-stack fleet after MISSION-0 finishes — re-point workers to real models, fix Gemini CLI install, decide Ollama strategy, respawn and verify.",
+
+  "context_files_to_read_first": [
+    "proofs/2026-05-21/MISSION-0-workflow-fix.json   ← read M0 result first",
+    "proofs/2026-05-21/WORKFLOW-AUDIT.md",
+    "reports/progress/tham.md",
+    "reports/progress/core.md",
+    "reports/progress/codex.md",
+    "reports/progress/gemini.md",
+    "configs/agent-registry.json   ← post-M0 state",
+    "configs/lane-cards/codex-builder.json",
+    "configs/lane-cards/gemini-research.json",
+    "configs/lane-cards/bob-coordinator.json",
+    "configs/lane-cards/housekeeper-maintenance.json",
+    "configs/lane-cards/watchdog-monitor.json",
+    "scripts/spawn-agents-tmux.sh",
+    "scripts/spawn-autonomous-fleet-now.sh"
+  ],
+
+  "phased_execution": {
+    "PHASE_1_GATE_ON_M0": {
+      "goal": "Do not start before M0 proof shows green",
+      "steps": [
+        "Read proofs/2026-05-21/MISSION-0-workflow-fix.json — verify status: completed and verification.* all pass",
+        "If M0 partial/failed → STOP, write proofs/2026-05-21/MISSION-FLEET-RECOVERY-blocked.md, escalate to Tham",
+        "If M0 was the cause of fleet errors → expect fleet panes to look healthier already"
+      ]
+    },
+
+    "PHASE_2_PICK_REAL_MODEL_IDS": {
+      "goal": "Replace fictional `cx/gpt-5.5` (codex/core/bob) with a real 9router model that does NOT depend on Ollama",
+      "evidence": "curl -s http://127.0.0.1:20128/v1/models | jq '.data[].id'  shows no cx/* — see WORKFLOW-AUDIT.md §3",
+      "candidate_models_no_ollama": [
+        "glm-cn/glm-5.1   ← strong coding, direct provider",
+        "glm-cn/glm-4.7",
+        "openrouter/qwen/qwen3-coder:free   ← rate-limited but free",
+        "kimi/kimi-k2.6   ← long context",
+        "nvidia/minimaxai/minimax-m2.7   ← capable, NVIDIA hosted"
+      ],
+      "instruction": [
+        "Pick ONE primary + ONE backup. Default recommendation: primary=glm-cn/glm-5.1, backup=openrouter/qwen/qwen3-coder:free",
+        "Update for codex/core/bob agents in: configs/agent-registry.json, .agents/agents.yaml, scripts/spawn-agents-tmux.sh (CODEX_MODEL default)",
+        "Leave gemini/housekeeper/watchdog on gemini/gemini-3.1-pro-preview (works via 9router HTTP, does NOT need the broken Gemini CLI)",
+        "Bump _version + _updated on registries"
+      ],
+      "verification": "curl -s http://127.0.0.1:20128/v1/chat/completions -d '{\"model\":\"<chosen>\",\"messages\":[{\"role\":\"user\",\"content\":\"ping\"}]}' returns 200 with a completion"
+    },
+
+    "PHASE_3_GEMINI_CLI_OR_BYPASS": {
+      "goal": "Fix Gemini CLI OR confirm fleet can run without it",
+      "diagnostic_first": [
+        "which gemini   →  expect /mnt/c/Users/User/AppData/Local/Volta/bin/gemini (broken Volta shim)",
+        "Read the shim and confirm error: line 2: volta: command not found",
+        "Check if any agent CLI actually needs the gemini binary (vs. calling 9router via HTTP) — grep scripts/spawn-agents-tmux.sh for 'gemini ' invocations"
+      ],
+      "instruction_branch_A_bypass": "If agents invoke Gemini via 9router HTTP (recommended), DROP the gemini-CLI dependency from spawn scripts. Document the change in proof.",
+      "instruction_branch_B_reinstall": "If a CLI is genuinely needed, install via npm: `npm install -g @google/gemini-cli` (no Volta). Verify `gemini --version`. Set GEMINI_API_KEY env if needed.",
+      "no_secret_in_proof": "If reinstall needs GEMINI_API_KEY, ask Tham — do not write keys into proofs"
+    },
+
+    "PHASE_4_OLLAMA_DECISION": {
+      "goal": "Decide whether to bring Ollama back, and if so, how",
+      "context": "Workers under PHASE_2 no longer depend on Ollama. Ollama is only needed if we want fallback to local models (ollama/glm-4.7-flash, qwen3.5, etc.).",
+      "options": {
+        "A_skip_ollama": "Recommended for now. Fleet recovers without Ollama. Document this decision in proofs/2026-05-21/MISSION-FLEET-RECOVERY.json under decisions[].",
+        "B_restart_ollama_windows": "Ollama runs on Windows host (port 11434). Recovery requires PowerShell action on Windows side. Do NOT execute foreground PowerShell from WSL — write a no-window launcher per skills/background-no-window/SKILL.md and ask Tham to confirm before pushing to Windows. Verify with: curl http://127.0.0.1:11434/api/tags (after start)."
+      },
+      "instruction": "Default: pick option A. Mark Ollama as optional in agent-registry comments. Only escalate to option B if Tham/พี่เอก explicitly requests."
+    },
+
+    "PHASE_5_RESPAWN_AND_VERIFY": {
+      "goal": "Bring tham-oracle-stack fleet back to clean state, one worker at a time",
+      "steps": [
+        "Kill all panes in tham-oracle-stack EXCEPT tham: `tmux send-keys -t tham-oracle-stack:<window> C-c`  then  `tmux kill-window -t tham-oracle-stack:<window>` (one at a time, NOT the tham pane)",
+        "DO NOT touch session 50-tham — Codex M0/M1/M2 lives there",
+        "Re-run: bash scripts/spawn-agents-tmux.sh  with env START_CODEX_AGENTS=1 START_GEMINI_AGENTS=1 START_THAM_CLAUDE=0",
+        "Wait 30 seconds, then capture each pane: tmux capture-pane -t tham-oracle-stack:<w> -p | tail -5",
+        "Probe each lane with a tiny ping prompt — confirm 200 OK from 9router for each chosen model",
+        "Watch for the codex.sh exit-status bug to be GONE (post-M0)",
+        "If any pane still errors, STOP. Write per-pane diagnostic to proofs/2026-05-21/MISSION-FLEET-RECOVERY-pane-<name>.md"
+      ]
+    },
+
+    "PHASE_6_PROOF": {
+      "goal": "Emit clean recovery proof",
+      "proof_file": "proofs/2026-05-21/MISSION-FLEET-RECOVERY.json",
+      "proof_schema": {
+        "mission_id": "MISSION-FLEET-RECOVERY-20260521",
+        "status": "completed | partial | failed",
+        "primary_model_chosen": "<id>",
+        "backup_model_chosen": "<id>",
+        "gemini_cli_resolution": "bypassed | reinstalled | deferred",
+        "ollama_decision": "skip | started | deferred",
+        "respawn_log": "tmux capture-pane tails for each of: core, codex, bob, gemini, housekeeper, watchdog",
+        "model_probe_results": [
+          { "worker": "codex", "model": "...", "probe": "ok|fail", "rtt_ms": 0 }
+        ],
+        "files_changed": ["..."],
+        "rollback_plan": "git diff is reversible; tmux session can be killed and respawned",
+        "next_action": "free Mission A dispatch — parallel work now possible"
+      }
+    }
+  },
+
+  "constraints": [
+    "MUST NOT start before MISSION-0 proof is green",
+    "MUST NOT kill tham pane in any session",
+    "MUST NOT kill any pane in 50-tham (Codex M0/M1/M2 host)",
+    "Do NOT execute foreground PowerShell from WSL — use no-window launcher or escalate",
+    "Do NOT write API keys into proofs or commits",
+    "If Ollama option B is chosen, surface a stop point for พี่เอก before touching Windows host",
+    "Do NOT commit changes — leave clean diff for review",
+    "Bump _version + _updated on every registry edited"
+  ],
+
+  "proof_required": true,
+  "estimated_minutes": 45,
+  "timeout_minutes": 120
+}

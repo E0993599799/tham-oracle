@@ -1,0 +1,139 @@
+{
+  "mission_id": "MISSION-B-LANGGRAPH-WIKI-20260521",
+  "lane": "codex-builder",
+  "delegated_by": "Tham Oracle",
+  "delegated_to": "Codex GPT-5.5 @ 50-tham:codex-gpt55",
+  "timestamp": "2026-05-21T22:20:00+07:00",
+  "priority": "P2",
+  "depends_on": ["MISSION-A-OBSIDIAN-REORG-20260521"],
+
+  "task": "Study langchain-ai/langgraph and implement a LangGraph state-graph runtime where graph nodes = claude-obsidian wiki operations (ingest, query, lint, save).",
+  "user_decision": "พี่เอก selected option 'LangGraph runs the wiki' — 2026-05-21. Graph nodes = wiki ops.",
+
+  "implementation_root": "/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle/integrations/langgraph-wiki/",
+  "target_vault": "/mnt/d/Obsidian",
+  "model_endpoint": "Codex GPT-5.5 (OpenAI direct) OR Claude Sonnet 4.6 via 9router — choose per node based on cost/quality",
+
+  "context_files_to_read_first": [
+    "skills/langgraph-runtime/SKILL.md",
+    "/mnt/d/Obsidian/claude-obsidian/WIKI.md",
+    "/mnt/d/Obsidian/claude-obsidian/skills/wiki/",
+    "/mnt/d/Obsidian/claude-obsidian/skills/wiki-ingest/",
+    "/mnt/d/Obsidian/claude-obsidian/skills/wiki-query/",
+    "/mnt/d/Obsidian/claude-obsidian/skills/wiki-lint/"
+  ],
+
+  "research_phase": {
+    "goal": "Become fluent in langgraph patterns before designing",
+    "steps": [
+      "git clone https://github.com/langchain-ai/langgraph into integrations/_research/langgraph/ (out of code path)",
+      "Skim: docs/, examples/, libs/langgraph/langgraph/graph/state.py, libs/langgraph/langgraph/checkpoint/",
+      "Identify the patterns we need: StateGraph, conditional_edges, checkpointing (SqliteSaver), interrupt for HITL",
+      "Write findings to integrations/langgraph-wiki/RESEARCH.md (max 400 lines, citations to specific langgraph source files)"
+    ]
+  },
+
+  "design": {
+    "state": {
+      "name": "WikiState",
+      "fields": [
+        "vault_path: str",
+        "operation: Literal['ingest','query','lint','save']",
+        "source_path: Optional[str]   # for ingest",
+        "question: Optional[str]      # for query",
+        "raw_content: Optional[str]",
+        "extracted_entities: list[dict]",
+        "extracted_concepts: list[dict]",
+        "pages_created: list[str]",
+        "pages_updated: list[str]",
+        "contradictions: list[dict]",
+        "log_entry: str",
+        "hot_cache_delta: str",
+        "errors: list[str]"
+      ]
+    },
+    "nodes": {
+      "read_source": "Load .raw/<path> into raw_content",
+      "extract_entities": "LLM call — list people, orgs, products, repos",
+      "extract_concepts": "LLM call — list ideas, patterns, frameworks",
+      "fetch_existing_pages": "Read wiki/index.md + relevant page basenames",
+      "write_source_summary": "Create wiki/sources/<title>.md with frontmatter",
+      "upsert_entity_pages": "For each entity: create or update wiki/entities/<name>.md",
+      "upsert_concept_pages": "For each concept: create or update wiki/concepts/<name>.md",
+      "cross_reference": "Bidirectional wikilink stitch — ensure every mention links back",
+      "detect_contradictions": "Compare new claims against existing pages — flag with [!contradiction] callout",
+      "update_index": "Add new entries to wiki/index.md",
+      "update_hot_cache": "Rewrite wiki/hot.md (≤500 words)",
+      "append_log": "Prepend dated entry to wiki/log.md",
+      "answer_query": "(query branch) Read hot.md → index.md → 3-5 relevant pages → synthesize",
+      "file_question": "(query branch) Optional — save synthesized answer to wiki/questions/",
+      "lint_orphans": "(lint branch) Scan for pages with 0 backlinks",
+      "lint_dead_links": "(lint branch) Scan for [[Page]] that doesn't resolve",
+      "lint_frontmatter_gaps": "(lint branch) Scan for missing fields",
+      "emit_lint_report": "(lint branch) Write wiki/meta/lint-report-<date>.md",
+      "emit_proof": "Write proof JSON to integrations/langgraph-wiki/proofs/<timestamp>.json"
+    },
+    "edges": {
+      "entry_router": "operation → ingest_branch | query_branch | lint_branch | save_branch",
+      "ingest_branch": "read_source → [extract_entities, extract_concepts] (parallel) → fetch_existing_pages → write_source_summary → [upsert_entity_pages, upsert_concept_pages] (parallel) → cross_reference → detect_contradictions → update_index → update_hot_cache → append_log → emit_proof",
+      "query_branch": "fetch_existing_pages → answer_query → (optional) file_question → emit_proof",
+      "lint_branch": "[lint_orphans, lint_dead_links, lint_frontmatter_gaps] (parallel) → emit_lint_report → emit_proof"
+    },
+    "checkpointing": "SqliteSaver at integrations/langgraph-wiki/.checkpoints/wiki.sqlite — allow resume on crash",
+    "hitl_interrupts": "interrupt_before=['cross_reference','update_index'] when contradictions.length>0 — surface to พี่เอก",
+    "obsidian_io": "use Local REST API at https://127.0.0.1:27124 if available; fallback to filesystem direct under /mnt/d/Obsidian/"
+  },
+
+  "deliverables": [
+    "integrations/langgraph-wiki/pyproject.toml (or requirements.txt) — explicit deps: langgraph>=0.2, langchain-anthropic, langchain-openai, pyyaml, python-frontmatter, httpx",
+    "integrations/langgraph-wiki/src/langgraph_wiki/__init__.py",
+    "integrations/langgraph-wiki/src/langgraph_wiki/state.py (WikiState dataclass)",
+    "integrations/langgraph-wiki/src/langgraph_wiki/nodes/*.py (one file per node)",
+    "integrations/langgraph-wiki/src/langgraph_wiki/graph.py (StateGraph wiring)",
+    "integrations/langgraph-wiki/src/langgraph_wiki/cli.py (entry: python -m langgraph_wiki <op> <args>)",
+    "integrations/langgraph-wiki/src/langgraph_wiki/obsidian_io.py (REST API + FS fallback)",
+    "integrations/langgraph-wiki/tests/test_smoke.py (ingest a tiny .raw sample → assert ≥3 pages created)",
+    "integrations/langgraph-wiki/README.md (install, run, configure)",
+    "integrations/langgraph-wiki/RESEARCH.md (from research phase)",
+    "integrations/langgraph-wiki/diagrams/graph.mermaid (state-graph diagram)",
+    "integrations/langgraph-wiki/.env.example (no real keys)"
+  ],
+
+  "smoke_test": {
+    "steps": [
+      "Create integrations/langgraph-wiki/tests/fixtures/sample.md (1-page article about a fake AI lab)",
+      "Run: python -m langgraph_wiki ingest tests/fixtures/sample.md --vault /tmp/test-vault",
+      "Assert: ≥1 source page, ≥1 entity page, ≥1 concept page, index updated, hot.md updated, log.md has new entry, sqlite checkpoint exists"
+    ]
+  },
+
+  "expected_output": {
+    "proof_file": "proofs/2026-05-21/MISSION-B-langgraph-wiki.json",
+    "proof_schema": {
+      "mission_id": "MISSION-B-LANGGRAPH-WIKI-20260521",
+      "status": "completed | partial | failed",
+      "research_artifact": "integrations/langgraph-wiki/RESEARCH.md",
+      "graph_diagram": "integrations/langgraph-wiki/diagrams/graph.mermaid",
+      "deliverable_count": "<files>",
+      "smoke_test_output": "stdout + assertion results",
+      "sqlite_checkpoint_path": "...",
+      "deps_installed": ["..."],
+      "next_action": "Run on real /mnt/d/Obsidian after Mission A completes"
+    }
+  },
+
+  "constraints": [
+    "Do NOT run on /mnt/d/Obsidian directly until Mission A is verified complete + lint clean — test with /tmp/test-vault only",
+    "Use Python 3.11+ (matches WSL env)",
+    "All LLM calls go through configured endpoint — do NOT hardcode API keys",
+    "Checkpoint after EVERY node — recoverable on crash",
+    "If langgraph version pinning conflicts with existing repo deps, isolate via venv at integrations/langgraph-wiki/.venv",
+    "Write idempotent — ingesting the same source twice should not create duplicate pages, only update timestamps",
+    "Respect WIKI.md §3 frontmatter schema strictly (flat YAML, no nested objects)",
+    "If a node fails, write partial proof + STOP — do not silently swallow errors"
+  ],
+
+  "proof_required": true,
+  "estimated_hours": 8,
+  "timeout_hours": 24
+}

@@ -1,0 +1,56 @@
+{
+  "mission_id": "MISSION-DOCS-PHASE4-20260521",
+  "lane": "codex-builder",
+  "delegated_by": "Tham Oracle",
+  "delegated_to": "Codex GPT-5.5 (or fleet worker)",
+  "timestamp": "2026-05-21T23:02:00+07:00",
+  "priority": "P3",
+  "depends_on": ["MISSION-FLEET-RECOVERY-20260521"],
+  "title": "Phase 4 Real-time Proof Dashboard — finish docs/phase-4/ (was TASK-003, untracked)",
+
+  "background": "docs/phase-4/{api,architecture,deployment,overview,troubleshooting}.md exist but are untracked AND have Unicode BOM/garbled text in spots. Phase 4 itself (WebSocket dashboard + APIs) is COMPLETED per TASK-001 — these docs just need to be polished and committed.",
+
+  "context_files_to_read_first": [
+    "docs/phase-4/overview.md",
+    "docs/phase-4/api.md",
+    "docs/phase-4/architecture.md",
+    "docs/phase-4/deployment.md",
+    "docs/phase-4/troubleshooting.md",
+    "server/websocket-server.py   (subject of docs)",
+    "server/proof-watcher.py",
+    "server/proof-playback-api.py",
+    "scripts/run-realtime-services.sh (if exists)"
+  ],
+
+  "deliverables": [
+    "Strip Unicode BOM and fix garbled characters (e.g., 'ealtime-dashboard' should be 'realtime-dashboard', 'un-realtime-services' should be 'run-realtime-services'). Likely cause: file written with PowerShell UTF-8-with-BOM",
+    "Cross-link the 5 docs — overview ↔ architecture ↔ api ↔ deployment ↔ troubleshooting",
+    "Add 'Quick Start' section to overview.md (3 commands max)",
+    "Add real curl examples in api.md (one per endpoint)",
+    "Architecture diagram (mermaid) in architecture.md",
+    "Deployment steps in deployment.md must run cleanly from a fresh WSL clone",
+    "Troubleshooting must cover: proof file not detected, WebSocket disconnects, playback API 404",
+    "Stage commit with descriptive message — do not push without พี่ review"
+  ],
+
+  "constraints": [
+    "Save all files as UTF-8 WITHOUT BOM",
+    "Do not invent commands — verify each shell snippet runs against the real scripts",
+    "Do not commit secrets"
+  ],
+
+  "expected_output": {
+    "proof_file": "proofs/2026-05-21/MISSION-DOCS-phase4.json",
+    "proof_schema": {
+      "files_polished": [],
+      "bom_stripped_count": 0,
+      "links_added": 0,
+      "commands_verified": 0,
+      "diagram_added": false
+    }
+  },
+
+  "proof_required": true,
+  "estimated_hours": 1.5,
+  "timeout_hours": 4
+}

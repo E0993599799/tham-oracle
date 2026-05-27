@@ -1,0 +1,149 @@
+{
+  "mission_id": "MISSION-TEMP-DEPLOY-COLLECTOR-20260521",
+  "lane": "codex-builder",
+  "delegated_by": "Tham Oracle",
+  "delegated_to": "Codex GPT-5.5 (primary) — promotable to fleet workers after MFLEET",
+  "timestamp": "2026-05-21T22:50:00+07:00",
+  "priority": "P0",
+  "depends_on": ["MISSION-0-WORKFLOW-FIX-20260521", "MISSION-FLEET-RECOVERY-20260521"],
+  "title": "Temperature Record — End-to-End Data Flow (HA → Supabase → Live Dashboard)",
+
+  "background": {
+    "what_is_done": [
+      "Vercel dashboard LIVE — https://temperature-record.vercel.app (HTTP 200)",
+      "Supabase 'temperature-record' project (tkxvrmjhekxpqvds, Singapore) — Phase 1: 3 tables + RLS + Realtime + 3 sample devices",
+      "Supabase 'SMD-Project' (itsvmtmgghvwjbhlejjt, Tokyo) — Migration 20260513103124_home_assistant_sensor_collector.sql created but NOT pushed",
+      "Code: /mnt/d/01 Main Work/DSM/tools/ha_data_collector.py (canonical) + /mnt/d/01 Main Work/DSM/ha-backup/ha_collector/ha_data_collector.py (backup copy)",
+      "Code: /mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle/supabase/migrations/20260513103124_home_assistant_sensor_collector.sql",
+      "Frontend pages live in PARENT repo (mission-control), not tham-oracle:",
+      "  /mnt/d/01 Main Work/Boots/Agentic AI/mission-control/app/temperature-monitoring/",
+      "  /mnt/d/01 Main Work/Boots/Agentic AI/mission-control/src/app/temperature-monitoring/",
+      "  /mnt/d/01 Main Work/Boots/Agentic AI/mission-control/src/components/temperature-monitoring/",
+      "  /mnt/d/01 Main Work/Boots/Agentic AI/mission-control/marcuzx-forge/projects/temperature-monitoring/",
+      "Edge Functions ALREADY exist (Phase 5 mostly done — verify & finish):",
+      "  /mnt/d/01 Main Work/Boots/Agentic AI/mission-control/supabase/functions/temperature-refrigerator-daily/",
+      "  /mnt/d/01 Main Work/Boots/Agentic AI/mission-control/supabase/functions/temperature-report-dispatch/"
+    ],
+    "what_is_missing": [
+      "supabase db push to SMD-Project not yet executed",
+      "ha_data_collector.py not yet running anywhere — HA→Supabase pipe empty",
+      "Dashboard reads from temperature-record (SG) but collector writes to SMD-Project (Tokyo). Two different Supabase projects — needs reconciliation",
+      "CLI token must be re-issued — old one was exposed in chat (per wiki/hot.md)",
+      "Email reporting tables exist (temperature_email_recipients, temperature_report_dispatches, temperature_email_delivery_log) but no Edge Function to dispatch"
+    ]
+  },
+
+  "context_files_to_read_first": [
+    "/mnt/d/Obsidian/wiki/domains/projects/SMD-HA-Sensor-Collector.md",
+    "/mnt/d/01 Main Work/DSM/tools/ha_data_collector.py",
+    "/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle/supabase/migrations/20260513103124_home_assistant_sensor_collector.sql",
+    "/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle/TEMPERATURE-SUPABASE-DEPLOYMENT.md",
+    "/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle/reports/TASK-TEMPERATURE-PHASE1-proof.json",
+    "/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle/reports/TASK-TEMPERATURE-PHASE2-proof.json"
+  ],
+
+  "phased_execution": {
+    "PHASE_0_RECONCILIATION_DECISION": {
+      "goal": "Decide ONE Supabase project of truth",
+      "options": {
+        "A_use_temperature_record_sg": "Use tkxvrmjhekxpqvds (Singapore, already has dashboard). Re-write migration for this project's existing schema; point collector here.",
+        "B_use_smd_project_tokyo": "Use itsvmtmgghvwjbhlejjt (Tokyo, SMD-Project). Push the existing migration; re-point the Vercel dashboard env vars to this project."
+      },
+      "recommendation": "Option B — SMD-Project already has the richer migration (email reporting tables, temperature_sensors config). Re-point dashboard env vars; cheaper than rebuilding schema in SG.",
+      "instruction": "Write decision + rationale to proofs/2026-05-21/MISSION-TEMP-phase0-decision.md. STOP and surface to Tham/พี่เอก before continuing if uncertain."
+    },
+
+    "PHASE_1_CLI_TOKEN_REISSUE": {
+      "goal": "Issue fresh Supabase CLI access token — old one was exposed in chat",
+      "instruction": "DO NOT request พี่เอก's interactive login via foreground PowerShell. Write a manual checklist to proofs/2026-05-21/MISSION-TEMP-phase1-token.md with steps พี่ runs in browser: dashboard.supabase.com → Account → Access Tokens → revoke + create new → paste into ~/.supabase/access-token (chmod 600). Wait for confirmation file at proofs/2026-05-21/TOKEN_REISSUED.flag before continuing."
+    },
+
+    "PHASE_2_MIGRATION_PUSH": {
+      "goal": "Apply migration to chosen Supabase project",
+      "steps": [
+        "cd /mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle",
+        "supabase login --token $(cat ~/.supabase/access-token)",
+        "supabase link --project-ref <ref-from-phase0>",
+        "supabase db diff   # confirm only the HA migration is pending",
+        "supabase db push   # apply",
+        "supabase migration list   # verify",
+        "Seed 3 devices: bash a SQL insert for sensor.t_h_sensor_chanwaangyaa_nmaaengin, _phuuenthiismaar_ngyaa, _tuueyn_probe"
+      ],
+      "proof": "command output captured to proofs/2026-05-21/MISSION-TEMP-phase2-migration.json"
+    },
+
+    "PHASE_3_COLLECTOR_DEPLOY": {
+      "goal": "Run ha_data_collector.py continuously, pushing HA sensor reads to Supabase",
+      "host_options": {
+        "local_windows_service": "Use NSSM or Windows Service to run python ha_data_collector.py on Windows — requires HA to be reachable from Windows host",
+        "wsl_systemd": "systemd unit inside WSL — only if HA is reachable from WSL (172.21.112.1 if HA is on Windows host)",
+        "gce_vm_existing": "Reuse existing GCE VM where HA runs (mentioned in wiki — Docker on GCE). Best operational fit; HA can reach Supabase outbound.",
+        "cloud_run_pull_model": "Cloud Run scheduled job that pulls HA via tunnel — needs tunnel setup (complicated, skip)"
+      },
+      "recommendation": "GCE VM existing (option 3). HA already runs there, outbound HTTPS to Supabase works, no new infra.",
+      "instruction": [
+        "Generate systemd unit ha_data_collector.service that runs the python script with .env loaded",
+        "Generate gcloud deploy script: scripts/deploy-ha-collector-gce.sh",
+        "Write a no-secret .env.example: HA_BASE_URL, HA_TOKEN, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, COLLECTOR_INTERVAL_SECONDS",
+        "DO NOT push secrets to git — add .env to .gitignore (verify)",
+        "Stage the deploy artifacts only — do not actually deploy. Surface deploy command to พี่เอก for one-shot trigger",
+        "Smoke plan: after พี่ deploys, verify with: curl -s 'https://<ref>.supabase.co/rest/v1/sensor_readings?select=count' -H 'apikey: <anon>' — should be >0 within 1 collector interval"
+      ],
+      "proof": "proofs/2026-05-21/MISSION-TEMP-phase3-deploy-staged.json — includes systemd unit text, deploy script, .env.example, GCE VM target identifier, smoke test command"
+    },
+
+    "PHASE_4_DASHBOARD_REPOINT_OR_VERIFY": {
+      "goal": "Wire Vercel dashboard to the chosen project (if Option B was picked)",
+      "steps": [
+        "If decision==A (stayed SG): skip this phase; ensure collector points to SG project credentials",
+        "If decision==B (Tokyo SMD): re-issue Vercel env vars (REACT_APP_SUPABASE_URL, REACT_APP_SUPABASE_ANON_KEY) to itsvmtmgghvwjbhlejjt — surface the exact `vercel env add` commands for พี่; do not run with secrets in this context",
+        "After พี่ rotates env vars and redeploys, verify dashboard reads sensor_readings (https request from collector)"
+      ],
+      "proof": "proofs/2026-05-21/MISSION-TEMP-phase4-dashboard-wired.json"
+    },
+
+    "PHASE_5_EMAIL_DISPATCHER_EDGE_FUNCTION": {
+      "goal": "Verify and finish the existing Email Edge Functions (do NOT recreate)",
+      "existing_functions_to_inspect_first": [
+        "/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/supabase/functions/temperature-report-dispatch/index.ts",
+        "/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/supabase/functions/temperature-refrigerator-daily/index.ts"
+      ],
+      "steps": [
+        "READ both existing function source files end-to-end before any changes",
+        "Verify: does the function poll temperature_report_dispatches WHERE status='queued' → send email → update status='sent'/'failed' → log into temperature_email_delivery_log?",
+        "If logic is complete: write deploy command (supabase functions deploy temperature-report-dispatch) and surface to พี่ — do not deploy",
+        "If logic has gaps: write a focused patch (no rewrite) and document the gap in the proof",
+        "Confirm Supabase cron / Scheduled Function setup — if missing, surface SQL to add daily 07:00 GMT+7 cron",
+        "Email provider: check env var convention used by existing function (RESEND_API_KEY / SMTP_*) — preserve it, do not change provider"
+      ],
+      "proof": "proofs/2026-05-21/MISSION-TEMP-phase5-email-dispatcher.json — must include existing-function summary + gap list + deploy command staged"
+    }
+  },
+
+  "expected_output": {
+    "proof_files": [
+      "proofs/2026-05-21/MISSION-TEMP-phase0-decision.md",
+      "proofs/2026-05-21/MISSION-TEMP-phase1-token.md",
+      "proofs/2026-05-21/MISSION-TEMP-phase2-migration.json",
+      "proofs/2026-05-21/MISSION-TEMP-phase3-deploy-staged.json",
+      "proofs/2026-05-21/MISSION-TEMP-phase4-dashboard-wired.json",
+      "proofs/2026-05-21/MISSION-TEMP-phase5-email-dispatcher.json",
+      "proofs/2026-05-21/MISSION-TEMP-deploy-collector.json   (final aggregate)"
+    ],
+    "end_state": "HA → Supabase data flow live, dashboard shows real readings, email dispatcher staged for cron",
+    "live_check_command": "curl -sk 'https://<chosen-ref>.supabase.co/rest/v1/sensor_readings?select=ts,value,device_id&order=ts.desc&limit=5' -H 'apikey: $ANON'"
+  },
+
+  "constraints": [
+    "Do NOT push secrets in commits — verify .gitignore covers .env, ~/.supabase/access-token, deploy keys",
+    "Do NOT run interactive foreground PowerShell from WSL — use checklists for พี่",
+    "Do NOT issue `vercel --prod` automatically — stage commands for พี่",
+    "Do NOT run `supabase db push` until phase 0 decision is logged",
+    "Every phase writes its own partial proof; if any phase blocks, write MISSION-TEMP-block-<phase>.md and stop",
+    "If GCE VM access is not available from Codex's WSL, stop at phase 3 and surface to พี่"
+  ],
+
+  "proof_required": true,
+  "estimated_hours": 3,
+  "timeout_hours": 12
+}
