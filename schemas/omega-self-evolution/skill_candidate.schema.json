@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.omega.self.evolution/skill_candidate.schema.json",
+  "title": "Omega Skill Candidate",
+  "description": "Candidate record for a repeatable and proof-backed skill.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "candidate_id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "source_pattern": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "trigger_conditions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "benchmark_ref": {
+      "type": "string"
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "rollback": {
+      "type": "string"
+    },
+    "test_case_ref": {
+      "type": "string"
+    },
+    "dashboard_status": {
+      "type": "string",
+      "enum": [
+        "candidate",
+        "testing",
+        "promoted",
+        "quarantined",
+        "deprecated",
+        "retired"
+      ]
+    },
+    "obsidian_writeback_path": {
+      "type": "string"
+    },
+    "usage_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "success_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "fail_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "owner_agent": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "candidate",
+        "testing",
+        "promoted",
+        "quarantined",
+        "deprecated",
+        "retired"
+      ]
+    }
+  },
+  "required": [
+    "candidate_id",
+    "name",
+    "source_pattern",
+    "description",
+    "trigger_conditions",
+    "evidence_refs",
+    "benchmark_ref",
+    "rollback",
+    "test_case_ref",
+    "dashboard_status",
+    "obsidian_writeback_path",
+    "status"
+  ]
+}

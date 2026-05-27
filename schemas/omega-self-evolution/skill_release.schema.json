@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.omega.self.evolution/skill_release.schema.json",
+  "title": "Omega Skill Release",
+  "description": "Weekly release record for skill registry updates.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "release_id": {
+      "type": "string"
+    },
+    "version": {
+      "type": "string"
+    },
+    "added": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "improved": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "deprecated": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "quarantined": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "retired": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "eval_score": {
+      "type": "number"
+    },
+    "proof_links": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "rollback_path": {
+      "type": "string"
+    },
+    "next_focus": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "approved_by": {
+      "type": "string"
+    },
+    "released_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "notes": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "approved",
+        "released",
+        "rolled_back"
+      ]
+    }
+  },
+  "required": [
+    "release_id",
+    "version",
+    "eval_score",
+    "proof_links",
+    "rollback_path",
+    "released_at",
+    "status"
+  ]
+}

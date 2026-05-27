@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.omega.self.evolution/failure_event.schema.json",
+  "title": "Omega Failure Event",
+  "description": "Structured failure record for OMEGA failure harvesting.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "failure_id": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "class": {
+      "type": "string",
+      "enum": [
+        "PROMPT_FAIL",
+        "TOOL_FAIL",
+        "MEMORY_FAIL",
+        "SOT_FAIL",
+        "EXEC_FAIL",
+        "PROOF_FAIL",
+        "COST_FAIL",
+        "LATENCY_FAIL",
+        "UX_FAIL",
+        "SECURITY_FAIL",
+        "LOOP_FAIL",
+        "ROUTER_FAIL",
+        "OBSIDIAN_WRITEBACK_FAIL",
+        "DASHBOARD_FAIL"
+      ]
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "SEV-1",
+        "SEV-2",
+        "SEV-3",
+        "SEV-4",
+        "SEV-5"
+      ]
+    },
+    "component": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "detection_signal": {
+      "type": "string"
+    },
+    "containment_action": {
+      "type": "string"
+    },
+    "prevention_rule": {
+      "type": "string"
+    },
+    "required_proof": {
+      "type": "string"
+    },
+    "related_task_id": {
+      "type": "string"
+    },
+    "related_trace_id": {
+      "type": "string"
+    },
+    "proof_artifact_id": {
+      "type": "string"
+    },
+    "root_cause_candidate": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "contained",
+        "resolved",
+        "wont_fix"
+      ]
+    }
+  },
+  "required": [
+    "failure_id",
+    "timestamp",
+    "class",
+    "severity",
+    "component",
+    "summary",
+    "detection_signal",
+    "containment_action",
+    "required_proof",
+    "status"
+  ]
+}

@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.omega.self.evolution/proof_artifact.schema.json",
+  "title": "Omega Proof Artifact",
+  "description": "Proof item produced by a task or automation.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "proof_id": {
+      "type": "string"
+    },
+    "task_id": {
+      "type": "string"
+    },
+    "trace_id": {
+      "type": "string"
+    },
+    "artifact_type": {
+      "type": "string",
+      "enum": [
+        "json",
+        "md",
+        "png",
+        "log",
+        "csv",
+        "html",
+        "jsonl",
+        "screenshot",
+        "other"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "valid",
+        "weak",
+        "missing",
+        "rejected",
+        "superseded"
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "uri": {
+      "type": "string"
+    },
+    "sha256": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "verifier": {
+      "type": "string"
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "related_paths": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "source_system": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "proof_id",
+    "task_id",
+    "artifact_type",
+    "status",
+    "created_at",
+    "uri",
+    "sha256"
+  ]
+}

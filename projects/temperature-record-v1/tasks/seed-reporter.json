@@ -1,0 +1,8 @@
+﻿{
+    "provider":  "native_claude",
+    "goal":  "Draft A4 PDF Report Template",
+    "created_at":  "2026-05-22 04:53:39",
+    "role":  "reporter",
+    "agent_id":  "seed-reporter",
+    "status":  "pending"
+}

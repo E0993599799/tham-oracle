@@ -1,0 +1,1 @@
+Schema package for Omega self-evolution. The JSON schemas in this folder define the contracts for traces, proofs, failures, scorecards, memory deltas, automation runs, skill candidates, skill releases, prompt patches, and weekly capability bets. Phase 0/1 only. NOT RUN-PROVEN.

@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.omega.self.evolution/memory_delta.schema.json",
+  "title": "Omega Memory Delta",
+  "description": "Candidate memory update for episodic, semantic, procedural, or policy memory.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "memory_delta_id": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string"
+    },
+    "candidate_type": {
+      "type": "string",
+      "enum": [
+        "episodic",
+        "semantic",
+        "procedural",
+        "policy"
+      ]
+    },
+    "current_value": {
+      "type": "string"
+    },
+    "proposed_value": {
+      "type": "string"
+    },
+    "reason": {
+      "type": "string"
+    },
+    "proof": {
+      "type": "string"
+    },
+    "risk": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "candidate",
+        "accepted",
+        "rejected",
+        "needs_human_review",
+        "superseded"
+      ]
+    },
+    "review_owner": {
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "memory_delta_id",
+    "source",
+    "candidate_type",
+    "current_value",
+    "proposed_value",
+    "reason",
+    "proof",
+    "risk",
+    "status"
+  ]
+}

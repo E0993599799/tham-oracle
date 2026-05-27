@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.omega.self.evolution/task_trace.schema.json",
+  "title": "Omega Task Trace",
+  "description": "Trace record for one automation or task execution.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "trace_id": {
+      "type": "string"
+    },
+    "task_id": {
+      "type": "string"
+    },
+    "cycle_type": {
+      "type": "string",
+      "enum": [
+        "12h",
+        "daily",
+        "weekly",
+        "ad_hoc"
+      ]
+    },
+    "automation_name": {
+      "type": "string"
+    },
+    "agent_name": {
+      "type": "string"
+    },
+    "lane": {
+      "type": "string"
+    },
+    "contract_ref": {
+      "type": "string"
+    },
+    "input_summary": {
+      "type": "string"
+    },
+    "output_summary": {
+      "type": "string"
+    },
+    "proof_artifact_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "queued",
+        "running",
+        "passed",
+        "failed",
+        "blocked",
+        "cancelled"
+      ]
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "ended_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "latency_ms": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "token_usage": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "cost_usd": {
+      "type": "number",
+      "minimum": 0
+    },
+    "memory_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "failure_event_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "dashboard_card": {
+      "type": "string"
+    },
+    "obsidian_writeback_path": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "trace_id",
+    "task_id",
+    "automation_name",
+    "lane",
+    "contract_ref",
+    "started_at",
+    "status",
+    "proof_artifact_ids"
+  ]
+}

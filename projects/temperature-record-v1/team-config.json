@@ -1,0 +1,19 @@
+﻿{
+    "providers":  [
+                      {
+                          "name":  "codex",
+                          "preferred_for":  "builder"
+                      },
+                      {
+                          "name":  "gemini",
+                          "preferred_for":  "inspector"
+                      },
+                      {
+                          "name":  "native_claude",
+                          "preferred_for":  "orchestrator"
+                      }
+                  ],
+    "orchestrator":  "tham-oracle",
+    "status":  "initialized",
+    "team_name":  "temperature-record-seed-team"
+}

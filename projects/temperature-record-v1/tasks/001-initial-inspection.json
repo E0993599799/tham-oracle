@@ -1,0 +1,10 @@
+﻿{
+    "team":  "temperature-record-seed-team",
+    "selected_role":  "inspector",
+    "goal":  "Analyze Blueprint and identify missing automation functions",
+    "task_id":  "001-initial-inspection",
+    "project":  "temperature-record",
+    "relevant_memory":  "Blueprint found in TEMPERATURE-SUPABASE-DEPLOYMENT.md",
+    "selected_provider":  "gemini",
+    "output_contract":  "List of missing SQL functions or scripts for automation"
+}

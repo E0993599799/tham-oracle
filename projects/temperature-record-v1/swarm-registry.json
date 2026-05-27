@@ -1,0 +1,37 @@
+﻿[
+    {
+        "status":  "spawning",
+        "provider":  "codex",
+        "task":  "Create SQL Schema \u0026 Migrations",
+        "id":  "seed-builder-sql",
+        "role":  "builder"
+    },
+    {
+        "status":  "spawning",
+        "provider":  "codex",
+        "task":  "Prepare Supabase Edge Functions",
+        "id":  "seed-builder-api",
+        "role":  "builder"
+    },
+    {
+        "status":  "spawning",
+        "provider":  "gemini",
+        "task":  "Verify Blueprint Alignment",
+        "id":  "seed-inspector",
+        "role":  "inspector"
+    },
+    {
+        "status":  "spawning",
+        "provider":  "gemini",
+        "task":  "Design Missing Slot Logic",
+        "id":  "seed-watchdog",
+        "role":  "watchdog"
+    },
+    {
+        "status":  "spawning",
+        "provider":  "native_claude",
+        "task":  "Draft A4 PDF Report Template",
+        "id":  "seed-reporter",
+        "role":  "reporter"
+    }
+]

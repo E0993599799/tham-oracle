@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.omega.self.evolution/prompt_patch.schema.json",
+  "title": "Omega Prompt Patch",
+  "description": "Proposed or applied prompt repair for the Omega system.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "patch_id": {
+      "type": "string"
+    },
+    "target_prompt": {
+      "type": "string"
+    },
+    "prompt_version_before": {
+      "type": "string"
+    },
+    "prompt_version_after": {
+      "type": "string"
+    },
+    "issue_summary": {
+      "type": "string"
+    },
+    "change_summary": {
+      "type": "string"
+    },
+    "rationale": {
+      "type": "string"
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "candidate",
+        "approved",
+        "applied",
+        "rejected",
+        "rolled_back"
+      ]
+    },
+    "rollout_scope": {
+      "type": "string"
+    },
+    "rollback_path": {
+      "type": "string"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "reviewed_by": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "patch_id",
+    "target_prompt",
+    "prompt_version_before",
+    "prompt_version_after",
+    "issue_summary",
+    "change_summary",
+    "evidence_refs",
+    "status",
+    "rollback_path",
+    "created_at"
+  ]
+}

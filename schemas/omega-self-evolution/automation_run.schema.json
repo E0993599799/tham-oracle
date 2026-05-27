@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.omega.self.evolution/automation_run.schema.json",
+  "title": "Omega Automation Run",
+  "description": "One scheduled automation execution with status and proof references.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "run_id": {
+      "type": "string"
+    },
+    "automation_name": {
+      "type": "string"
+    },
+    "cycle_type": {
+      "type": "string",
+      "enum": [
+        "12h",
+        "daily",
+        "weekly"
+      ]
+    },
+    "scheduled_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "ended_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "queued",
+        "running",
+        "passed",
+        "failed",
+        "blocked",
+        "skipped",
+        "cancelled"
+      ]
+    },
+    "inputs": {
+      "type": "object"
+    },
+    "outputs": {
+      "type": "object"
+    },
+    "proof_artifacts": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "failure_event_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "dashboard_card": {
+      "type": "string"
+    },
+    "obsidian_writeback_path": {
+      "type": "string"
+    },
+    "retry_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "kill_switch_state": {
+      "type": "string",
+      "enum": [
+        "armed",
+        "off",
+        "engaged"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "run_id",
+    "automation_name",
+    "cycle_type",
+    "scheduled_at",
+    "started_at",
+    "status",
+    "inputs",
+    "outputs",
+    "proof_artifacts",
+    "dashboard_card"
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.omega.self.evolution/weekly_capability_bet.schema.json",
+  "title": "Omega Weekly Capability Bet",
+  "description": "One-week improvement bet with proof and rollback.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "bet_id": {
+      "type": "string"
+    },
+    "week": {
+      "type": "string"
+    },
+    "theme": {
+      "type": "string"
+    },
+    "hypothesis": {
+      "type": "string"
+    },
+    "expected_gain": {
+      "type": "string"
+    },
+    "success_metric": {
+      "type": "string"
+    },
+    "owner": {
+      "type": "string"
+    },
+    "required_proofs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "proposed",
+        "active",
+        "won",
+        "lost",
+        "blocked",
+        "rolled_back"
+      ]
+    },
+    "rollback_path": {
+      "type": "string"
+    },
+    "decision_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "bet_id",
+    "week",
+    "theme",
+    "hypothesis",
+    "expected_gain",
+    "success_metric",
+    "owner",
+    "required_proofs",
+    "risk_level",
+    "status",
+    "rollback_path",
+    "decision_date"
+  ]
+}

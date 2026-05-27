@@ -1,0 +1,17 @@
+cd '/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle'
+mkdir -p '/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle/reports/progress' '/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle/reports/autonomous-fleet/20260521_203332/logs'
+printf '[%s] %s: Task received, starting now\n' "$(date -Iseconds)" 'codex' | tee -a '/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle/reports/progress/codex.md'
+(
+  while true; do
+    sleep 120
+    printf '[%s] %s heartbeat: still active; latest progress follows.\n' "$(date -Iseconds)" 'codex' >> '/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle/reports/progress/tham-inbox.log'
+    tail -n 20 '/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle/reports/progress/codex.md' >> '/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle/reports/progress/tham-inbox.log' 2>/dev/null || true
+    tmux send-keys -t 'tham-oracle-stack:tham' "[heartbeat:codex] $(date -Iseconds) latest status written to reports/progress/codex.md" C-m 2>/dev/null || true
+  done
+) & HEARTBEAT_PID=$!
+trap 'kill $HEARTBEAT_PID 2>/dev/null || true' EXIT
+set +e
+OPENAI_BASE_URL='http://127.0.0.1:20128/v1' cmd.exe /c cd /d 'D:\01 Main Work\Boots\Agentic AI\mission-control\tham-oracle' '&&' codex exec --sandbox workspace-write -C 'D:\01 Main Work\Boots\Agentic AI\mission-control\tham-oracle' - < '/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle/reports/autonomous-fleet/20260521_203332/prompts/codex.md' 2>&1 | tee -a '/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle/reports/autonomous-fleet/20260521_203332/logs/codex.log'
+STATUS=$?
+echo "agent exit status: $STATUS" | tee -a '/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle/reports/progress/codex.md'
+exec bash

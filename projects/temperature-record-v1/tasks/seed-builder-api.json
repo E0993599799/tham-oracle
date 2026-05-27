@@ -1,0 +1,8 @@
+﻿{
+    "provider":  "codex",
+    "goal":  "Prepare Supabase Edge Functions",
+    "created_at":  "2026-05-22 04:53:39",
+    "role":  "builder",
+    "agent_id":  "seed-builder-api",
+    "status":  "pending"
+}

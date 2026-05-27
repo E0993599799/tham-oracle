@@ -1,0 +1,106 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.omega.self.evolution/agent_scorecard.schema.json",
+  "title": "Omega Agent Scorecard",
+  "description": "Periodic scorecard for agent performance and safety.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "scorecard_id": {
+      "type": "string"
+    },
+    "agent_name": {
+      "type": "string"
+    },
+    "period_start": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "period_end": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "task_success": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 25
+    },
+    "proof_quality": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 20
+    },
+    "speed": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 15
+    },
+    "cost_efficiency": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 15
+    },
+    "memory_correctness": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 10
+    },
+    "safety_sot_compliance": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 10
+    },
+    "human_usefulness": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 5
+    },
+    "overall_score": {
+      "type": "number"
+    },
+    "recommendation": {
+      "type": "string",
+      "enum": [
+        "promote",
+        "keep",
+        "narrow",
+        "retire",
+        "quarantine"
+      ]
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "notes": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "reviewed",
+        "approved",
+        "archived"
+      ]
+    }
+  },
+  "required": [
+    "scorecard_id",
+    "agent_name",
+    "period_start",
+    "period_end",
+    "task_success",
+    "proof_quality",
+    "speed",
+    "cost_efficiency",
+    "memory_correctness",
+    "safety_sot_compliance",
+    "human_usefulness",
+    "overall_score",
+    "recommendation",
+    "evidence_refs"
+  ]
+}
