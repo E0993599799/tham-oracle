@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# start-tham-dashboard.sh — Start Tham Oracle Next.js Dashboard on port 3000
+# start-tham-dashboard.sh — Start Tham Oracle Next.js Dashboard on port 3005
 # Sections: Fleet (34 oracles), Git, Memory Gate, Session Metrics, Queue
 
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 DASH_DIR="$REPO_ROOT/dashboard-next"
-PORT="${1:-3000}"
+PORT="${1:-3005}"
 
 export THAM_REPO_ROOT="$REPO_ROOT"
 
@@ -30,4 +30,5 @@ echo "  Dashboard → http://localhost:$PORT"
 echo "  Ctrl+C to stop"
 echo ""
 
-exec bun run --cwd "$DASH_DIR" start -- -p "$PORT"
+cd "$DASH_DIR"
+exec "$DASH_DIR/node_modules/.bin/next" start -p "$PORT"

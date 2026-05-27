@@ -6,6 +6,9 @@ set -e
 REPO_ROOT="/root/ghq/github.com/E0993599799/tham-oracle"
 LOG_DIR="$REPO_ROOT/logs"
 mkdir -p "$LOG_DIR"
+WINDOWS_HOST_IP="${WINDOWS_HOST_IP:-$(awk '/^nameserver /{print $2; exit}' /etc/resolv.conf 2>/dev/null)}"
+WINDOWS_HOST_IP="${WINDOWS_HOST_IP:-127.0.0.1}"
+ROUTER_BASE_URL="${ROUTER_BASE_URL:-http://${WINDOWS_HOST_IP}:20128}"
 
 echo "╔═══════════════════════════════════════════════════════════════════════╗"
 echo "║              Full-Stack Startup: Executor Lane Router                 ║"
@@ -13,11 +16,11 @@ echo "╚═══════════════════════�
 echo ""
 
 # Step 1: Wait for 9router
-echo "📍 Step 1: Waiting for 9router on localhost:20128..."
+echo "📍 Step 1: Waiting for 9router on ${WINDOWS_HOST_IP}:20128..."
 RETRY=0
 MAX_RETRIES=30
 while [ $RETRY -lt $MAX_RETRIES ]; do
-    if curl -s http://localhost:20128/v1/models > /dev/null 2>&1; then
+    if curl -s "${ROUTER_BASE_URL}/v1/models" > /dev/null 2>&1; then
         echo "✅ 9router is online"
         break
     fi
@@ -27,10 +30,10 @@ while [ $RETRY -lt $MAX_RETRIES ]; do
 done
 
 if [ $RETRY -eq $MAX_RETRIES ]; then
-    echo "❌ 9router not found on localhost:20128"
+    echo "❌ 9router not found on ${WINDOWS_HOST_IP}:20128"
     echo ""
     echo "Fix: Start 9router from Windows PowerShell:"
-    echo "     & \"\$env:LOCALAPPDATA\\Volta\\bin\\9router.exe\" --port 20128"
+    echo "     & \"\$env:LOCALAPPDATA\\Volta\\bin\\9router.cmd\" --port 20128 --host 0.0.0.0 --no-browser --tray --skip-update"
     echo ""
     exit 1
 fi
@@ -51,7 +54,7 @@ echo "📍 Step 3: Health check..."
 echo ""
 
 # Check 9router
-if curl -s http://localhost:20128/v1/models > /dev/null; then
+if curl -s "${ROUTER_BASE_URL}/v1/models" > /dev/null; then
     echo "  ✅ 9router (port 20128): ONLINE"
 else
     echo "  ❌ 9router (port 20128): OFFLINE"
@@ -82,7 +85,7 @@ echo "╚═══════════════════════�
 echo ""
 echo "Services Running:"
 echo "  • 9router (Model routing):"
-echo "    http://localhost:20128/v1"
+echo "    ${ROUTER_BASE_URL}/v1"
 echo ""
 echo "  • WebSocket (Real-time streaming):"
 echo "    ws://localhost:8765"
@@ -94,7 +97,7 @@ echo "Open Dashboard:"
 echo "  file://$REPO_ROOT/dashboard/realtime-dashboard.html"
 echo ""
 echo "Test APIs:"
-echo "  curl http://localhost:20128/v1/models         # List models"
+echo "  curl ${ROUTER_BASE_URL}/v1/models         # List models"
 echo "  curl http://localhost:8766/health              # API health"
 echo "  curl http://localhost:8766/api/proofs?date=2026-05-17  # Proofs"
 echo ""

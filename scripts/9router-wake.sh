@@ -2,8 +2,10 @@
 # Wake up 9router by opening dashboard in browser
 # Usage: bash scripts/9router-wake.sh [--ps | --browser]
 
-DASHBOARD_URL="http://localhost:20128/dashboard"
-API_URL="http://localhost:20128/v1/models"
+WINDOWS_HOST_IP="${WINDOWS_HOST_IP:-$(awk '/^nameserver /{print $2; exit}' /etc/resolv.conf 2>/dev/null)}"
+WINDOWS_HOST_IP="${WINDOWS_HOST_IP:-127.0.0.1}"
+DASHBOARD_URL="http://${WINDOWS_HOST_IP}:20128/dashboard"
+API_URL="http://${WINDOWS_HOST_IP}:20128/v1/models"
 
 echo "🔧 9router Wake-up Tool"
 echo ""
@@ -23,16 +25,16 @@ case "${1:-browser}" in
 
   --check)
     echo "Checking 9router status..."
-    if timeout 2 curl -s http://127.0.0.1:20128/health 2>/dev/null >/dev/null; then
+    if timeout 2 curl -s http://${WINDOWS_HOST_IP}:20128/health 2>/dev/null >/dev/null; then
       echo "✅ 9router is UP"
       echo ""
       echo "Models available:"
-      curl -s http://127.0.0.1:20128/v1/models 2>/dev/null | head -50
+      curl -s http://${WINDOWS_HOST_IP}:20128/v1/models 2>/dev/null | head -50
     else
       echo "⚠️  9router is DOWN"
       echo ""
       echo "To start on Windows, run in PowerShell:"
-      echo "  Get-Service 9router | Start-Service"
+      echo '  Start 9router with: & "$env:LOCALAPPDATA\Volta\bin\9router.cmd" --port 20128 --host 0.0.0.0 --no-browser --tray --skip-update'
     fi
     ;;
 

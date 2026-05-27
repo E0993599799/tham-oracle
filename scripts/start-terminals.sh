@@ -8,7 +8,7 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 PORT="${1:-3002}"
-SESSION="${2:-oracle-fleet}"
+SESSION="${2:-${THAM_ORACLE_SESSION:-tham-oracle-stack}}"
 NODE="${HOME}/.nvm/versions/node/v24.15.0/bin/node"
 
 # Fallback to system node
@@ -29,7 +29,7 @@ echo ""
 
 if ! tmux has-session -t "$SESSION" 2>/dev/null; then
   echo "⚠ Session '$SESSION' not running — dashboard will show empty state."
-  echo "  Start it: bash scripts/oracle-fleet.sh"
+  echo "  Start it: bash scripts/spawn-agents-tmux.sh"
   echo ""
 fi
 

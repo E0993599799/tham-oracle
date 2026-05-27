@@ -6,8 +6,36 @@ set -e
 
 SESSION="tham-oracle-stack"
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+WINDOWS_HOST_IP="${WINDOWS_HOST_IP:-$(awk '/^nameserver /{print $2; exit}' /etc/resolv.conf 2>/dev/null)}"
+WINDOWS_HOST_IP="${WINDOWS_HOST_IP:-127.0.0.1}"
+ROUTER_BASE_URL="${ROUTER_BASE_URL:-http://${WINDOWS_HOST_IP}:20128}"
+ROUTER_WAIT_SECS="${ROUTER_WAIT_SECS:-60}"
+ROUTER_POLL_SECS="${ROUTER_POLL_SECS:-2}"
+
+wait_for_router() {
+  echo "🔎 Waiting for 9router at ${WINDOWS_HOST_IP}:20128..."
+  local waited=0
+  while [ "$waited" -lt "$ROUTER_WAIT_SECS" ]; do
+    if timeout 2 curl -s "${ROUTER_BASE_URL}/v1/models" >/dev/null 2>&1; then
+      echo "✅ 9router ready: ${ROUTER_BASE_URL}/v1/models"
+      return 0
+    fi
+    waited=$((waited + ROUTER_POLL_SECS))
+    echo "   ⏳ ${waited}/${ROUTER_WAIT_SECS}s"
+    sleep "$ROUTER_POLL_SECS"
+  done
+  echo "❌ 9router not ready after ${ROUTER_WAIT_SECS}s"
+  echo "   Start on Windows with: powershell -ExecutionPolicy Bypass -File scripts\\Start-9router.ps1"
+  return 1
+}
 
 echo "🚀 Spawning Tham Oracle agents via tmux..."
+echo ""
+
+if ! wait_for_router; then
+  exit 1
+fi
+
 echo ""
 
 # Kill existing session if running

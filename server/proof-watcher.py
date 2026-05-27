@@ -13,7 +13,7 @@ from datetime import datetime
 from collections import deque, defaultdict
 from typing import List, Dict, Any
 
-REPO_ROOT = Path("/root/ghq/github.com/E0993599799/tham-oracle")
+REPO_ROOT = Path(__file__).parent.parent.absolute()
 PROOFS_DIR = REPO_ROOT / "proofs"
 
 
@@ -169,6 +169,100 @@ class ProofWatcher:
         return anomalies
 
 
+
+    @property
+    def proofs(self) -> List[Dict[str, Any]]:
+        """Compatibility view of the in-memory proof cache."""
+        return list(self.proof_queue)
+
+    def load_daily_proofs(self, target_date: str = None) -> int:
+        """Compatibility wrapper used by the test suite and dashboard services."""
+        loaded = self.load_all_proofs(target_date)
+        return len(loaded)
+
+    def get_stats(self, hours: int = 24) -> Dict[str, Any]:
+        """Compatibility wrapper returning proof statistics."""
+        stats = self.get_proof_stats(hours)
+        total = stats["total_proofs"]
+        success_rate = (stats["successful"] / total) if total else 0.0
+        return {
+            "total_proofs": total,
+            "by_status": {
+                "SUCCESS": stats["successful"],
+                "BLOCKED": stats["blocked"],
+                "ERROR": stats["error"],
+                "TIMEOUT": stats["timeout"],
+            },
+            "success_rate": success_rate,
+            "avg_duration_seconds": stats["avg_duration"],
+            "by_lane": stats["by_lane"],
+            "by_risk": stats["by_risk"],
+            "blocked": stats["blocked"],
+            "error": stats["error"],
+            "timeout": stats["timeout"],
+        }
+
+    def get_lane_stats(self, lane: str) -> Dict[str, Any]:
+        """Return lane-level statistics in a dashboard-friendly format."""
+        stats = self.lane_stats[lane]
+        count = stats["count"]
+        successful = stats["successful"]
+        success_rate = round((successful / count), 3) if count else 0.0
+        return {
+            "count": count,
+            "successful": successful,
+            "failed": count - successful,
+            "success_rate": success_rate,
+            "status_breakdown": {
+                "SUCCESS": successful,
+                "FAILED": count - successful,
+            },
+        }
+
+    def get_dashboard_snapshot(self, recent_count: int = 20) -> Dict[str, Any]:
+        """Build a dashboard-ready snapshot for live monitor surfaces."""
+        stats = self.get_proof_stats()
+        lane_status = {}
+        for lane in ["codex_gpt55", "claude", "gemini", "ollama", "hermes", "powershell_sfsr"]:
+            lane_stats = self.get_lane_stats(lane)
+            count = lane_stats["count"]
+            rate_pct = lane_stats["success_rate"] * 100 if count else 0
+            if count == 0:
+                emoji = "⚪"
+                status = "idle"
+            elif rate_pct >= 80:
+                emoji = "🟢"
+                status = "healthy"
+            elif rate_pct >= 50:
+                emoji = "🟡"
+                status = "degraded"
+            else:
+                emoji = "🔴"
+                status = "down"
+            lane_status[lane] = {
+                "emoji": emoji,
+                "status": status,
+                "count": count,
+                "successful": lane_stats["successful"],
+                "success_rate": lane_stats["success_rate"],
+            }
+
+        return {
+            "generated_at": datetime.now().isoformat(),
+            "total_proofs": stats["total_proofs"],
+            "successful": stats["successful"],
+            "blocked": stats["blocked"],
+            "error": stats["error"],
+            "timeout": stats["timeout"],
+            "success_rate": (stats["successful"] / stats["total_proofs"]) if stats["total_proofs"] else 0.0,
+            "avg_duration": stats["avg_duration"],
+            "by_lane": stats["by_lane"],
+            "by_risk": stats["by_risk"],
+            "lane_status": lane_status,
+            "recent_proofs": self.get_recent_proofs(count=recent_count),
+            "anomalies": self.detect_anomalies(),
+            "queue_size": len(self.proof_queue),
+        }
 def main():
     """Test the watcher."""
     print("🔍 Proof Watcher Test")

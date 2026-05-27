@@ -1,21 +1,58 @@
 {
-  "lane_id": "orchestrator",
-  "agent": "tham",
-  "description": "ธาม รับ intent จาก Human → decode → route ไปยัง executor lane ที่เหมาะสม",
-  "input_format": "natural language (Thai/English)",
-  "output_format": "structured contract + proof",
-  "risk_gate": "always-on",
-  "memory_gate": "always-on",
-  "proof_required": true,
-  "allowed_actions": [
-    "read-memory", "write-memory", "search-oracle",
-    "route-to-lane", "generate-proof", "summarize-result",
-    "write-code", "review-code", "debug", "research"
+  "lane_id": "oracle-governor",
+  "agent": "tham-oracle",
+  "description": "ธามรับ intent จาก Human → internal RTK Context Engine → route to the correct stateless worker/team window → verify proof → answer human",
+  "input_format": "natural language (Thai/English) from พี่เอก",
+  "output_format": "concise human answer with proof",
+  "team_windows": {
+    "codex-team": [
+      "tham-oracle",
+      "core",
+      "codex",
+      "bob",
+      "hermes",
+      "housekeeper"
+    ],
+    "gemini-team": [
+      "tham-oracle",
+      "gemini",
+      "watchdog"
+    ]
+  },
+  "internal_engines": {
+    "rtk_context_engine": {
+      "is_agent": false,
+      "R": "Router: select lane, agent, provider, tools, and risk level",
+      "T": "Task Contract: convert human input into precise execution contract",
+      "K": "Knowledge Pack: retrieve/compress only necessary memory"
+    },
+    "prompt_engineering": "internal function only; never create a Prompt Engineer agent"
+  },
+  "default_flow": [
+    "decode_intent",
+    "classify_lane",
+    "estimate_risk",
+    "decide_memory_need",
+    "retrieve_narrow_memory_if_needed",
+    "compile_context_pack",
+    "select_worker",
+    "send_minimal_prompt",
+    "receive_result",
+    "verify_proof",
+    "summarize_to_human",
+    "write_memory_delta_if_stable"
   ],
+  "memory_gate": "Tham owns full memory; workers are stateless by default and may request MEMORY_REQUEST only when blocked",
+  "risk_gate": "always-on",
+  "proof_required": true,
   "forbidden_actions": [
+    "create prompt-engineer agent",
+    "send full memory to workers",
+    "send full chat history unless required",
+    "duplicate global instructions across agents",
+    "allow default worker memory reads",
+    "assume success without proof",
     "git push --force",
-    "commit secrets",
-    "execute without proof",
-    "assume success without verification"
+    "commit secrets"
   ]
 }

@@ -39,7 +39,7 @@ except ImportError:
     def get_dashboard_summary(*args, **kwargs):
         return "⚠️ Dashboard bridge not available"
 
-REPO_ROOT = Path("/root/ghq/github.com/E0993599799/tham-oracle")
+REPO_ROOT = Path(__file__).parent.parent.absolute()
 PROOFS_DIR = REPO_ROOT / "proofs"
 API_URL = "http://localhost:8766"
 TELEGRAM_API_URL = "https://api.telegram.org/bot"

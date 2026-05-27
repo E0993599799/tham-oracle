@@ -4,6 +4,9 @@
 
 echo "🚀 9router Startup Helper"
 echo ""
+WINDOWS_HOST_IP="${WINDOWS_HOST_IP:-$(awk '/^nameserver /{print $2; exit}' /etc/resolv.conf 2>/dev/null)}"
+WINDOWS_HOST_IP="${WINDOWS_HOST_IP:-127.0.0.1}"
+ROUTER_BASE_URL="${ROUTER_BASE_URL:-http://${WINDOWS_HOST_IP}:20128}"
 echo "Instructions for Windows (9router service):"
 echo ""
 echo "  OPTION 1: Double-click desktop shortcut"
@@ -13,7 +16,7 @@ echo "  OPTION 2: Windows Terminal"
 echo "    🖥️  powershell -ExecutionPolicy Bypass -File scripts\\Start-9router.ps1"
 echo ""
 echo "  OPTION 3: PowerShell Admin"
-echo "    PS> Get-Service 9router | Start-Service"
+echo '    PS> & "$env:LOCALAPPDATA\Volta\bin\9router.cmd" --port 20128 --host 0.0.0.0 --no-browser --tray --skip-update'
 echo ""
 echo "════════════════════════════════════════════════════════════"
 echo ""
@@ -26,11 +29,11 @@ max_attempts=30
 attempt=0
 
 while [ $attempt -lt $max_attempts ]; do
-  if timeout 2 curl -s -I http://127.0.0.1:20128/dashboard 2>/dev/null | head -1 | grep -q "HTTP"; then
+  if timeout 2 curl -s -I "${ROUTER_BASE_URL}/dashboard" 2>/dev/null | head -1 | grep -q "HTTP"; then
     echo -e "✅ 9router dashboard is responding!"
     echo ""
     echo "Access dashboard:"
-    echo "  🌐 http://localhost:20128/dashboard"
+    echo "  🌐 ${ROUTER_BASE_URL}/dashboard"
     echo ""
 
     # Wait a bit for API to warm up
@@ -38,11 +41,11 @@ while [ $attempt -lt $max_attempts ]; do
 
     # Check API
     echo "Checking API (v1/models)..."
-    if timeout 2 curl -s http://127.0.0.1:20128/v1/models 2>/dev/null | head -c 100 >/dev/null; then
+    if timeout 2 curl -s "${ROUTER_BASE_URL}/v1/models" 2>/dev/null | head -c 100 >/dev/null; then
       echo "✅ API responding - Ready for routes!"
       echo ""
       echo "Available models:"
-      curl -s http://127.0.0.1:20128/v1/models 2>/dev/null | python3 -m json.tool | grep '"id"' | head -10 || echo "  (checking...)"
+      curl -s "${ROUTER_BASE_URL}/v1/models" 2>/dev/null | python3 -m json.tool | grep '"id"' | head -10 || echo "  (checking...)"
       exit 0
     else
       echo "⏳ API warming up... (will be ready shortly)"

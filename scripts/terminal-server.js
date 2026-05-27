@@ -11,8 +11,12 @@ const path = require('path');
 const { execSync, execFileSync } = require('child_process');
 
 const PORT    = parseInt(process.argv[2] || process.env.TERM_PORT || '3002', 10);
-const SESSION = process.argv[3] || process.env.TMUX_SESSION || 'oracle-fleet';
+const SESSION = process.argv[3] || process.env.THAM_ORACLE_SESSION || process.env.TMUX_SESSION || 'tham-oracle-stack';
 const DASH_DIR = path.join(__dirname, '..', 'dashboard');
+const REPO_ROOT = path.join(__dirname, '..');
+const BRAIN_INDEXER = path.join(__dirname, 'second_brain_indexer.py');
+const TMUX_TIMEOUT_MS = 1000;
+const PANE_ID_RE = /^%\d+$/;
 
 // Agent metadata
 const AGENT_META = {
@@ -30,7 +34,7 @@ function getPanes() {
   try {
     const raw = execSync(
       `tmux list-panes -s -t "${SESSION}" -F "#{pane_id}|#{window_index}|#{window_name}|#{pane_index}|#{pane_width}|#{pane_height}|#{pane_current_command}"`,
-      { encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'] }
+      { encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'], timeout: TMUX_TIMEOUT_MS }
     ).trim();
     if (!raw) return [];
 
@@ -58,11 +62,22 @@ function capturePane(paneId, lines = 60) {
   try {
     return execSync(
       `tmux capture-pane -t "${paneId}" -p -e -S -${lines} 2>/dev/null`,
-      { encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'], maxBuffer: 1024 * 512 }
+      { encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'], maxBuffer: 1024 * 512, timeout: TMUX_TIMEOUT_MS }
     );
   } catch {
     return '';
   }
+}
+
+const BRAIN_INDEX = path.join(DASH_DIR, 'brain-index.json');
+
+function buildBrainIndex() {
+  execFileSync(
+    'python3',
+    [BRAIN_INDEXER, '--root', REPO_ROOT, '--output', BRAIN_INDEX],
+    { stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8' }
+  );
+  return fs.readFileSync(BRAIN_INDEX, 'utf8');
 }
 
 const MIME = {
@@ -87,6 +102,7 @@ const server = http.createServer((req, res) => {
   if (url.pathname === '/api/stream') {
     const paneId = url.searchParams.get('id');
     if (!paneId) { res.writeHead(400); res.end('missing id'); return; }
+    if (!PANE_ID_RE.test(paneId)) { res.writeHead(400); res.end('invalid id'); return; }
 
     res.writeHead(200, {
       'Content-Type':  'text/event-stream',
@@ -139,8 +155,38 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // ── Static files ───────────────────────────────────────────────────
-  const rel  = url.pathname === '/' ? '/terminals.html' : url.pathname;
+  // ── /api/brain ─────────────────────────────────────────────────────
+  if (url.pathname === '/api/brain') {
+    try {
+      const shouldRefresh = url.searchParams.get('refresh') === '1';
+      const body = shouldRefresh || !fs.existsSync(BRAIN_INDEX)
+        ? buildBrainIndex()
+        : fs.readFileSync(BRAIN_INDEX, 'utf8');
+      res.writeHead(200, {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',
+        'Access-Control-Allow-Origin': '*',
+      });
+      res.end(body);
+    } catch (e) {
+      res.writeHead(500, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+      res.end(JSON.stringify({ ok: false, error: 'brain index not available', path: BRAIN_INDEX, detail: e.message }));
+    }
+    return;
+  }
+
+  // ── Static files + friendly aliases ───────────────────────────────
+  const aliases = {
+    '/': '/terminals.html',
+    '/dashboard': '/terminals.html',
+    '/terminals': '/terminals.html',
+    '/second-brain': '/second-brain.html',
+    '/brain': '/second-brain.html',
+    '/realtime-dashboard': '/realtime-dashboard.html',
+    '/realtime': '/realtime-dashboard.html',
+  };
+
+  const rel = aliases[url.pathname] || url.pathname;
   const full = path.join(DASH_DIR, rel);
 
   // Prevent path traversal
@@ -151,9 +197,18 @@ const server = http.createServer((req, res) => {
     res.writeHead(200, { 'Content-Type': MIME[path.extname(full)] || 'text/plain' });
     res.end(content);
   } catch {
-    res.writeHead(404);
-    res.end('Not found');
+    res.writeHead(404, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' });
+    res.end(JSON.stringify({ error: 'Not found', path: url.pathname, hint: 'Try /terminals.html, /second-brain.html, or /realtime-dashboard.html' }));
   }
+});
+
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`Port ${PORT} is already in use — stop the existing terminal server or choose another port.`);
+  } else {
+    console.error(err);
+  }
+  process.exit(1);
 });
 
 server.listen(PORT, () => {
@@ -164,7 +219,7 @@ server.listen(PORT, () => {
   console.log(`\x1b[1;36m└─────────────────────────────────────────┘\x1b[0m`);
   const panes = getPanes();
   if (panes.length === 0) {
-    console.log('\x1b[33m  ⚠ oracle-fleet not running — start it first\x1b[0m');
+    console.log('\x1b[33m  ⚠ tmux session not running — start it first\x1b[0m');
   } else {
     console.log(`\x1b[32m  ✓ ${panes.length} panes detected:\x1b[0m`);
     panes.forEach(p => console.log(`    ${p.id.padEnd(6)} [${p.window}] ${p.name}`));

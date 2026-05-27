@@ -5,7 +5,7 @@
 
 set -euo pipefail
 
-ORACLE_ROOT="/root/ghq/github.com/E0993599799/tham-oracle"
+ORACLE_ROOT="${ORACLE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
 SCRIPT_DIR="$ORACLE_ROOT/scripts"
 CONFIGS_DIR="$ORACLE_ROOT/configs"
 
@@ -22,7 +22,7 @@ NC='\033[0m' # No Color
 
 tmux_start() {
   echo -e "${BLUE}▶ Starting oracle-session (4-window)...${NC}"
-  bash "$SCRIPT_DIR/oracle-session.sh"
+  bash "$SCRIPT_DIR/oracle-session.sh" detach
 }
 
 tmux_fleet() {

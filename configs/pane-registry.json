@@ -1,81 +1,150 @@
 {
-  "_comment": "tmux pane assignment — 3 windows × 2 panes each. Session: oracle-fleet",
-  "_version": "1.2",
-  "_updated": "2026-05-15",
-
-  "session": "oracle-fleet",
-
-  "layout": "3 windows × 2 panes (split-h)",
+  "_comment": "tmux pane assignment — 2 team windows. RTK is internal to tham-oracle.",
+  "_version": "2.1",
+  "_updated": "2026-05-22",
+  "session": "tham-oracle-stack",
   "windows": {
-    "brain": {
-      "index": 0,
-      "description": "Orchestration layer",
-      "left":  "tham",
-      "right": "bob"
+    "codex-team": {
+      "team": "codex-team",
+      "layout": "tham-oracle pane 0; team workers stacked",
+      "panes": {
+        "0": {
+          "agent": "tham-oracle",
+          "position": "left-governor",
+          "description": "Observer/Governor"
+        },
+        "1": {
+          "agent": "core",
+          "position": "right-1",
+          "description": "Bridge/Gate"
+        },
+        "2": {
+          "agent": "codex",
+          "position": "right-2",
+          "description": "Builder"
+        },
+        "3": {
+          "agent": "bob",
+          "position": "right-3",
+          "description": "Coordinator"
+        },
+        "4": {
+          "agent": "hermes",
+          "position": "right-4",
+          "description": "Legacy Specialist"
+        },
+        "5": {
+          "agent": "housekeeper",
+          "position": "right-5",
+          "description": "Maintenance"
+        }
+      },
+      "agents": {
+        "tham-oracle": {
+          "pane": 0,
+          "tmux_target": "tham-oracle-stack:codex-team.0",
+          "role": "Observer/Governor",
+          "runtime": "claude-code",
+          "provider": "Native Claude",
+          "repo": "E0993599799/tham-oracle",
+          "local_path": "/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle"
+        },
+        "core": {
+          "pane": 1,
+          "tmux_target": "tham-oracle-stack:codex-team.1",
+          "role": "Bridge/Gate",
+          "runtime": "codex",
+          "provider": "Codex",
+          "repo": "E0993599799/tham-oracle",
+          "local_path": "/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle"
+        },
+        "codex": {
+          "pane": 2,
+          "tmux_target": "tham-oracle-stack:codex-team.2",
+          "role": "Builder",
+          "runtime": "codex",
+          "provider": "Codex",
+          "repo": "E0993599799/tham-oracle",
+          "local_path": "/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle"
+        },
+        "bob": {
+          "pane": 3,
+          "tmux_target": "tham-oracle-stack:codex-team.3",
+          "role": "Coordinator",
+          "runtime": "codex",
+          "provider": "Codex",
+          "repo": "E0993599799/tham-oracle",
+          "local_path": "/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle"
+        },
+        "hermes": {
+          "pane": 4,
+          "tmux_target": "tham-oracle-stack:codex-team.4",
+          "role": "Legacy Specialist",
+          "runtime": "codex",
+          "provider": "Codex",
+          "repo": "E0993599799/tham-oracle",
+          "local_path": "/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle"
+        },
+        "housekeeper": {
+          "pane": 5,
+          "tmux_target": "tham-oracle-stack:codex-team.5",
+          "role": "Maintenance",
+          "runtime": "codex",
+          "provider": "Codex",
+          "repo": "E0993599799/tham-oracle",
+          "local_path": "/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle"
+        }
+      }
     },
-    "exec": {
-      "index": 1,
-      "description": "Execution layer",
-      "left":  "core",
-      "right": "hermes"
-    },
-    "ops": {
-      "index": 2,
-      "description": "Operations layer",
-      "left":  "housekeeper",
-      "right": "studio"
-    }
-  },
-
-  "agents": {
-    "tham": {
-      "window": "brain", "pane": "left",
-      "tmux_target": "oracle-fleet:brain.left",
-      "role": "brain-orchestrator",
-      "inbox": "ψ/inbox/tham",
-      "repo": "E0993599799/tham-oracle",
-      "local_path": "/root/repos/tham-oracle"
-    },
-    "bob": {
-      "window": "brain", "pane": "right",
-      "tmux_target": "oracle-fleet:brain.right",
-      "role": "coordinator",
-      "inbox": "ψ/inbox/bob",
-      "repo": null,
-      "local_path": null
-    },
-    "core": {
-      "window": "exec", "pane": "left",
-      "tmux_target": "oracle-fleet:exec.left",
-      "role": "bridge-gate",
-      "inbox": "ψ/inbox/core",
-      "repo": "E0993599799/Omega",
-      "local_path": "/root/ghq/github.com/E0993599799/Omega"
-    },
-    "hermes": {
-      "window": "exec", "pane": "right",
-      "tmux_target": "oracle-fleet:exec.right",
-      "role": "specialist-legacy",
-      "inbox": "ψ/inbox/hermes",
-      "repo": null,
-      "local_path": null
-    },
-    "housekeeper": {
-      "window": "ops", "pane": "left",
-      "tmux_target": "oracle-fleet:ops.left",
-      "role": "maintenance",
-      "inbox": "ψ/inbox/housekeeper",
-      "repo": null,
-      "local_path": null,
-      "activation": "bash scripts/housekeeper-run.sh"
-    },
-    "studio": {
-      "window": "ops", "pane": "right",
-      "tmux_target": "oracle-fleet:ops.right",
-      "role": "dashboard",
-      "inbox": null,
-      "repo": null,
-      "local_path": null
+    "gemini-team": {
+      "team": "gemini-team",
+      "layout": "tham-oracle pane 0; team workers stacked",
+      "panes": {
+        "0": {
+          "agent": "tham-oracle",
+          "position": "left-governor",
+          "description": "Observer/Governor"
+        },
+        "1": {
+          "agent": "gemini",
+          "position": "right-1",
+          "description": "Inspector"
+        },
+        "2": {
+          "agent": "watchdog",
+          "position": "right-2",
+          "description": "Monitoring"
+        }
+      },
+      "agents": {
+        "tham-oracle": {
+          "pane": 0,
+          "tmux_target": "tham-oracle-stack:gemini-team.0",
+          "role": "Observer/Governor",
+          "runtime": "claude-code",
+          "provider": "Native Claude",
+          "repo": "E0993599799/tham-oracle",
+          "local_path": "/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle"
+        },
+        "gemini": {
+          "pane": 1,
+          "tmux_target": "tham-oracle-stack:gemini-team.1",
+          "role": "Inspector",
+          "runtime": "gemini-cli",
+          "provider": "Gemini",
+          "repo": "E0993599799/tham-oracle",
+          "local_path": "/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle"
+        },
+        "watchdog": {
+          "pane": 2,
+          "tmux_target": "tham-oracle-stack:gemini-team.2",
+          "role": "Monitoring",
+          "runtime": "gemini-cli",
+          "provider": "Gemini",
+          "repo": "E0993599799/tham-oracle",
+          "local_path": "/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle"
+        }
+      }
     }
   }
 }

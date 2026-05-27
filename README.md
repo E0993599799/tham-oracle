@@ -64,7 +64,37 @@ tham-oracle/
     └── oracle-kill.sh      # kill session
 ```
 
----
+## Forge Omega Oracle command family
+
+Use these commands from the repo root:
+
+```bash
+maw omega              # start the full study flow (default)
+maw omega study        # same as maw omega
+maw omega open         # start the study flow and attach to the tmux session
+maw omega attach       # attach to the live Omega session
+maw omega live         # open the live Tham Oracle show and attach
+maw omega monitor      # tail the aggregated progress report
+maw omega report       # print the latest aggregated report
+maw omega health       # run the Forge/Omega health check
+maw omega status       # show session/report status
+maw omega list         # show the family help
+maw-o                  # short alias for maw omega
+```
+
+Fallback if you want the direct script:
+
+```bash
+bash scripts/forge-omega-oracle-study.sh
+```
+
+Realtime surfaces:
+
+- `dashboard/realtime-dashboard.html` — live proof stream + terminal control + embedded terminal monitor + Obsidian bridge button
+- `dashboard/second-brain.html` — hybrid code graph / HTML second brain with Obsidian bridge button
+- If your terminal dashboard runs on a custom port, open the realtime dashboard with `?terminal_api=http://localhost:PORT` or use the "Save API" button in the terminal control panel.
+
+Docs: `docs/forge-omega-oracle/README.md`
 
 ## Test prompt
 ```

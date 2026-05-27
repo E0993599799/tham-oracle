@@ -16,8 +16,15 @@ import sys
 
 # Configuration
 WS_PORT = int(os.getenv('WS_PORT', 8765))
-REPO_ROOT = Path("/root/ghq/github.com/E0993599799/tham-oracle")
+REPO_ROOT = Path(__file__).parent.parent.absolute()
 PROOFS_DIR = REPO_ROOT / "proofs"
+
+if not PROOFS_DIR.exists():
+    # Fallback to local 'proofs' if running from root
+    if Path("proofs").exists():
+        PROOFS_DIR = Path("proofs").absolute()
+    else:
+        print(f"⚠️  Warning: PROOFS_DIR not found at {PROOFS_DIR}", file=sys.stderr)
 
 # Track connected clients
 connected_clients = set()
@@ -77,7 +84,15 @@ async def handle_client(websocket, path):
     print(f"✓ Client {client_id} connected ({len(connected_clients)} total)")
     
     try:
-        # Send recent proofs (last 20)
+        # Send live dashboard snapshot + recent proofs (last 20)
+        try:
+            await websocket.send(json.dumps({
+                "type": "dashboard",
+                "data": _build_dashboard_snapshot(),
+            }))
+        except Exception as e:
+            print(f"⚠️  Error sending dashboard snapshot: {e}")
+
         recent = list(proof_queue)[-20:] if proof_queue else []
         for proof in recent:
             try:
@@ -113,6 +128,61 @@ async def handle_client(websocket, path):
         print(f"✗ Client {client_id} disconnected ({len(connected_clients)} remain)")
 
 
+def _build_dashboard_snapshot():
+    """Build a compact dashboard snapshot from the current proof queue."""
+    proofs = list(proof_queue)
+    total = len(proofs)
+    successful = sum(1 for p in proofs if p.get("status") == "SUCCESS")
+    blocked = sum(1 for p in proofs if p.get("status") == "BLOCKED")
+    error = sum(1 for p in proofs if p.get("status") == "ERROR")
+    timeout = sum(1 for p in proofs if p.get("status") == "TIMEOUT")
+    avg_duration = 0.0
+    if total:
+        avg_duration = sum(float(p.get("execution_duration_seconds", 0) or 0) for p in proofs) / total
+
+    lane_stats = {}
+    for proof in proofs:
+        lane = proof.get("routed_lane", "unknown")
+        lane_stats.setdefault(lane, {"count": 0, "successful": 0})
+        lane_stats[lane]["count"] += 1
+        if proof.get("status") == "SUCCESS":
+            lane_stats[lane]["successful"] += 1
+
+    lane_status = {}
+    for lane in ["codex_gpt55", "claude", "gemini", "ollama", "hermes", "powershell_sfsr"]:
+        stats = lane_stats.get(lane, {"count": 0, "successful": 0})
+        count = stats["count"]
+        success_rate = (stats["successful"] / count) if count else 0.0
+        if count == 0:
+            emoji, status = "⚪", "idle"
+        elif success_rate >= 0.8:
+            emoji, status = "🟢", "healthy"
+        elif success_rate >= 0.5:
+            emoji, status = "🟡", "degraded"
+        else:
+            emoji, status = "🔴", "down"
+        lane_status[lane] = {
+            "emoji": emoji,
+            "status": status,
+            "count": count,
+            "successful": stats["successful"],
+            "success_rate": round(success_rate, 3),
+        }
+
+    return {
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "total_proofs": total,
+        "successful": successful,
+        "blocked": blocked,
+        "error": error,
+        "timeout": timeout,
+        "success_rate": (successful / total) if total else 0.0,
+        "avg_duration": round(avg_duration, 2),
+        "lane_status": lane_status,
+        "recent_proofs": proofs[-20:],
+    }
+
+
 async def broadcast_proof(proof_data):
     """Send proof to all connected clients."""
     if not connected_clients:
@@ -137,6 +207,30 @@ async def broadcast_proof(proof_data):
         connected_clients.discard(client)
 
 
+async def broadcast_dashboard():
+    """Send a live dashboard snapshot to all connected clients."""
+    if not connected_clients:
+        return
+
+    message = json.dumps({
+        "type": "dashboard",
+        "data": _build_dashboard_snapshot(),
+    })
+
+    dead_clients = set()
+    for client in connected_clients:
+        try:
+            await client.send(message)
+        except asyncio.CancelledError:
+            dead_clients.add(client)
+        except Exception as e:
+            dead_clients.add(client)
+            print(f"⚠️  Error sending dashboard snapshot: {e}", file=sys.stderr)
+
+    for client in dead_clients:
+        connected_clients.discard(client)
+
+
 async def proof_streaming_loop():
     """Main loop: watch for proofs and broadcast."""
     watcher = ProofWatcher(PROOFS_DIR, poll_interval=1.0)
@@ -145,11 +239,12 @@ async def proof_streaming_loop():
         proof_queue.append(proof_data)
         # Broadcast to clients
         await broadcast_proof(proof_data)
+        await broadcast_dashboard()
         # Log
         task_id = proof_data.get("task_id", "unknown")
         status = proof_data.get("status", "unknown")
         lane = proof_data.get("routed_lane", "unknown")
-        print(f"📤 Broadcast: {task_id} → {lane} ({status}) to {len(connected_clients)} clients")
+        print(f"📤 Broadcast: {task_id} → {lane} ({status}) to {len(connected_clients)} clients | queue={len(proof_queue)}")
 
 
 async def health_check_handler(path, request_headers):

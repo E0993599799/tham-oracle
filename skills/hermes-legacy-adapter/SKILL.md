@@ -1,20 +1,20 @@
-# Skill: Hermes Legacy Adapter
+# Skill: Hermes Adapter (v2 — Gemini 3.1 Pro)
 
 ## Purpose
-Route specialist/legacy tasks through Hermes (minimax-m2.5 via 9router/OpenClaw) when explicitly assigned by Executor Lane Router. Never as default.
+Route specialist review, multimodal, or long-context tasks through Hermes (gemini/gemini-3.1-pro-preview via 9router/OpenClaw) when explicitly assigned by Tham. Never as default and never as Codex middleware.
 
 ## Rules
 - **NEVER default route to Hermes** — only when Tham Executor Lane Router explicitly assigns
 - Always send structured JSON task contract — no raw natural language
-- Hermes routes through 9router (OpenClaw) at `http://127.0.0.1:20128/v1` — NOT direct Ollama
-- Model: `ollama/minimax-m2.5`
-- Verify 9router is alive before invoking: `curl http://127.0.0.1:20128/v1/models`
+- Hermes routes through 9router (OpenClaw) at `http://172.21.112.1:20128/v1`
+- Model: `gemini/gemini-3.1-pro-preview`
+- Verify 9router is alive before invoking: `curl http://172.21.112.1:20128/v1/models`
 - Watch for shim recursion — Hermes must not call itself
-- Watch for missing model — confirm minimax-m2.5 is loaded in Ollama
+- For coding tasks Tham routes DIRECT to Codex GPT-5.5 at `50-tham:codex-gpt55` — do not relay through Hermes.
 
 ## When to Use
-- Legacy API compatibility requiring non-Claude model
-- Specialist tasks where minimax-m2.5 has demonstrated advantage
+- Specialist review, multimodal, or long-context tasks
+- Tasks where Gemini 3.1 Pro has demonstrated advantage
 - Tasks explicitly routed here by Executor Lane Router decision
 
 ## When NOT to Use
@@ -45,7 +45,7 @@ curl http://127.0.0.1:20128/v1/models | jq '.data[] | select(.id | contains("min
 ```
 
 ## Provider Config
-- base_url: `http://127.0.0.1:20128/v1`
+- base_url: `http://172.21.112.1:20128/v1`
 - api_key_env: `OPENCLAW_API_KEY`
-- model: `ollama/minimax-m2.5`
+- model: `gemini/gemini-3.1-pro-preview`
 - Lane card: `configs/lane-cards/hermes-optional.json`

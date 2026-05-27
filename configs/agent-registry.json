@@ -1,222 +1,214 @@
 {
-  "_comment": "Tham Oracle — Agent Registry v1.2 (2026-05-15). No secrets stored here.",
-  "_version": "1.2",
-  "_updated": "2026-05-15",
-
+  "_comment": "Tham Oracle fleet registry. Two tmux team windows. RTK Context Engine is internal to tham-oracle; it is not an agent.",
+  "_version": "2.1",
+  "_updated": "2026-05-22",
+  "fleet": {
+    "agent_count": 8,
+    "provider_count": 3,
+    "prompt_engineer_agents": 0,
+    "internal_engines": [
+      "RTK Context Engine"
+    ]
+  },
+  "layout": {
+    "session": "tham-oracle-stack",
+    "windows": [
+      {
+        "name": "codex-team",
+        "agents": [
+          "tham-oracle",
+          "core",
+          "codex",
+          "bob",
+          "hermes",
+          "housekeeper"
+        ]
+      },
+      {
+        "name": "gemini-team",
+        "agents": [
+          "tham-oracle",
+          "gemini",
+          "watchdog"
+        ]
+      }
+    ]
+  },
+  "providers": [
+    {
+      "id": "Codex",
+      "use_for": "code execution, implementation, repo operations, patches, scripts, deterministic build work"
+    },
+    {
+      "id": "Gemini",
+      "use_for": "large-context review, inspection, multimodal understanding, validation, anomaly detection"
+    },
+    {
+      "id": "Native Claude",
+      "use_for": "Tham Oracle governance, memory, reasoning, instruction hierarchy, final synthesis"
+    }
+  ],
   "agents": [
     {
-      "id": "tham",
-      "soul": "ธาม — ORACLE/OBSERVER/GOVERNOR for Forge/Omega",
-      "role": "oracle-governor",
-      "execution_model": "delegation-only",
-      "capabilities": [
-        "intent-decode",
-        "memory-read",
-        "memory-write",
-        "risk-gate",
-        "proof-writer",
-        "executor-routing",
-        "code-review",
-        "research-synthesis",
-        "prompt-engineering",
-        "observe",
-        "coordinate",
-        "enforce",
-        "escalate",
-        "prevent-drift",
-        "maintain-memory",
-        "monitor-agents"
-      ],
-      "forbidden": [
-        "edit_files",
-        "run_commands",
-        "git_operations",
-        "execute_scripts",
-        "deploy"
-      ],
-      "lane": "oracle-governor",
-      "port": 47778,
-      "status": "active",
-      "validation": "oracle-v2 MCP observation + governance enforcement"
-    },
-    {
       "id": "core",
-      "soul": "Omega — Core Bridge/Gate/Proof Writer",
-      "role": "bridge-gate",
-      "capabilities": [
-        "github-inbox",
-        "proof-write",
-        "task-gate",
-        "structured-submit"
-      ],
-      "lane": "core-runner",
-      "port": 47779,
-      "repo": "E0993599799/Omega",
-      "local_path": "D:/Git/omega-oracle",
+      "role": "Bridge/Gate",
       "provider": "Codex",
-      "base_url": "http://127.0.0.1:20128/v1",
-      "model": "cx/gpt-5.5",
-      "routes_through": "9router (Codex)",
+      "runtime": "codex",
+      "team": "codex-team",
+      "use_for": "system bridge, gatekeeping, execution preparation, lightweight coordination",
       "status": "active",
-      "validation": "GitHub inbox + proof file existence",
-      "deployed": "2026-05-13"
-    },
-    {
-      "id": "bob",
-      "soul": "BoB — Inter-Oracle Coordinator",
-      "role": "coordinator",
-      "capabilities": [
-        "oracle-communication",
-        "cc-routing",
-        "status-report",
-        "conflict-escalation"
-      ],
-      "lane": "coordinator",
-      "port": null,
-      "provider": "Codex",
-      "base_url": "http://127.0.0.1:20128/v1",
-      "model": "cx/gpt-5.5",
-      "routes_through": "9router (Codex)",
-      "activation": "maw hey bob | /talk-to bob",
-      "status": "active",
-      "deployed": "2026-05-15",
-      "validation": "oracle-communication-law.md compliance",
-      "lane_card": "configs/lane-cards/bob-coordinator.json",
-      "skill": "skills/oracle-coordinator/SKILL.md"
-    },
-    {
-      "id": "hermes",
-      "soul": "Hermes — Code/Design Reviewer",
-      "role": "specialist-reviewer",
-      "capabilities": [
-        "code-review",
-        "design-review",
-        "architecture-audit",
-        "quality-verdict"
-      ],
-      "lane": "hermes-reviewer",
-      "port": null,
-      "provider": "Codex",
-      "base_url": "http://127.0.0.1:20128/v1",
-      "model": "cx/gpt-5.5",
-      "routes_through": "9router (Codex)",
-      "status": "active",
-      "verified": "2026-05-19",
-      "validation": "explicitly routed for review tasks",
-      "lane_card": "configs/lane-cards/hermes-reviewer.json",
-      "skill": "skills/code-review/SKILL.md"
-    },
-    {
-      "id": "housekeeper",
-      "soul": "Housekeeper — Forge/Omega Maintenance",
-      "role": "maintenance",
-      "capabilities": [
-        "inbox-archival",
-        "log-rotation",
-        "health-check",
-        "active-archive",
-        "git-reminder"
-      ],
-      "lane": "housekeeper",
-      "port": null,
-      "provider": "Gemini",
-      "base_url": "http://127.0.0.1:20128/v1",
-      "model": "gemini/gemini-2.5-flash",
-      "routes_through": "9router (Gemini)",
-      "activation": "bash scripts/housekeeper-run.sh",
-      "status": "active",
-      "deployed": "2026-05-15",
-      "validation": "housekeeper.log existence + BoB broadcast receipt",
-      "lane_card": "configs/lane-cards/housekeeper-maintenance.json",
-      "skill": "skills/housekeeper/SKILL.md"
+      "repo": "E0993599799/tham-oracle",
+      "local_path": "/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle",
+      "memory_access": "stateless by default",
+      "tmux_target": "tham-oracle-stack:codex-team.1",
+      "output_contract": [
+        "RESULT",
+        "PROOF",
+        "RISKS",
+        "MEMORY_DELTA"
+      ]
     },
     {
       "id": "codex",
-      "soul": "Codex Builder — Code Implementation & Architecture",
-      "role": "code-builder",
-      "capabilities": [
-        "write-code",
-        "fix-bug",
-        "refactor-code",
-        "code-review",
-        "security-audit",
-        "proof-generation",
-        "git-safe-workflow"
-      ],
-      "lane": "codex-builder",
-      "port": 20128,
-      "base_url": "http://127.0.0.1:20128/v1",
-      "model": "cx/gpt-5.5",
-      "routes_through": "9router (OpenAI-compat)",
+      "role": "Builder",
+      "provider": "Codex",
+      "runtime": "codex",
+      "team": "codex-team",
+      "use_for": "coding, patching, implementation, scripts, repo work, build fixes",
       "status": "active",
-      "deployed": "2026-05-17",
-      "validation": "9router health check + code proof verification",
-      "lane_card": "configs/lane-cards/codex-builder.json",
-      "skill": "skills/codex-manual-lane/SKILL.md"
+      "repo": "E0993599799/tham-oracle",
+      "local_path": "/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle",
+      "memory_access": "stateless by default",
+      "tmux_target": "tham-oracle-stack:codex-team.2",
+      "output_contract": [
+        "RESULT",
+        "PROOF",
+        "RISKS",
+        "MEMORY_DELTA"
+      ]
     },
     {
       "id": "gemini",
-      "soul": "Gemini Inspector — Research & Fast Analysis",
-      "role": "research-inspector",
-      "capabilities": [
-        "web-search",
-        "research-synthesis",
-        "code-analysis",
-        "summarization",
-        "pattern-recognition",
-        "cross-reference",
-        "fact-verification"
-      ],
-      "lane": "gemini-research",
-      "port": 20128,
-      "base_url": "http://127.0.0.1:20128/v1",
-      "model": "gemini/gemini-2.5-flash",
-      "routes_through": "9router (OpenAI-compat)",
+      "role": "Inspector",
+      "provider": "Gemini",
+      "runtime": "gemini-cli",
+      "team": "gemini-team",
+      "use_for": "review, large-context inspection, comparison, visual/doc analysis, second-pass reasoning",
       "status": "active",
-      "deployed": "2026-05-17",
-      "validation": "9router health check + research proof (sources + confidence)",
-      "lane_card": "configs/lane-cards/gemini-research.json",
-      "skill": "skills/research-synthesis/SKILL.md"
+      "repo": "E0993599799/tham-oracle",
+      "local_path": "/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle",
+      "memory_access": "stateless by default",
+      "tmux_target": "tham-oracle-stack:gemini-team.1",
+      "output_contract": [
+        "RESULT",
+        "PROOF",
+        "RISKS",
+        "MEMORY_DELTA"
+      ]
+    },
+    {
+      "id": "bob",
+      "role": "Coordinator",
+      "provider": "Codex",
+      "runtime": "codex",
+      "team": "codex-team",
+      "use_for": "task decomposition, ops coordination, queue shaping, multi-step execution plan",
+      "status": "active",
+      "repo": "E0993599799/tham-oracle",
+      "local_path": "/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle",
+      "memory_access": "stateless by default",
+      "tmux_target": "tham-oracle-stack:codex-team.3",
+      "output_contract": [
+        "RESULT",
+        "PROOF",
+        "RISKS",
+        "MEMORY_DELTA"
+      ]
+    },
+    {
+      "id": "hermes",
+      "role": "Legacy Specialist",
+      "provider": "Codex",
+      "runtime": "codex",
+      "team": "codex-team",
+      "use_for": "old code, compatibility, migration, integration with legacy systems",
+      "status": "active",
+      "repo": "E0993599799/tham-oracle",
+      "local_path": "/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle",
+      "memory_access": "stateless by default",
+      "tmux_target": "tham-oracle-stack:codex-team.4",
+      "output_contract": [
+        "RESULT",
+        "PROOF",
+        "RISKS",
+        "MEMORY_DELTA"
+      ]
+    },
+    {
+      "id": "housekeeper",
+      "role": "Maintenance",
+      "provider": "Codex",
+      "runtime": "codex",
+      "team": "codex-team",
+      "use_for": "cleanup, refactor, formatting, file organization, dependency hygiene",
+      "status": "active",
+      "repo": "E0993599799/tham-oracle",
+      "local_path": "/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle",
+      "memory_access": "stateless by default",
+      "tmux_target": "tham-oracle-stack:codex-team.5",
+      "output_contract": [
+        "RESULT",
+        "PROOF",
+        "RISKS",
+        "MEMORY_DELTA"
+      ]
     },
     {
       "id": "watchdog",
-      "soul": "Watchdog — System Monitor & Circuit Breaker",
-      "role": "system-monitor",
-      "capabilities": [
-        "health-probe",
-        "sla-monitoring",
-        "anomaly-detection",
-        "circuit-breaker",
-        "alert-routing",
-        "recovery-orchestration"
-      ],
-      "lane": "watchdog-monitor",
-      "port": null,
+      "role": "Monitoring",
       "provider": "Gemini",
-      "base_url": "http://127.0.0.1:20128/v1",
-      "model": "gemini/gemini-2.5-flash",
-      "routes_through": "9router (Gemini)",
-      "activation": "continuous background process (tmux pane)",
+      "runtime": "gemini-cli",
+      "team": "gemini-team",
+      "use_for": "health checks, regression watch, status validation, anomaly detection",
       "status": "active",
-      "deployed": "2026-05-17",
-      "validation": "service health probe success + alert delivery",
-      "lane_card": "configs/lane-cards/watchdog-monitor.json",
-      "skill": "skills/watchdog-central/SKILL.md"
+      "repo": "E0993599799/tham-oracle",
+      "local_path": "/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle",
+      "memory_access": "stateless by default",
+      "tmux_target": "tham-oracle-stack:gemini-team.2",
+      "output_contract": [
+        "RESULT",
+        "PROOF",
+        "RISKS",
+        "MEMORY_DELTA"
+      ]
+    },
+    {
+      "id": "tham-oracle",
+      "role": "Observer/Governor",
+      "provider": "Native Claude",
+      "runtime": "claude-code",
+      "team": "both",
+      "use_for": "memory ownership, final decision, routing, verification, human-facing response",
+      "status": "active",
+      "repo": "E0993599799/tham-oracle",
+      "local_path": "/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle",
+      "memory_access": "full owner",
+      "tmux_targets": [
+        "tham-oracle-stack:codex-team.0",
+        "tham-oracle-stack:gemini-team.0"
+      ],
+      "internal_engines": [
+        "RTK Context Engine"
+      ]
     }
   ],
-
-  "lanes": [
-    { "id": "oracle-governor", "description": "Tham — ORACLE/OBSERVER/GOVERNOR (delegation-only, no execution)" },
-    { "id": "core-runner", "description": "Core bridge — structured GitHub inbox tasks" },
-    { "id": "codex-builder", "description": "Codex agent — code implementation, bug fix, refactor (GPT-5.5 via 9router)" },
-    { "id": "gemini-research", "description": "Gemini agent — web research, analysis, synthesis (Gemini 2.5 Flash via 9router)" },
-    { "id": "powershell-sfsr", "description": "PowerShell one-file-one-run for Windows automation" },
-    { "id": "openclaw-9router", "description": "Local OpenAI-compatible routing via 9router/OpenClaw" },
-    { "id": "local-worker", "description": "Local worker processes on WSL/Linux" },
-    { "id": "web-browser", "description": "Web/browser automation worker" },
-    { "id": "codex-manual", "description": "Codex manual coding lane — high-quality prompts only" },
-    { "id": "hermes-optional", "description": "Hermes legacy adapter — specialist only when explicitly routed" },
-    { "id": "housekeeper", "description": "Housekeeper maintenance — inbox archival, log rotation, health check, git reminder" },
-    { "id": "watchdog-monitor", "description": "Watchdog monitor — service health probe, SLA monitoring, circuit breaker" }
-  ]
+  "routing_rules": {
+    "code": "codex",
+    "qa": "gemini",
+    "research": "gemini",
+    "ops": "bob",
+    "memory": "tham-oracle",
+    "planning": "bob",
+    "general": "tham-oracle"
+  }
 }

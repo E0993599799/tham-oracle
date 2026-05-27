@@ -3,11 +3,30 @@
 # Usage: ./scripts/oracle-session.sh [attach-only]
 
 SESSION="oracle"
-REPO="/route/mission-control/tham-oracle"
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+MODE="${1:-detach}"
+ATTACH=0
+case "$MODE" in
+  attach|--attach)
+    ATTACH=1
+    ;;
+  detach|--detach|"")
+    ATTACH=0
+    ;;
+  *)
+    echo "Usage: $0 [detach|attach]"
+    exit 1
+    ;;
+esac
 
 if tmux has-session -t "$SESSION" 2>/dev/null; then
-  echo "Session '$SESSION' already running — attaching..."
-  tmux attach-session -t "$SESSION"
+  echo "Session '$SESSION' already running."
+  if [ "$ATTACH" -eq 1 ]; then
+    tmux attach-session -t "$SESSION"
+  else
+    echo "Attach: tmux attach-session -t '$SESSION'"
+  fi
   exit 0
 fi
 
@@ -43,4 +62,8 @@ tmux send-keys -t "$SESSION:brain" "ls -la" Enter
 tmux select-window -t "$SESSION:chat"
 
 echo "Oracle session started. Windows: chat | memory | shell | brain"
-tmux attach-session -t "$SESSION"
+if [ "$ATTACH" -eq 1 ]; then
+  tmux attach-session -t "$SESSION"
+else
+  echo "Attach: tmux attach-session -t '$SESSION'"
+fi

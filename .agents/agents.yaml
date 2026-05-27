@@ -1,0 +1,129 @@
+# Tham Oracle active fleet mapping.
+# Reuses the old repo and requested Hermes swarm names.
+# Split into two tmux team windows: codex-team and gemini-team.
+agents:
+  tham:
+    branch: agents/tham
+    worktree_path: agents/tham
+    runtime: claude-code
+    provider: anthropic-native
+    model: cc/claude-sonnet-4-6
+    role: brain-orchestrator
+    spawn: orchestrator
+    repo: E0993599799/tham-oracle
+    local_path: /mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle
+    windows: [codex-team, gemini-team]
+    description: Claude/Tham observer-governor. Decodes intent, routes tasks, verifies proof.
+  dheva:
+    branch: agents/dheva
+    worktree_path: agents/dheva
+    runtime: codex
+    provider: 9router-codex
+    base_url: http://127.0.0.1:20128/v1
+    model: cx/gpt-5.5
+    role: orry-dheva-builder
+    spawn: worker
+    team: codex-team
+    repo: E0993599799/tham-oracle
+    local_path: /mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle
+    description: ORRY/Dheva implementation swarm via Codex only.
+  zeus:
+    branch: agents/zeus
+    worktree_path: agents/zeus
+    runtime: codex
+    provider: 9router-codex
+    base_url: http://127.0.0.1:20128/v1
+    model: cx/gpt-5.5
+    role: codex-swarm-worker
+    spawn: worker
+    team: codex-team
+    repo: E0993599799/tham-oracle
+    local_path: /mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle
+    description: Codex swarm/build agent via Codex only.
+  warden:
+    branch: agents/warden
+    worktree_path: agents/warden
+    runtime: codex
+    provider: 9router-codex
+    base_url: http://127.0.0.1:20128/v1
+    model: cx/gpt-5.5
+    role: safety-warden
+    spawn: worker
+    team: codex-team
+    repo: E0993599799/tham-oracle
+    local_path: /mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle
+    description: safety/risk/code guard via Codex only.
+  verity:
+    branch: agents/verity
+    worktree_path: agents/verity
+    runtime: codex
+    provider: 9router-codex
+    base_url: http://127.0.0.1:20128/v1
+    model: cx/gpt-5.5
+    role: verification-auditor
+    spawn: worker
+    team: codex-team
+    repo: E0993599799/tham-oracle
+    local_path: /mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle
+    description: verification/proof auditor via Codex only.
+  stratum:
+    branch: agents/stratum
+    worktree_path: agents/stratum
+    runtime: codex
+    provider: 9router-codex
+    base_url: http://127.0.0.1:20128/v1
+    model: cx/gpt-5.5
+    role: systems-architect
+    spawn: worker
+    team: codex-team
+    repo: E0993599799/tham-oracle
+    local_path: /mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle
+    description: systems/architecture/code stratification via Codex only.
+  luxi:
+    branch: agents/luxi
+    worktree_path: agents/luxi
+    runtime: gemini-cli
+    provider: 9router-gemini
+    base_url: http://127.0.0.1:20128/v1
+    model: gemini/gemini-3.1-pro-preview
+    role: research-inspector
+    spawn: worker
+    team: gemini-team
+    repo: E0993599799/tham-oracle
+    local_path: /mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle
+    description: research/inspection via Gemini only.
+  lens:
+    branch: agents/lens
+    worktree_path: agents/lens
+    runtime: gemini-cli
+    provider: 9router-gemini
+    base_url: http://127.0.0.1:20128/v1
+    model: gemini/gemini-3.1-pro-preview
+    role: inspection-lens
+    spawn: worker
+    team: gemini-team
+    repo: E0993599799/tham-oracle
+    local_path: /mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle
+    description: inspection/review lens swarm via Gemini only.
+disabled_agents:
+  codex:
+    spawn: manual
+    reason: Legacy/manual/archive lane; not part of the requested default Hermes swarm.
+  core:
+    spawn: manual
+    reason: Legacy/manual/archive lane; not part of the requested default Hermes swarm.
+  bob:
+    spawn: manual
+    reason: Legacy/manual/archive lane; not part of the requested default Hermes swarm.
+  gemini:
+    spawn: manual
+    reason: Legacy/manual/archive lane; not part of the requested default Hermes swarm.
+  housekeeper:
+    spawn: manual
+    reason: Legacy/manual/archive lane; not part of the requested default Hermes swarm.
+  watchdog:
+    spawn: manual
+    reason: Legacy/manual/archive lane; not part of the requested default Hermes swarm.
+  hermes:
+    spawn: manual
+    reason: Legacy/manual/archive lane; not part of the requested default Hermes swarm.

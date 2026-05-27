@@ -16,14 +16,16 @@ else
 fi
 echo ""
 
-# Check 9router status
+WINDOWS_HOST_IP="${WINDOWS_HOST_IP:-$(awk '/^nameserver /{print $2; exit}' /etc/resolv.conf 2>/dev/null)}"
+WINDOWS_HOST_IP="${WINDOWS_HOST_IP:-127.0.0.1}"
+ROUTER_BASE_URL="${ROUTER_BASE_URL:-http://${WINDOWS_HOST_IP}:20128}"
 echo "2️⃣  Checking 9router status..."
-if timeout 2 curl -s http://127.0.0.1:20128/health >/dev/null 2>&1; then
-  echo "   ✅ 9router running @ localhost:20128"
-  curl -s http://127.0.0.1:20128/v1/models 2>/dev/null | python3 -m json.tool | grep '"id"' | head -5 || echo "   (models loading...)"
+if timeout 2 curl -s "${ROUTER_BASE_URL}/health" >/dev/null 2>&1; then
+  echo "   ✅ 9router running @ ${WINDOWS_HOST_IP}:20128"
+  curl -s "${ROUTER_BASE_URL}/v1/models" 2>/dev/null | python3 -m json.tool | grep '"id"' | head -5 || echo "   (models loading...)"
 else
   echo "   ⚠️  9router not responding"
-  echo "   Start with: bash scripts/9router-startup.sh (Windows only)"
+  echo "   Start on Windows with: powershell -ExecutionPolicy Bypass -File scripts\\Start-9router.ps1"
 fi
 echo ""
 
@@ -54,5 +56,5 @@ echo "✅ Setup complete"
 echo ""
 echo "📌 Next steps:"
 echo "   1. Reload shell: source ~/.bashrc"
-echo "   2. Check 9router: curl -s http://127.0.0.1:20128/health"
+echo "   2. Check 9router: curl -s ${ROUTER_BASE_URL}/health"
 echo "   3. For Tham-oracle: source .env.tham && claude ..."

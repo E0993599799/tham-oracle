@@ -1,67 +1,118 @@
 {
   "name": "tham-node",
-  "version": "1.0.0",
+  "version": "2.1.0",
   "fleet": {
+    "layout": "two team windows",
+    "teams": {
+      "codex-team": [
+        "tham-oracle",
+        "core",
+        "codex",
+        "bob",
+        "hermes",
+        "housekeeper"
+      ],
+      "gemini-team": [
+        "tham-oracle",
+        "gemini",
+        "watchdog"
+      ]
+    },
     "lineage": [
-      {
-        "name": "tham",
-        "repo": "E0993599799/tham-oracle",
-        "role": "brain-orchestrator",
-        "description": "Personal Oracle for พี่เอก"
-      },
       {
         "name": "core",
         "repo": "E0993599799/tham-oracle",
-        "role": "bridge-gate",
-        "description": "Omega Core Bridge/Gate/Proof Writer"
-      },
-      {
-        "name": "bob",
-        "role": "coordinator",
-        "description": "BoB — Inter-Oracle Coordinator"
+        "role": "Bridge/Gate",
+        "runtime": "codex",
+        "provider": "Codex",
+        "team": "codex-team",
+        "description": "system bridge, gatekeeping, execution preparation, lightweight coordination",
+        "memory_access": "stateless by default"
       },
       {
         "name": "codex",
-        "role": "code-builder",
-        "description": "Codex — Code Builder Agent",
-        "port": 20128
+        "repo": "E0993599799/tham-oracle",
+        "role": "Builder",
+        "runtime": "codex",
+        "provider": "Codex",
+        "team": "codex-team",
+        "description": "coding, patching, implementation, scripts, repo work, build fixes",
+        "memory_access": "stateless by default"
       },
       {
         "name": "gemini",
-        "role": "research-inspector",
-        "description": "Gemini — Research Inspector Agent",
-        "port": 20128
+        "repo": "E0993599799/tham-oracle",
+        "role": "Inspector",
+        "runtime": "gemini-cli",
+        "provider": "Gemini",
+        "team": "gemini-team",
+        "description": "review, large-context inspection, comparison, visual/doc analysis, second-pass reasoning",
+        "memory_access": "stateless by default"
       },
       {
-        "name": "watchdog",
-        "role": "system-monitor",
-        "description": "Watchdog — System Monitor Agent"
+        "name": "bob",
+        "repo": "E0993599799/tham-oracle",
+        "role": "Coordinator",
+        "runtime": "codex",
+        "provider": "Codex",
+        "team": "codex-team",
+        "description": "task decomposition, ops coordination, queue shaping, multi-step execution plan",
+        "memory_access": "stateless by default"
       },
       {
         "name": "hermes",
-        "role": "specialist-legacy",
-        "description": "Hermes — Legacy/Specialist Adapter"
+        "repo": "E0993599799/tham-oracle",
+        "role": "Legacy Specialist",
+        "runtime": "codex",
+        "provider": "Codex",
+        "team": "codex-team",
+        "description": "old code, compatibility, migration, integration with legacy systems",
+        "memory_access": "stateless by default"
       },
       {
         "name": "housekeeper",
-        "role": "maintenance",
-        "description": "Housekeeper — Forge/Omega Maintenance"
+        "repo": "E0993599799/tham-oracle",
+        "role": "Maintenance",
+        "runtime": "codex",
+        "provider": "Codex",
+        "team": "codex-team",
+        "description": "cleanup, refactor, formatting, file organization, dependency hygiene",
+        "memory_access": "stateless by default"
+      },
+      {
+        "name": "watchdog",
+        "repo": "E0993599799/tham-oracle",
+        "role": "Monitoring",
+        "runtime": "gemini-cli",
+        "provider": "Gemini",
+        "team": "gemini-team",
+        "description": "health checks, regression watch, status validation, anomaly detection",
+        "memory_access": "stateless by default"
+      },
+      {
+        "name": "tham-oracle",
+        "repo": "E0993599799/tham-oracle",
+        "role": "Observer/Governor",
+        "runtime": "claude-code",
+        "provider": "Native Claude",
+        "team": "both",
+        "description": "memory ownership, final decision, routing, verification, human-facing response",
+        "memory_access": "owner"
       }
     ]
   },
-  "triggers": [
-    {
-      "on": "agent-crash",
-      "action": "python3 scripts/agent-coordinator.py",
-      "name": "re-probe-on-crash",
-      "timeout": 30
-    },
-    {
-      "on": "agent-wake",
-      "action": "python3 scripts/message-router.py --once",
-      "name": "route-on-wake",
-      "timeout": 30
-    }
-  ],
-  "peers": []
+  "rtk_context_engine": {
+    "owner": "tham-oracle",
+    "agent": false,
+    "functions": [
+      "router",
+      "task_contract",
+      "knowledge_pack",
+      "proof_gate",
+      "memory_delta_gate"
+    ]
+  },
+  "triggers": [],
+  "peers": [],
+  "_updated": "2026-05-22"
 }
