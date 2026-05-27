@@ -95,6 +95,7 @@ class ExecutorLaneRouter:
         """Initialize router with logging."""
         self.logger = logger or self._setup_logger()
         self.schema = self._load_schema()
+        self.constitution_path = Path("brain/identity/constitution.md")
 
         # Phase 8B: Load promoted rules and config (8B)
         self._load_promoted_rules()
@@ -118,45 +119,146 @@ class ExecutorLaneRouter:
             logger.addHandler(handler)
         return logger
 
+    def _normalize_contract(self, task_input: Dict[str, Any]) -> Dict[str, Any]:
+        """Normalize Phase 2 task contract fields while preserving legacy aliases."""
+        context = task_input.get("context") or {}
+        if not isinstance(context, dict):
+            context = {}
+
+        metadata = task_input.get("metadata") or {}
+        if not isinstance(metadata, dict):
+            metadata = {}
+
+        prompt = task_input.get("prompt") or context.get("requirement") or context.get("prompt") or ""
+        intent = task_input.get("intent") or task_input.get("intent_signal") or "unknown"
+        risk_classification = (
+            task_input.get("risk_classification")
+            or task_input.get("risk_level")
+            or "unknown"
+        )
+
+        normalized = dict(task_input)
+        normalized["prompt"] = prompt
+        normalized["intent"] = intent
+        normalized["risk_classification"] = risk_classification
+        normalized["metadata"] = metadata
+        normalized["context"] = context
+        return normalized
+
+    def _calculate_confidence(
+        self,
+        intent: str,
+        risk_level: str,
+        provided: Optional[Any] = None,
+    ) -> float:
+        """Derive a stable confidence score for the task contract."""
+        if isinstance(provided, (int, float)):
+            return max(0.0, min(1.0, float(provided)))
+
+        known_intents = set(self.ROUTING_TABLE.keys())
+        base = 0.72 if intent in known_intents else 0.58
+        if intent in {"write_code", "fix_bug", "review", "design", "search"}:
+            base += 0.12
+        if intent == "unknown":
+            base -= 0.14
+
+        if risk_level == "low":
+            base += 0.04
+        elif risk_level == "high":
+            base -= 0.1
+        elif risk_level == "critical":
+            base -= 0.18
+
+        return round(max(0.0, min(1.0, base)), 3)
+
+    def _constitution_gate(
+        self,
+        prompt: str,
+        intent: str,
+        risk_level: str,
+        metadata: Dict[str, Any],
+        task: Dict[str, Any],
+    ) -> Tuple[bool, str]:
+        """Apply a lightweight constitution gate before dispatching work."""
+        combined = " ".join(
+            [
+                str(prompt or ""),
+                str(intent or ""),
+                json.dumps(metadata, ensure_ascii=False, sort_keys=True) if metadata else "",
+                json.dumps(task, ensure_ascii=False, sort_keys=True),
+            ]
+        ).lower()
+
+        secret_markers = ["password", "passwd", "secret", "token", "api_key", "credential"]
+        destructive_markers = ["rm -rf", "drop table", "force push", "wipe", "destroy", "delete all"]
+
+        if any(marker in combined for marker in secret_markers):
+            return False, "secret-bearing content detected"
+
+        if any(marker in combined for marker in destructive_markers):
+            return False, "destructive operation detected"
+
+        if risk_level == "critical":
+            return False, "critical risk requires human escalation"
+
+        if intent in {"delete", "drop", "destroy", "reset"}:
+            return False, f"blocked intent '{intent}' requires human review"
+
+        if self.constitution_path.exists() and not prompt.strip():
+            return False, "missing task prompt for constitution review"
+
+        return True, "ok"
+
     def _load_schema(self) -> Dict[str, Any]:
         """Load executor-lane-router.schema.json from Phase 1 SOT."""
-        schema_path = Path(
-            "docs/phase-1-router/executor-lane-router.schema.json"
-        )
+        schema_path = Path("docs/phase-1-router/executor-lane-router.schema.json")
         if schema_path.exists():
             with open(schema_path, "r") as f:
                 return json.load(f)
-        else:
-            self.logger.warning(f"Schema file not found at {schema_path}, using defaults")
-            return {}
+        self.logger.warning(f"Schema file not found at {schema_path}, using defaults")
+        return {}
 
     def route_task(self, task_input: Dict[str, Any]) -> Dict[str, Any]:
         """
         Main routing orchestrator.
 
         Flow:
-          1. Memory gate (5s timeout)
-          2. Risk gate (10s timeout)
-          3. Intent gate (30s timeout)
-          4. Lane selection (primary + fallback)
-          5. Health checks
-          6. Execute on primary lane
-          7. Fallback if primary fails
-          8. Proof validation + write
+          1. Normalize task contract
+          2. Memory gate (5s timeout)
+          3. Risk gate (10s timeout)
+          4. Intent gate (30s timeout)
+          5. Constitution gate
+          6. Lane selection (primary + fallback)
+          7. Health checks
+          8. Execute on primary lane
+          9. Fallback if primary fails
+          10. Proof validation + write
 
         Args:
-            task_input: dict with task_id, intent, prompt, risk_classification, metadata
+            task_input: task contract (supports both legacy and Phase 2 field names)
 
         Returns:
             proof record (dict) with all fields per schema
         """
-        task_id = task_input.get("task_id", "unknown")
+        task = self._normalize_contract(task_input)
+        task_id = task.get("task_id", "unknown")
         start_time = time.time()
         execution_timestamp = datetime.now(timezone.utc).isoformat()
+
+        confidence = self._calculate_confidence(
+            task.get("intent", "unknown"),
+            task.get("risk_classification", "unknown"),
+            task.get("confidence"),
+        )
 
         # Initialize proof tracking
         proof = {
             "task_id": task_id,
+            "intent_signal": task.get("intent", "unknown"),
+            "confidence": confidence,
+            "memory_gate_passed": bool(task.get("memory_gate_passed", False)),
+            "risk_gate_passed": bool(task.get("risk_gate_passed", False)),
+            "constitution_gate_passed": False,
             "routed_lane": None,
             "fallback_lane": None,
             "risk_level": "unknown",
@@ -176,9 +278,15 @@ class ExecutorLaneRouter:
         }
 
         try:
+            prompt = task.get("prompt", "")
+            metadata = task.get("metadata", {})
+
             # Gate 1: Memory Gate (5s timeout)
             self.logger.info(f"[{task_id}] Starting memory gate")
-            memory_ok, memory_elapsed = self._memory_gate(task_id)
+            if task.get("memory_gate_passed"):
+                memory_ok, memory_elapsed = True, 0.0
+            else:
+                memory_ok, memory_elapsed = self._memory_gate(task_id)
             proof["gate_timeouts"]["memory_gate"] = memory_elapsed
             if memory_ok:
                 proof["gates_passed"].append("memory_gate")
@@ -194,11 +302,15 @@ class ExecutorLaneRouter:
 
             # Gate 2: Risk Gate (10s timeout)
             self.logger.info(f"[{task_id}] Starting risk gate")
-            risk_level, risk_elapsed = self._risk_gate(
-                task_input.get("intent", "unknown"),
-                task_input.get("risk_classification", "unknown"),
-                task_input.get("metadata", {}),
-            )
+            if task.get("risk_gate_passed") and task.get("risk_classification") in ("low", "medium", "high", "critical"):
+                risk_level = task.get("risk_classification")
+                risk_elapsed = 0.0
+            else:
+                risk_level, risk_elapsed = self._risk_gate(
+                    task.get("intent", "unknown"),
+                    task.get("risk_classification", "unknown"),
+                    metadata,
+                )
             proof["gate_timeouts"]["risk_gate"] = risk_elapsed
             proof["risk_level"] = risk_level
             if risk_elapsed < self.GATE_TIMEOUTS["risk_gate"]:
@@ -220,7 +332,7 @@ class ExecutorLaneRouter:
             # Gate 3: Intent Gate (30s timeout)
             self.logger.info(f"[{task_id}] Starting intent gate")
             intent, intent_elapsed = self._intent_gate(
-                task_input.get("prompt", ""), task_input.get("intent", "unknown")
+                prompt, task.get("intent", "unknown")
             )
             proof["gate_timeouts"]["intent_gate"] = intent_elapsed
             if intent_elapsed < self.GATE_TIMEOUTS["intent_gate"]:
@@ -234,9 +346,29 @@ class ExecutorLaneRouter:
             # Phase 8C: Emit intent decoded event
             self._emit_event("intent_decoded", {"task_id": task_id, "intent": intent, "elapsed_s": intent_elapsed})
 
+            # Gate 4: Constitution Gate
+            constitution_ok, constitution_reason = self._constitution_gate(
+                prompt=prompt,
+                intent=intent,
+                risk_level=risk_level,
+                metadata=metadata,
+                task=task,
+            )
+            proof["constitution_gate_passed"] = constitution_ok
+            if constitution_ok:
+                pass
+            else:
+                proof["status"] = "BLOCKED"
+                proof["proof_summary"] = f"Constitution gate blocked task: {constitution_reason}"
+                self._emit_event(
+                    "constitution_blocked",
+                    {"task_id": task_id, "reason": constitution_reason, "risk_level": risk_level},
+                )
+                return self._finalize_proof(proof, start_time)
+
             # Lane selection
             primary_lane, fallback_lane = self._select_lane(
-                intent, risk_level, task_input.get("explicit_lane")
+                intent, risk_level, task.get("explicit_lane")
             )
             proof["routed_lane"] = primary_lane
             proof["fallback_lane"] = fallback_lane

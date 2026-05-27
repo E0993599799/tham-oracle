@@ -1,0 +1,53 @@
+{
+  "status": "completed",
+  "timestamp": "2026-05-22T03:02:43+0700",
+  "request": "แบ่งเป็น 2 จอ จอละทีม",
+  "layout": {
+    "session": "tham-oracle-stack",
+    "screens_windows": [
+      {
+        "name": "codex-team",
+        "team": "Codex",
+        "panes": ["tham", "dheva", "zeus", "warden", "verity", "stratum"]
+      },
+      {
+        "name": "gemini-team",
+        "team": "Gemini",
+        "panes": ["tham", "luxi", "lens"]
+      }
+    ]
+  },
+  "repo_reuse": {
+    "repo": "E0993599799/tham-oracle",
+    "local_path": "/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle"
+  },
+  "files_changed": [
+    "AGENTS.md",
+    ".agents/agents.yaml",
+    "configs/agent-registry.json",
+    "configs/pane-registry.json",
+    "configs/maw.config.json",
+    "scripts/spawn-agents-tmux.sh",
+    "proofs/2026-05-22/hermes-swarm-two-team-screens.json"
+  ],
+  "verification": {
+    "json_validation": [
+      "python3 -m json.tool configs/agent-registry.json",
+      "python3 -m json.tool configs/pane-registry.json",
+      "python3 -m json.tool configs/maw.config.json"
+    ],
+    "yaml_validation": ".agents/agents.yaml parsed with yaml.safe_load",
+    "shell_validation": "bash -n scripts/spawn-agents-tmux.sh",
+    "team_assertions": "codex-team has tham,dheva,zeus,warden,verity,stratum; gemini-team has tham,luxi,lens; registries agree"
+  },
+  "constraints_observed": [
+    "No commit, push, merge, deploy, delete, git clean, or git reset performed.",
+    "Spawn script remains label-only by default; provider CLIs require explicit START_* flags.",
+    "Did not run spawn script because it would kill/recreate the named tmux spawn surface."
+  ],
+  "risk_notes": [
+    "Tham appears in both team windows as an orchestrator pane label; launching START_THAM_CLAUDE=1 would start Claude in both windows unless the user changes that behavior.",
+    "The script preserves prior behavior of killing only the named tmux session before recreating it."
+  ],
+  "rollback_path": "Restore the listed files from git or a prior snapshot only after reviewing git diff. Do not use git reset/clean without explicit approval."
+}

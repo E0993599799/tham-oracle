@@ -1,0 +1,32 @@
+{
+  "task_id": "phase2_contract_check",
+  "intent_signal": "write_code",
+  "confidence": 0.91,
+  "memory_gate_passed": true,
+  "risk_gate_passed": true,
+  "constitution_gate_passed": true,
+  "routed_lane": "codex_gpt55",
+  "fallback_lane": "ollama",
+  "risk_level": "medium",
+  "status": "ERROR",
+  "gates_passed": [
+    "memory_gate",
+    "risk_gate",
+    "intent_gate"
+  ],
+  "gate_timeouts": {
+    "memory_gate": 0.0,
+    "risk_gate": 0.0,
+    "intent_gate": 1.1920928955078125e-06
+  },
+  "execution_timestamp": "2026-05-25T17:09:12.022706+00:00",
+  "execution_duration_seconds": 0,
+  "lane_response": {
+    "status_code": null,
+    "response_time_ms": null,
+    "output_length": 0
+  },
+  "proof_path": null,
+  "proof_summary": "Primary codex_gpt55 failed (Lane error: HTTPConnectionPool(host='localhost', port=20128): Max retries exceeded with url: /v1/completions (Caused by NewConnectionError(\"HTTPConnection(host='localhost', port=20128): Failed to establish a new connection: [Errno 111] Connection refused\"))), fallback ollama failed (Lane error: HTTPConnectionPool(host='localhost', port=11434): Max retries exceeded with url: /api/generate (Caused by NewConnectionError(\"HTTPConnection(host='localhost', port=11434): Failed to establish a new connection: [Errno 111] Connection refused\"))). Both lanes exhausted.",
+  "next_action": ""
+}

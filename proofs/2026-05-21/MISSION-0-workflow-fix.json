@@ -1,0 +1,76 @@
+{
+  "mission_id": "MISSION-0-WORKFLOW-FIX-20260521",
+  "status": "completed",
+  "timestamp": "2026-05-21T22:10:00+07:00",
+  "files_changed": [
+    {
+      "path": "configs/pane-registry.json",
+      "summary": "Bumped registry to v1.4, set codex tmux_target to 50-tham:codex-gpt55, provider to openai-direct, model to gpt-5.5, updated codex window description, and marked tham-oracle-stack:codex as autonomous-fleet experimental target."
+    },
+    {
+      "path": "configs/agent-registry.json",
+      "summary": "Bumped registry to v1.4 and changed only codex builder lane to provider openai-direct/model gpt-5.5, removed base_url/routes_through, added tmux_target 50-tham:codex-gpt55, and updated validation wording."
+    },
+    {
+      "path": ".agents/agents.yaml",
+      "summary": "Changed only agents.codex provider/model to openai-direct/gpt-5.5 and removed codex base_url."
+    },
+    {
+      "path": "configs/lane-cards/hermes-optional.json",
+      "summary": "Removed codex_executor_route, redefined description as Gemini-3.1-Pro specialist review/multimodal/long-context adapter, and prepended no-Codex-middleware rule."
+    },
+    {
+      "path": "skills/hermes-legacy-adapter/SKILL.md",
+      "summary": "Removed Codex Executor Route section and added explicit rule that coding tasks route directly from Tham to Codex GPT-5.5 at 50-tham:codex-gpt55, not through Hermes."
+    },
+    {
+      "path": "scripts/spawn-autonomous-fleet-now.sh",
+      "summary": "Hardened generated status-line cleanup so malformed STATUS backslash escapes are rewritten to STATUS=$? and $STATUS."
+    },
+    {
+      "path": "scripts/spawn-agents-tmux.sh",
+      "summary": "Changed codex/builder lane default model to gpt-5.5 while leaving core/bob on cx/gpt-5.5 stack model."
+    },
+    {
+      "path": "reports/autonomous-fleet/20260521_203332/codex.sh",
+      "summary": "Patched existing generated codex.sh line 15-16 from malformed STATUS=\\ and \\STATUS to valid STATUS=$? and $STATUS."
+    }
+  ],
+  "verification": {
+    "pane_registry_codex_target": "expected: 50-tham:codex-gpt55; actual: 50-tham:codex-gpt55",
+    "pane_registry_codex_provider_model": "expected: openai-direct/gpt-5.5; actual: openai-direct/gpt-5.5",
+    "agent_registry_codex_provider": "expected: openai-direct; actual: openai-direct",
+    "agent_registry_codex_model": "expected: gpt-5.5; actual: gpt-5.5",
+    "agent_registry_codex_base_url_removed": true,
+    "agent_registry_codex_routes_through_removed": true,
+    "agent_registry_codex_tmux_target": "expected: 50-tham:codex-gpt55; actual: 50-tham:codex-gpt55",
+    "agents_yaml_codex_provider_model": "expected: openai-direct/gpt-5.5; actual: openai-direct/gpt-5.5",
+    "hermes_codex_route_removed": true,
+    "autonomous_fleet_codex_sh_clean_run": "bash -n passed for scripts/spawn-autonomous-fleet-now.sh and reports/autonomous-fleet/20260521_203332/codex.sh; isolated regeneration test produced STATUS=$? and echo $STATUS. Live tmux rerun was not performed to obey no-restart constraint.",
+    "requires_human_restart": true,
+    "json_validation": [
+      "python3 -m json.tool configs/pane-registry.json",
+      "python3 -m json.tool configs/agent-registry.json",
+      "python3 -m json.tool configs/lane-cards/hermes-optional.json"
+    ],
+    "yaml_validation": ".agents/agents.yaml parsed with yaml.safe_load",
+    "shell_validation": [
+      "bash -n scripts/spawn-autonomous-fleet-now.sh",
+      "bash -n scripts/spawn-agents-tmux.sh",
+      "bash -n reports/autonomous-fleet/20260521_203332/codex.sh"
+    ],
+    "secret_scan": "No credential-like literals found in changed mission files. Only env var names/placeholders remain."
+  },
+  "git_status_before_commit": "M .claude/settings.json; M .gitignore; M configs/agent-registry.json; M configs/lane-cards/hermes-optional.json; M configs/maw.config.json; M configs/pane-registry.json; M dashboard-next/lib/repo.ts; M scripts/spawn-agents-tmux.sh; M server/proof-playback-api.py; M server/proof-watcher.py; M server/telegram-bot.py; M server/websocket-server.py; M skills/hermes-legacy-adapter/SKILL.md; ?? .agents/; ?? AGENTS.md; ?? RESEARCH-frontend-figma.md; ?? docs/integrations/; ?? docs/phase-4/; ?? proofs/2026-05-21/; ?? proofs/2026-05-21_claude-orchestrator-codex-gemini-fleet.md; ?? reports/autonomous-fleet/; ?? reports/progress/; ?? scripts/dispatch-tham-2026-05-21.sh; ?? scripts/spawn-autonomous-fleet-now.sh; ?? skills/maw-rs-orchestration.skill.md",
+  "constraints_observed": [
+    "No commit, push, deploy, delete, clean, reset, or tmux restart performed.",
+    "Registry edits were scoped to codex lane except version/update metadata and existing file formatting emitted by JSON serializer.",
+    "Core/bob Codex stack model left at cx/gpt-5.5 in spawn-agents-tmux.sh."
+  ],
+  "risk_notes": [
+    "Repository already had substantial dirty/untracked state before this mission; git diff includes pre-existing changes not caused by this run.",
+    "Live tham-oracle-stack codex pane may still display old error until human-approved rerun/restart; generated script and generator are fixed."
+  ],
+  "rollback_path": "Revert the listed mission files from git or restore previous versions from review diff; no runtime restart or commit was performed by this mission.",
+  "next_action": "free Mission A + Mission B to dispatch after human acknowledges whether to rerun/restart autonomous fleet for live tmux proof"
+}

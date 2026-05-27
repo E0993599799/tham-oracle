@@ -277,5 +277,42 @@ class TestEndToEnd(unittest.TestCase):
         assert ".json" in proof["proof_path"]
 
 
+    def test_phase2_contract_normalization_uses_context_requirement(self):
+        """Phase 2 contract fields should normalize from intent_signal + context.requirement."""
+        router = ExecutorLaneRouter()
+        contract = {
+            "task_id": "phase2-normalization",
+            "intent_signal": "unknown",
+            "context": {"requirement": "Please write code for a validator function"},
+            "risk_level": "low",
+            "confidence": 0.42,
+            "metadata": {"source": "phase2"},
+        }
+
+        proof = router.route_task(contract)
+
+        self.assertEqual(proof["task_id"], "phase2-normalization")
+        self.assertEqual(proof["intent_signal"], "write_code")
+        self.assertEqual(proof["risk_level"], "low")
+        self.assertAlmostEqual(proof["confidence"], 0.42, places=2)
+        self.assertIn(proof["status"], ["SUCCESS", "BLOCKED", "ERROR", "TIMEOUT"])
+
+    def test_constitution_gate_blocks_secret_content(self):
+        """Constitution gate should block secret-bearing prompts."""
+        router = ExecutorLaneRouter()
+        contract = {
+            "task_id": "constitution-block-secret",
+            "intent": "write_code",
+            "prompt": "Use password token abc123 to configure access",
+            "risk_classification": "medium",
+            "metadata": {},
+        }
+
+        proof = router.route_task(contract)
+
+        self.assertEqual(proof["status"], "BLOCKED")
+        self.assertFalse(proof["constitution_gate_passed"])
+        self.assertIn("Constitution gate blocked task", proof["proof_summary"])
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

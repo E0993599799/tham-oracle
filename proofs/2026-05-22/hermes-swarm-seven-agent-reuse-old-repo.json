@@ -1,0 +1,79 @@
+{
+  "status": "completed",
+  "timestamp": "2026-05-22T02:59:43+0700",
+  "request": "Configure Hermes swarm agents: Dheva Codex, Luxi Gemini, Lens Gemini, Zeus Codex, Warden Codex, Verity Codex, Stratum Codex; reuse old repo.",
+  "active_swarm": [
+    "tham",
+    "dheva",
+    "luxi",
+    "lens",
+    "zeus",
+    "warden",
+    "verity",
+    "stratum"
+  ],
+  "worker_runtime_map": {
+    "dheva": "codex / cx/gpt-5.5",
+    "luxi": "gemini-cli / gemini/gemini-3.1-pro-preview",
+    "lens": "gemini-cli / gemini/gemini-3.1-pro-preview",
+    "zeus": "codex / cx/gpt-5.5",
+    "warden": "codex / cx/gpt-5.5",
+    "verity": "codex / cx/gpt-5.5",
+    "stratum": "codex / cx/gpt-5.5"
+  },
+  "repo_reuse": {
+    "repo": "E0993599799/tham-oracle",
+    "local_path": "/mnt/d/01 Main Work/Boots/Agentic AI/mission-control/tham-oracle"
+  },
+  "files_changed": [
+    {
+      "path": "AGENTS.md",
+      "summary": "Updated canonical active fleet contract to requested seven-worker Hermes swarm and old-repo reuse."
+    },
+    {
+      "path": ".agents/agents.yaml",
+      "summary": "Replaced active mapping with tham plus requested workers; marked legacy lanes manual/archive."
+    },
+    {
+      "path": "configs/agent-registry.json",
+      "summary": "Bumped registry to v1.7 and encoded requested active workers with tmux targets and reused repo metadata."
+    },
+    {
+      "path": "configs/pane-registry.json",
+      "summary": "Bumped pane registry to v1.7 for 8-pane layout: tham left, seven workers right."
+    },
+    {
+      "path": "configs/maw.config.json",
+      "summary": "Updated MAW lineage to tham plus requested worker names."
+    },
+    {
+      "path": "scripts/spawn-agents-tmux.sh",
+      "summary": "Updated default label-only tmux spawn surface to tham plus dheva/luxi/lens/zeus/warden/verity/stratum."
+    },
+    {
+      "path": "proofs/2026-05-22/hermes-swarm-seven-agent-reuse-old-repo.json",
+      "summary": "This proof artifact."
+    }
+  ],
+  "verification": {
+    "json_validation": [
+      "python3 -m json.tool configs/agent-registry.json",
+      "python3 -m json.tool configs/pane-registry.json",
+      "python3 -m json.tool configs/maw.config.json"
+    ],
+    "yaml_validation": ".agents/agents.yaml parsed with yaml.safe_load",
+    "shell_validation": "bash -n scripts/spawn-agents-tmux.sh",
+    "registry_assertions": "agent order equals tham,dheva,luxi,lens,zeus,warden,verity,stratum across agent registry, pane registry, MAW config, and .agents/agents.yaml",
+    "secret_scan": "No credential-like literals found in changed swarm files; matches were documentation phrases only (secret-scan/no secrets)."
+  },
+  "constraints_observed": [
+    "No commit, push, merge, deploy, delete, git clean, or git reset performed.",
+    "Spawn script remains label-only by default; provider CLIs require explicit START_* flags.",
+    "Existing dirty repo state was not normalized or committed."
+  ],
+  "risk_notes": [
+    "Current tmux spawn script kills only the named tham-oracle-stack session before recreating it, preserving prior script behavior.",
+    "Eight-pane layout may be cramped in small terminals; labels and pane registry still reflect intended targets."
+  ],
+  "rollback_path": "Use git diff for the listed files, then restore only these files from version control or prior local snapshot if needed. Do not run git reset/clean without explicit approval."
+}
