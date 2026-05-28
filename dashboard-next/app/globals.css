@@ -623,3 +623,178 @@ a:focus-visible {
   from { opacity: 0; transform: translateY(10px) scale(0.995); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
+
+/* ──────────────────────────────────────────────────────────────────────────── */
+/* PHASE 2: Panel Component Classes */
+/* ──────────────────────────────────────────────────────────────────────────── */
+
+/* Fleet Panel & Generic Panel Layout */
+.panel-header-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  contain: layout;
+}
+
+.panel-filter-row {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0 10px;
+  flex-wrap: wrap;
+  contain: layout;
+}
+
+/* Oracle Card */
+.oracle-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 4px;
+  gap: 8px;
+}
+
+.oracle-card-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.oracle-card-badge {
+  font-size: 10px;
+  color: var(--accent2);
+  background: rgba(166, 107, 255, 0.14);
+  border-radius: 4px;
+  padding: 1px 5px;
+  border: 1px solid rgba(166, 107, 255, 0.22);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.oracle-card-info {
+  color: var(--text-muted);
+  font-size: 11px;
+  margin-bottom: 2px;
+}
+
+.oracle-card-info-branch {
+  color: var(--success);
+  margin-right: 6px;
+}
+
+.oracle-card-path {
+  color: var(--text-muted);
+  font-size: 10px;
+  margin-top: 4px;
+  word-break: break-word;
+}
+
+.oracle-card-commit {
+  color: var(--text-muted);
+  font-size: 10px;
+  margin-top: 2px;
+}
+
+/* Panel Content Container */
+.panel-content {
+  color: var(--text-muted);
+}
+
+.panel-section-header {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+
+/* Memory Panel - File Items */
+.memory-file-item {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 6px;
+}
+
+.memory-file-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 3px;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.memory-file-key {
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.memory-file-meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.memory-file-meta-text {
+  color: var(--text-muted);
+  font-size: 10px;
+}
+
+.memory-file-path {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.memory-file-snippet {
+  color: var(--text-muted);
+  font-size: 10px;
+  margin-top: 3px;
+  font-style: italic;
+}
+
+/* Git Panel Table Overrides */
+.git-table-container {
+  overflow-x: auto;
+}
+
+.git-table-cell-hash {
+  max-width: 380px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.git-table-cell-author {
+  color: var(--text-secondary);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.git-table-cell-time {
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* Panel Badge Row */
+.panel-badge-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+/* Empty State */
+.panel-empty {
+  color: var(--text-muted);
+  padding: 8px;
+}
+
+/* Metrics Table */
+.metrics-table-container {
+  overflow-x: auto;
+}

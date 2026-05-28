@@ -308,9 +308,9 @@ function StatBar({ s }: { s: FleetData['summary'] }) {
 
 type FleetFilter = 'all' | 'active' | 'stale' | 'cold' | 'abandoned' | 'not-awakened'
 
-function FleetPanel({ data }: { data: FleetData | null }) {
+const FleetPanel = memo(function FleetPanel({ data }: { data: FleetData | null }) {
   const [filter, setFilter] = useState<FleetFilter>('all')
-  if (!data) return <div style={{ color: 'var(--text-muted)' }}>loading fleet…</div>
+  if (!data) return <div className="panel-content">loading fleet…</div>
 
   const oracles = data.oracles.filter(o => {
     if (filter === 'all')          return true
@@ -326,7 +326,7 @@ function FleetPanel({ data }: { data: FleetData | null }) {
 
   return (
     <div>
-      <div style={{ display: 'flex', gap: 8, marginBottom: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+      <div className="panel-badge-row">
         <span className="badge badge-blue">◉ {data.summary.total} total</span>
         <span className="badge badge-green">⚡ {data.summary.active} active</span>
         <span className="badge badge-yellow">◔ {data.summary.stale} stale</span>
@@ -335,7 +335,7 @@ function FleetPanel({ data }: { data: FleetData | null }) {
         {notAwakened > 0 && <span className="badge badge-gray">✧ {notAwakened} not awakened</span>}
       </div>
       <StatBar s={data.summary} />
-      <div style={{ display: 'flex', gap: 8, margin: '12px 0 10px', flexWrap: 'wrap' }}>
+      <div className="panel-filter-row">
         {(['all','active','stale','cold','abandoned','not-awakened'] as FleetFilter[]).map(f => (
           <button
             key={f}
@@ -349,43 +349,39 @@ function FleetPanel({ data }: { data: FleetData | null }) {
       <div className="oracle-grid">
         {oracles.map(o => (
           <div key={o.name} className={`oracle-card ${statusClass(o.days)}`}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 4 }}>
-              <span style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)' }}>
+            <div className="oracle-card-header">
+              <span className="oracle-card-title">
                 {o.status} {o.name}
               </span>
               {o.hasAwaken && (
-                <span style={{ fontSize: 10, color: 'var(--accent2)', background: 'rgba(166,107,255,0.14)', borderRadius: 4, padding: '1px 5px', border: '1px solid rgba(166,107,255,0.22)' }}>
-                  ✦ awakened
-                </span>
+                <span className="oracle-card-badge">✦ awakened</span>
               )}
             </div>
-            <div style={{ color: 'var(--text-muted)', fontSize: 11 }}>
-              {o.branch && <span style={{ color: 'var(--success)', marginRight: 6 }}>{o.branch}</span>}
+            <div className="oracle-card-info">
+              {o.branch && <span className="oracle-card-info-branch">{o.branch}</span>}
               {o.days === 0
                 ? <span style={{ color: 'var(--success)' }}>today</span>
                 : ago(o.days)
               }
             </div>
-            <div style={{ color: 'var(--text-muted)', fontSize: 10, marginTop: 4, wordBreak: 'break-word' }}>
-              {o.path}
-            </div>
-            <div style={{ color: 'var(--text-muted)', fontSize: 10, marginTop: 2 }}>
+            <div className="oracle-card-path">{o.path}</div>
+            <div className="oracle-card-commit">
               last commit {o.lastCommit ? fmtTime(o.lastCommit) : '—'}
             </div>
           </div>
         ))}
-        {oracles.length === 0 && <div style={{ color: 'var(--text-muted)', padding: 8 }}>none</div>}
+        {oracles.length === 0 && <div className="panel-empty">none</div>}
       </div>
     </div>
   )
-}
+})
 
 // ── Git Panel ──────────────────────────────────────────────────────────────
-function GitPanel({ data }: { data: GitData | null }) {
-  if (!data) return <div style={{ color: 'var(--text-muted)' }}>loading git…</div>
+const GitPanel = memo(function GitPanel({ data }: { data: GitData | null }) {
+  if (!data) return <div className="panel-content">loading git…</div>
   return (
     <div>
-      <div style={{ marginBottom: 10, display: 'flex', gap: 10, alignItems: 'center' }}>
+      <div className="panel-badge-row">
         <span className="badge badge-blue">⎇ {data.branch || 'main'}</span>
         {data.dirtyFiles > 0 && (
           <span className="badge badge-yellow">~ {data.dirtyFiles} changed</span>
@@ -394,41 +390,41 @@ function GitPanel({ data }: { data: GitData | null }) {
           <span className="badge badge-green">clean</span>
         )}
       </div>
-      <table>
-        <thead>
-          <tr>
-            <th>hash</th>
-            <th>subject</th>
-            <th>author</th>
-            <th>ago</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.commits.map(c => (
-            <tr key={c.hash}>
-              <td><span className="hash">{c.hash}</span></td>
-              <td style={{ maxWidth: 380, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {c.subject}
-              </td>
-              <td style={{ color: 'var(--text-secondary)', fontSize: 11, whiteSpace: 'nowrap' }}>{c.author}</td>
-              <td style={{ color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>{c.ago}</td>
+      <div className="git-table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>hash</th>
+              <th>subject</th>
+              <th>author</th>
+              <th>ago</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {data.commits.map(c => (
+              <tr key={c.hash}>
+                <td><span className="hash">{c.hash}</span></td>
+                <td className="git-table-cell-hash">{c.subject}</td>
+                <td className="git-table-cell-author">{c.author}</td>
+                <td className="git-table-cell-time">{c.ago}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
-}
+})
 
 // ── Memory Panel ───────────────────────────────────────────────────────────
-function MemoryPanel({ data }: { data: MemData | null }) {
-  if (!data) return <div style={{ color: 'var(--text-muted)' }}>loading memory…</div>
+const MemoryPanel = memo(function MemoryPanel({ data }: { data: MemData | null }) {
+  if (!data) return <div className="panel-content">loading memory…</div>
 
   const existing = data.files.filter(f => f.exists).length
 
   return (
     <div>
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12, alignItems: 'center' }}>
+      <div className="panel-badge-row">
         <span className="badge badge-blue">🧠 {data.files.length} memory files</span>
         <span className="badge badge-green">✓ {existing} present</span>
         {data.files.length - existing > 0 && <span className="badge badge-red">✗ {data.files.length - existing} missing</span>}
@@ -437,30 +433,24 @@ function MemoryPanel({ data }: { data: MemData | null }) {
 
       <div style={{ marginBottom: 12 }}>
         {data.files.map(f => (
-          <div key={f.key} style={{
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border)',
-            borderRadius: 6,
-            padding: '8px 12px',
-            marginBottom: 6,
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 3 }}>
-              <span style={{ color: 'var(--accent)', fontSize: 12, fontWeight: 600 }}>{f.key}</span>
-              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <div key={f.key} className="memory-file-item">
+            <div className="memory-file-header">
+              <span className="memory-file-key">{f.key}</span>
+              <div className="memory-file-meta">
                 {f.exists
                   ? <span className="badge badge-green">✓ exists</span>
                   : <span className="badge badge-red">✗ missing</span>
                 }
-                <span style={{ color: 'var(--text-muted)', fontSize: 10 }}>{f.sizeKB}KB</span>
-                {f.lastModified && <span style={{ color: 'var(--text-muted)', fontSize: 10 }}>{fmtTime(f.lastModified)}</span>}
+                <span className="memory-file-meta-text">{f.sizeKB}KB</span>
+                {f.lastModified && <span className="memory-file-meta-text">{fmtTime(f.lastModified)}</span>}
                 {f.hash && f.hash !== 'untracked' && (
                   <span className="hash">{f.hash}</span>
                 )}
               </div>
             </div>
-            <div style={{ color: 'var(--text-muted)', fontSize: 11 }}>{f.path}</div>
+            <div className="memory-file-path">{f.path}</div>
             {f.snippet && (
-              <div style={{ color: 'var(--text-muted)', fontSize: 10, marginTop: 3, fontStyle: 'italic' }}>
+              <div className="memory-file-snippet">
                 {f.snippet.slice(0, 100)}
               </div>
             )}
@@ -470,7 +460,7 @@ function MemoryPanel({ data }: { data: MemData | null }) {
 
       {data.constitutionRules.length > 0 && (
         <div>
-          <div style={{ fontSize: 10, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
+          <div className="panel-section-header">
             Constitution ({data.constitutionRules.length} rules)
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -484,7 +474,7 @@ function MemoryPanel({ data }: { data: MemData | null }) {
       )}
     </div>
   )
-}
+})
 
 // ── Metrics Panel ──────────────────────────────────────────────────────────
 function MetricsPanel({ data }: { data: MetricsData | null }) {
@@ -1912,13 +1902,10 @@ function TmuxChatPanel() {
   )
 }
 
-const MemoFleetPanel = memo(FleetPanel)
 const MemoTaskBoardPanel = memo(TaskBoardPanel)
 const MemoStatusMonitorPanel = memo(StatusMonitorPanel)
 const MemoCommandRunnerPanel = memo(CommandRunnerPanel)
 const MemoTmuxChatPanel = memo(TmuxChatPanel)
-const MemoGitPanel = memo(GitPanel)
-const MemoMemoryPanel = memo(MemoryPanel)
 const MemoInboxPanel = memo(InboxPanel)
 const MemoServicesPanel = memo(ServicesPanel)
 const MemoConstitutionPanel = memo(ConstitutionPanel)
@@ -2155,7 +2142,7 @@ export default function Dashboard() {
                   <span className="dot" style={{ background: 'var(--success)' }} />
                   Oracle Fleet
                 </div>
-                <MemoFleetPanel data={fleet} />
+                <FleetPanel data={fleet} />
               </div>
             )}
 
@@ -2189,7 +2176,7 @@ export default function Dashboard() {
                   <span className="dot" style={{ background: 'var(--accent)' }} />
                   Git Activity — tham-oracle
                 </div>
-                <MemoGitPanel data={git} />
+                <GitPanel data={git} />
               </div>
             )}
 
@@ -2199,7 +2186,7 @@ export default function Dashboard() {
                   <span className="dot" style={{ background: 'var(--accent2)' }} />
                   Memory Gate
                 </div>
-                <MemoMemoryPanel data={mem} />
+                <MemoryPanel data={mem} />
               </div>
             )}
 
