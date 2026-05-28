@@ -997,3 +997,257 @@ a:focus-visible {
   margin-left: auto;
   flex-shrink: 0;
 }
+
+/* ──────────────────────────────────────────────────────────────────────────── */
+/* PHASE 4: Services, Quotas, Metrics, Constitution, Inbox Panels */
+/* ──────────────────────────────────────────────────────────────────────────── */
+
+/* Services Panel */
+.services-header {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  contain: layout;
+}
+
+.services-probe-time {
+  color: var(--text-muted);
+  font-size: 10px;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
+.services-table-container {
+  overflow-x: auto;
+}
+
+.services-table-name {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.services-table-latency-fast {
+  color: var(--success);
+}
+
+.services-table-latency-slow {
+  color: var(--text-muted);
+}
+
+.services-table-source {
+  color: var(--text-secondary);
+  font-size: 10px;
+}
+
+.services-table-detail {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+/* Constitution Panel */
+.constitution-header {
+  margin-bottom: 12px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.constitution-note {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.constitution-card-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex: 1;
+}
+
+.constitution-card-id {
+  flex-shrink: 0;
+}
+
+.constitution-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.constitution-card-title {
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.constitution-card-description {
+  color: var(--text-secondary);
+  font-size: 11px;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+/* Metrics Panel */
+.metrics-header {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  contain: layout;
+}
+
+.metrics-table-container {
+  overflow-x: auto;
+}
+
+.metrics-empty {
+  color: var(--text-muted);
+}
+
+/* Inbox Panel */
+.inbox-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  contain: layout;
+}
+
+.inbox-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.inbox-section-title {
+  color: var(--text-muted);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+
+.inbox-file-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 8px;
+  border-radius: 6px;
+  gap: 8px;
+  contain: layout style;
+}
+
+.inbox-file-name {
+  color: var(--text-primary);
+  font-size: 11px;
+  font-weight: 500;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.inbox-file-meta {
+  color: var(--text-muted);
+  font-size: 10px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.inbox-empty {
+  color: var(--text-muted);
+  font-size: 10px;
+  padding: 8px;
+}
+
+/* Quota/Provider Panel */
+.quota-header {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  align-items: center;
+  contain: layout;
+}
+
+.quota-filter-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  contain: layout;
+}
+
+.quota-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+  contain: layout;
+}
+
+.quota-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-sub);
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.quota-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.quota-card-name {
+  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 600;
+  flex: 1;
+}
+
+.quota-card-status {
+  flex-shrink: 0;
+}
+
+.quota-card-detail {
+  color: var(--text-muted);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+/* Command Control Section */
+.command-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 16px;
+  padding-top: 16px;
+}
+
+.command-tab-button {
+  padding: 6px 16px;
+  border-radius: 8px 8px 0 0;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 400;
+  font-family: inherit;
+  transition: all 0.12s;
+  margin-bottom: -1px;
+}
+
+.command-tab-button-active {
+  border: 1px solid var(--border);
+  border-bottom: 1px solid var(--bg-card);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-weight: 700;
+}

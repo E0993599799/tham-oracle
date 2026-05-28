@@ -477,12 +477,12 @@ const MemoryPanel = memo(function MemoryPanel({ data }: { data: MemData | null }
 })
 
 // ── Metrics Panel ──────────────────────────────────────────────────────────
-function MetricsPanel({ data }: { data: MetricsData | null }) {
-  if (!data) return <div style={{ color: 'var(--text-muted)' }}>loading metrics…</div>
+const MetricsPanel = memo(function MetricsPanel({ data }: { data: MetricsData | null }) {
+  if (!data) return <div className="panel-content">loading metrics…</div>
 
   return (
     <div>
-      <div style={{ display: 'flex', gap: 12, marginBottom: 12, flexWrap: 'wrap' }}>
+      <div className="metrics-header">
         <span className="badge badge-blue">📝 {data.retrosToday} retros today</span>
         <span className="badge badge-purple">
           💡 {data.learningsThisMonth} learnings this month
@@ -492,42 +492,44 @@ function MetricsPanel({ data }: { data: MetricsData | null }) {
         </span>
       </div>
       {data.rows.length === 0 ? (
-        <div style={{ color: 'var(--text-muted)' }}>no session metrics yet</div>
+        <div className="metrics-empty">no session metrics yet</div>
       ) : (
-        <table>
-          <thead>
-            <tr>
-              <th>when</th>
-              <th>session</th>
-              <th>done</th>
-              <th>stuck</th>
-              <th>win</th>
-              <th>friction</th>
-              <th>error</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.rows.map((r, i) => (
-              <tr key={i}>
-                <td style={{ color: 'var(--text-muted)', fontSize: 10 }}>{r.when}</td>
-                <td><span className="hash">{r.session.slice(0, 8)}</span></td>
-                <td style={{ color: 'var(--text-secondary)', fontSize: 11 }}>{r.done.slice(0, 24)}</td>
-                <td style={{ color: 'var(--danger)', fontSize: 11 }}>{r.stuck.slice(0, 24)}</td>
-                <td style={{ color: 'var(--success)', fontSize: 11 }}>{r.win.slice(0, 40)}</td>
-                <td style={{ color: 'var(--warning)', fontSize: 11 }}>{r.friction.slice(0, 40)}</td>
-                <td style={{ color: 'var(--danger)', fontSize: 11 }}>{r.error.slice(0, 40)}</td>
+        <div className="metrics-table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>when</th>
+                <th>session</th>
+                <th>done</th>
+                <th>stuck</th>
+                <th>win</th>
+                <th>friction</th>
+                <th>error</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {data.rows.map((r, i) => (
+                <tr key={i}>
+                  <td style={{ color: 'var(--text-muted)', fontSize: 10 }}>{r.when}</td>
+                  <td><span className="hash">{r.session.slice(0, 8)}</span></td>
+                  <td style={{ color: 'var(--text-secondary)', fontSize: 11 }}>{r.done.slice(0, 24)}</td>
+                  <td style={{ color: 'var(--danger)', fontSize: 11 }}>{r.stuck.slice(0, 24)}</td>
+                  <td style={{ color: 'var(--success)', fontSize: 11 }}>{r.win.slice(0, 40)}</td>
+                  <td style={{ color: 'var(--warning)', fontSize: 11 }}>{r.friction.slice(0, 40)}</td>
+                  <td style={{ color: 'var(--danger)', fontSize: 11 }}>{r.error.slice(0, 40)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </div>
   )
-}
+})
 
 // ── Inbox Panel ────────────────────────────────────────────────────────────
-function InboxPanel({ data }: { data: InboxData | null }) {
-  if (!data) return <div style={{ color: 'var(--text-muted)' }}>loading queue…</div>
+const InboxPanel = memo(function InboxPanel({ data }: { data: InboxData | null }) {
+  if (!data) return <div className="panel-content">loading queue…</div>
 
   const sections = [
     { label: 'inbox',  icon: '📥', val: data.inbox,  badge: 'badge-blue' },
@@ -537,40 +539,28 @@ function InboxPanel({ data }: { data: InboxData | null }) {
   ]
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+    <div className="inbox-grid">
       {sections.map(({ label, icon, val, badge }) => {
         const raw = (val.files ?? val.recent ?? []) as (FileEntry | string)[]
         return (
-          <div key={label} style={{
-            background: 'var(--bg-surface)',
-            border: '1px solid var(--border)',
-            borderRadius: 8,
-            padding: '10px 12px',
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+          <div key={label} className="inbox-section">
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, alignItems: 'center' }}>
               <span style={{ color: 'var(--text-primary)', fontSize: 12 }}>{icon} {label}</span>
               <span className={`badge ${badge}`}>{val.count}</span>
             </div>
             {raw.length === 0 && (
-              <div style={{ color: 'var(--text-muted)', fontSize: 11 }}>empty</div>
+              <div className="inbox-empty">empty</div>
             )}
             {raw.map((f, i) => {
               const name   = typeof f === 'string' ? f : f.name
               const mtime  = typeof f === 'string' ? '' : f.mtime
               const sizeKB = typeof f === 'string' ? 0  : f.sizeKB
               return (
-                <div key={i} style={{
-                  borderBottom: i < raw.length - 1 ? '1px solid var(--border-sub)' : 'none',
-                  padding: '5px 0',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'flex-start',
-                  gap: 8,
-                }}>
-                  <span style={{ color: 'var(--text-secondary)', fontSize: 11, wordBreak: 'break-all', flex: 1 }}>
+                <div key={i} className="inbox-file-item" style={{ borderBottom: i < raw.length - 1 ? '1px solid var(--border-sub)' : 'none' }}>
+                  <span className="inbox-file-name" style={{ color: 'var(--text-secondary)' }}>
                     {name.slice(0, 36)}{name.length > 36 ? '…' : ''}
                   </span>
-                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                  <div className="inbox-file-meta">
                     {mtime && (
                       <div style={{ color: 'var(--success)', fontSize: 10 }}>{fmtTime(mtime)}</div>
                     )}
@@ -586,7 +576,7 @@ function InboxPanel({ data }: { data: InboxData | null }) {
       })}
     </div>
   )
-}
+})
 
 // ── Services Panel ─────────────────────────────────────────────────────────
 function StatusBadge({ status }: { status: string }) {
@@ -600,74 +590,76 @@ function StatusBadge({ status }: { status: string }) {
   return <span className={`badge ${b.cls}`}>{b.icon} {b.label}</span>
 }
 
-function ServicesPanel({ data }: { data: ServicesData | null }) {
-  if (!data) return <div style={{ color: 'var(--text-muted)' }}>loading services…</div>
+const ServicesPanel = memo(function ServicesPanel({ data }: { data: ServicesData | null }) {
+  if (!data) return <div className="panel-content">loading services…</div>
   const s = data.summary
   return (
     <div>
-      <div style={{ display: 'flex', gap: 8, marginBottom: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+      <div className="services-header">
         <span className="badge badge-green">🟢 {s.online} online</span>
         {s.offline > 0 && <span className="badge badge-red">🔴 {s.offline} offline</span>}
         {s.unknown > 0 && <span className="badge badge-gray">⚪ {s.unknown} unknown</span>}
         {s.attention > 0 && <span className="badge badge-orange">⚠ {s.attention} attention</span>}
-        <span style={{ color: 'var(--text-muted)', fontSize: 10, marginLeft: 'auto' }}>
+        <span className="services-probe-time">
           probed {data.checked_at ? fmtTime(data.checked_at) : '—'} · auto-refresh 15s
         </span>
       </div>
-      <table>
-        <thead>
-          <tr>
-            <th>service</th>
-            <th>category</th>
-            <th>port</th>
-            <th>status</th>
-            <th>latency</th>
-            <th>source</th>
-            <th>detail</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.services.map(svc => (
-            <tr key={svc.name}>
-              <td style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{svc.label}</td>
-              <td><span className="badge badge-gray" style={{ fontSize: 10 }}>{svc.category}</span></td>
-              <td><span className="hash">{svc.port ?? '—'}</span></td>
-              <td><StatusBadge status={svc.status} /></td>
-              <td style={{ color: svc.latencyMs != null && svc.latencyMs < 200 ? 'var(--success)' : 'var(--text-muted)' }}>
-                {svc.latencyMs != null ? `${svc.latencyMs}ms` : '—'}
-              </td>
-              <td style={{ color: 'var(--text-secondary)', fontSize: 10 }}>{svc.source ?? '—'}</td>
-              <td style={{ color: 'var(--text-muted)', fontSize: 11 }}>{svc.detail ?? '—'}</td>
+      <div className="services-table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>service</th>
+              <th>category</th>
+              <th>port</th>
+              <th>status</th>
+              <th>latency</th>
+              <th>source</th>
+              <th>detail</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {data.services.map(svc => (
+              <tr key={svc.name}>
+                <td className="services-table-name">{svc.label}</td>
+                <td><span className="badge badge-gray" style={{ fontSize: 10 }}>{svc.category}</span></td>
+                <td><span className="hash">{svc.port ?? '—'}</span></td>
+                <td><StatusBadge status={svc.status} /></td>
+                <td className={svc.latencyMs != null && svc.latencyMs < 200 ? 'services-table-latency-fast' : 'services-table-latency-slow'}>
+                  {svc.latencyMs != null ? `${svc.latencyMs}ms` : '—'}
+                </td>
+                <td className="services-table-source">{svc.source ?? '—'}</td>
+                <td className="services-table-detail">{svc.detail ?? '—'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
-}
+})
 
 // ── Constitution Panel ─────────────────────────────────────────────────────
-function ConstitutionPanel({ data }: { data: ConstitutionData | null }) {
-  if (!data) return <div style={{ color: 'var(--text-muted)' }}>loading constitution…</div>
+const ConstitutionPanel = memo(function ConstitutionPanel({ data }: { data: ConstitutionData | null }) {
+  if (!data) return <div className="panel-content">loading constitution…</div>
   if (data.error) return <div style={{ color: 'var(--danger)' }}>Error: {data.error}</div>
 
   return (
     <div>
-      <div style={{ marginBottom: 12, display: 'flex', gap: 10, alignItems: 'center' }}>
+      <div className="constitution-header">
         <span className="badge badge-blue">📜 {data.total} rules</span>
-        <span style={{ color: 'var(--text-muted)', fontSize: 11 }}>Immutable — cannot be overridden by prompts</span>
+        <span className="constitution-note">Immutable — cannot be overridden by prompts</span>
       </div>
       <div className="constitution-grid">
         {data.rules.map(rule => (
           <div key={rule.id} className="constitution-card">
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
-              <span className="badge badge-blue constitution-id">{rule.id}</span>
-              <div style={{ flex: 1 }}>
-                <div style={{ color: 'var(--text-primary)', fontSize: 12, fontWeight: 600, marginBottom: 4 }}>
+            <div className="constitution-card-content">
+              <span className="badge badge-blue constitution-card-id">{rule.id}</span>
+              <div className="constitution-card-body">
+                <div className="constitution-card-title">
                   {rule.title}
                 </div>
                 {rule.description && (
-                  <div style={{ color: 'var(--text-secondary)', fontSize: 11, lineHeight: 1.5 }}>
+                  <div className="constitution-card-description">
                     {rule.description}
                   </div>
                 )}
@@ -678,7 +670,7 @@ function ConstitutionPanel({ data }: { data: ConstitutionData | null }) {
       </div>
     </div>
   )
-}
+})
 
 // ── Status Monitor Panel ───────────────────────────────────────────────────
 const StatusMonitorPanel = memo(function StatusMonitorPanel({ data }: { data: HealthData | null }) {
@@ -1875,10 +1867,6 @@ function TmuxChatPanel() {
 
 const MemoCommandRunnerPanel = memo(CommandRunnerPanel)
 const MemoTmuxChatPanel = memo(TmuxChatPanel)
-const MemoInboxPanel = memo(InboxPanel)
-const MemoServicesPanel = memo(ServicesPanel)
-const MemoConstitutionPanel = memo(ConstitutionPanel)
-const MemoMetricsPanel = memo(MetricsPanel)
 const MemoQuotaTrackerPanel = memo(QuotaTrackerPanel)
 const MemoProviderActivityPanel = memo(ProviderActivityPanel)
 
@@ -2165,7 +2153,7 @@ export default function Dashboard() {
                   <span className="dot" style={{ background: 'var(--warning)' }} />
                   Queue / ψ Vault
                 </div>
-                <MemoInboxPanel data={inbox} />
+                <InboxPanel data={inbox} />
               </div>
             )}
 
@@ -2175,7 +2163,7 @@ export default function Dashboard() {
                   <span className="dot service-online-dot" style={{ background: 'var(--success)' }} />
                   Services Health
                 </div>
-                <MemoServicesPanel data={services} />
+                <ServicesPanel data={services} />
               </div>
             )}
 
@@ -2185,7 +2173,7 @@ export default function Dashboard() {
                   <span className="dot" style={{ background: 'var(--accent)' }} />
                   Constitution — Immutable Core Rules
                 </div>
-                <MemoConstitutionPanel data={constitution} />
+                <ConstitutionPanel data={constitution} />
               </div>
             )}
 
@@ -2195,7 +2183,7 @@ export default function Dashboard() {
                   <span className="dot" style={{ background: 'var(--info)' }} />
                   Session Metrics
                 </div>
-                <MemoMetricsPanel data={metrics} />
+                <MetricsPanel data={metrics} />
               </div>
             )}
 
