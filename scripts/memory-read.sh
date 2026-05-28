@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Print Memory Gate READ summary — run at session start.
 
-BRAIN="/root/repos/tham-oracle/brain"
+BRAIN="/route/mission-control/tham-oracle/brain"
 DATE=$(date '+%Y-%m-%d %H:%M')
 
 echo "╔══════════════════════════════════════════╗"

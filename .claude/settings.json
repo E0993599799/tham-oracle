@@ -12,5 +12,18 @@
       "Use skill",
       "Any use of skill tools"
     ]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /route/mission-control/tham-oracle/scripts/mem-auto-save.sh"
+          }
+        ]
+      }
+    ]
   }
 }

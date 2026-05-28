@@ -3,7 +3,7 @@
 # Required before running Oracle Studio.
 
 PORT="${ORACLE_PORT:-47778}"
-LOG="/root/repos/tham-oracle/.oracle-setup/logs/oracle-v2-http.log"
+LOG="/route/mission-control/tham-oracle/.oracle-setup/logs/oracle-v2-http.log"
 
 mkdir -p "$(dirname "$LOG")"
 

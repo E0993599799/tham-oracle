@@ -3,12 +3,25 @@
 # Usage: ./scripts/oracle-session.sh [attach-only]
 
 SESSION="oracle"
-REPO="/root/ghq/github.com/E0993599799/tham-oracle"
+REPO="/route/mission-control/tham-oracle"
 
 if tmux has-session -t "$SESSION" 2>/dev/null; then
   echo "Session '$SESSION' already running — attaching..."
   tmux attach-session -t "$SESSION"
   exit 0
+fi
+
+# Start oracle-v2 HTTP in background (silent, no popup)
+bash "$REPO/scripts/start-oracle-v2-http.sh" > /dev/null 2>&1 &
+
+# Start maw server in background if not running
+if ! curl -s http://localhost:3456/health > /dev/null 2>&1; then
+  maw bg "maw serve" --name maw-server > /dev/null 2>&1 || true
+fi
+
+# Ensure cron is running for 5-min memory auto-save fallback
+if ! pgrep -x cron > /dev/null 2>&1; then
+  sudo /usr/sbin/service cron start > /dev/null 2>&1 || true
 fi
 
 # Window 0: oracle chat (claude)
