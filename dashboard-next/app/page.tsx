@@ -183,7 +183,7 @@ function ago(days: number): string {
 }
 
 // ── Stat Cards Row ─────────────────────────────────────────────────────────
-function StatCardsRow({ fleet, services, git }: {
+const StatCardsRow = memo(function StatCardsRow({ fleet, services, git }: {
   fleet: FleetData | null
   services: ServicesData | null
   git: GitData | null
@@ -227,44 +227,21 @@ function StatCardsRow({ fleet, services, git }: {
   ]
 
   return (
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: 'repeat(4, 1fr)',
-      gap: 12,
-      marginBottom: 20,
-    }}>
+    <div className="stat-cards-row">
       {stats.map((s, i) => (
-        <div key={i} className="stat-card" style={{
-          background: 'var(--bg-card)',
-          border: '1px solid var(--border)',
-          borderRadius: 12,
-          padding: '16px 20px',
-          position: 'relative',
-          overflow: 'hidden',
-          transition: 'border-color 0.2s, box-shadow 0.2s',
-        }}>
-          {/* Glow accent top border */}
-          <div style={{
-            position: 'absolute', top: 0, left: 0, right: 0, height: 2,
-            background: `linear-gradient(90deg, ${s.color}, transparent)`,
-          }} />
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-            <span style={{ color: 'var(--text-muted)', fontSize: 11, fontWeight: 500, letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-              {s.label}
-            </span>
-            <span style={{ color: s.color, fontSize: 16 }}>{s.icon}</span>
+        <div key={i} className="stat-card">
+          <div className="stat-card-accent" style={{ color: s.color }} />
+          <div className="stat-card-header">
+            <span className="stat-card-label">{s.label}</span>
+            <span className="stat-card-icon" style={{ color: s.color }}>{s.icon}</span>
           </div>
-          <div style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-primary)', lineHeight: 1.1 }}>
-            {s.value}
-          </div>
-          <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
-            {s.sub}
-          </div>
+          <div className="stat-card-value">{s.value}</div>
+          <div className="stat-card-sub">{s.sub}</div>
         </div>
       ))}
     </div>
   )
-}
+})
 
 // ── Sidebar ────────────────────────────────────────────────────────────────
 const NAV_ITEMS: { id: Section; label: string; icon: string }[] = [
@@ -1935,7 +1912,6 @@ function TmuxChatPanel() {
   )
 }
 
-const MemoStatCardsRow = memo(StatCardsRow)
 const MemoFleetPanel = memo(FleetPanel)
 const MemoTaskBoardPanel = memo(TaskBoardPanel)
 const MemoStatusMonitorPanel = memo(StatusMonitorPanel)
@@ -2135,7 +2111,7 @@ export default function Dashboard() {
   }, [refreshCore, loadSectionData, activeSection])
 
   return (
-    <div style={{ minHeight: '100vh' }}>
+    <div className="main-layout">
       {/* Sidebar */}
       <Sidebar active={activeSection} onNav={handleNav} />
 
@@ -2143,16 +2119,16 @@ export default function Dashboard() {
       <div className="main-content">
         {/* Header */}
         <div className="top-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <span style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)' }}>ธาม Oracle</span>
-            <span style={{ color: 'var(--border)' }}>—</span>
-            <span style={{ color: 'var(--accent)', fontSize: 14, fontWeight: 600 }}>
+          <div className="top-header-content">
+            <span className="top-header-title">ธาม Oracle</span>
+            <span className="top-header-separator">—</span>
+            <span className="top-header-subtitle">
               {SECTION_LABELS[activeSection]}
             </span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div className="top-header-controls">
             {fleet?.summary && (
-              <div style={{ display: 'flex', gap: 8 }}>
+              <div className="grid-flex-h">
                 <span className="badge badge-green">{fleet.summary.active} active</span>
                 <span className="badge badge-blue">{fleet.summary.total} oracles</span>
               </div>
@@ -2167,10 +2143,10 @@ export default function Dashboard() {
         </div>
 
         {/* Body */}
-        <div style={{ padding: '16px 20px 64px' }}>
+        <div className="main-content-area">
 
           {/* Stat Cards — always visible */}
-          <MemoStatCardsRow fleet={fleet} services={services} git={git} />
+          <StatCardsRow fleet={fleet} services={services} git={git} />
 
           <div className={`section-panel${isPending ? ' is-pending' : ''}`} aria-busy={isPending}>
             {activeSection === 'fleet' && (
