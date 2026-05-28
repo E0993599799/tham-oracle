@@ -798,3 +798,202 @@ a:focus-visible {
 .metrics-table-container {
   overflow-x: auto;
 }
+
+/* ──────────────────────────────────────────────────────────────────────────── */
+/* PHASE 3: Kanban + Status Monitor Components */
+/* ──────────────────────────────────────────────────────────────────────────── */
+
+/* Task Board Panel */
+.task-board-stats {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+  contain: layout;
+}
+
+.task-board-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  contain: layout;
+}
+
+.task-column {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.task-column-header {
+  padding: 10px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.task-column-title {
+  font-size: 11px;
+  font-weight: 600;
+  flex: 1;
+}
+
+.task-column-count {
+  border-radius: 999px;
+  padding: 1px 7px;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.task-column-body {
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 60px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.task-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-sub);
+  border-radius: 7px;
+  padding: 7px 10px;
+  flex-shrink: 0;
+}
+
+.task-card-name {
+  color: var(--text-primary);
+  font-size: 11px;
+  font-weight: 500;
+  margin-bottom: 3px;
+  word-break: break-word;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+}
+
+.task-card-meta {
+  display: flex;
+  justify-content: space-between;
+  color: var(--text-muted);
+  font-size: 10px;
+  gap: 8px;
+}
+
+.task-column-empty,
+.task-column-more {
+  color: var(--text-muted);
+  font-size: 10px;
+  padding: 8px 2px;
+  text-align: center;
+}
+
+/* Status Monitor Panel */
+.health-summary {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+  contain: layout;
+}
+
+.health-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  contain: layout;
+}
+
+.health-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.health-section-header {
+  color: var(--text-muted);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+}
+
+.health-section-header-alt {
+  color: var(--text-muted);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 12px 0 8px;
+}
+
+.health-footer {
+  margin-top: 8px;
+  color: var(--text-muted);
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+/* Status Row */
+.status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 8px;
+  border-radius: 6px;
+  gap: 12px;
+  flex-wrap: wrap;
+  contain: layout style;
+}
+
+.status-row-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.status-row-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.status-row-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.status-row-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.status-row-detail {
+  font-size: 10px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.status-row-fix {
+  margin-left: auto;
+  flex-shrink: 0;
+}

@@ -681,7 +681,7 @@ function ConstitutionPanel({ data }: { data: ConstitutionData | null }) {
 }
 
 // ── Status Monitor Panel ───────────────────────────────────────────────────
-function StatusMonitorPanel({ data }: { data: HealthData | null }) {
+const StatusMonitorPanel = memo(function StatusMonitorPanel({ data }: { data: HealthData | null }) {
   const [fixing, setFixing] = useState<string | null>(null)
   const [fixResult, setFixResult] = useState<Record<string, string>>({})
 
@@ -703,27 +703,26 @@ function StatusMonitorPanel({ data }: { data: HealthData | null }) {
     setTimeout(() => setFixing(null), 3000)
   }
 
-  if (!data) return <div style={{ color: 'var(--text-muted)' }}>loading health...</div>
+  if (!data) return <div className="panel-content">loading health...</div>
 
   const { summary, http, tmux, runtimes, watchdog } = data
   const allHealthy = summary.unhealthy === 0
 
-  function StatusRow({ name, detail, ok, fix, category }: { name: string; detail?: string; ok: boolean; fix?: string; category?: string }) {
+  const StatusRow = memo(function StatusRow({ name, detail, ok, fix, category }: { name: string; detail?: string; ok: boolean; fix?: string; category?: string }) {
     const isFixing = fixing === fix
     const result = fix ? fixResult[fix] : ''
     return (
-      <div style={{
-        display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
-        padding: '7px 0', borderBottom: '1px solid var(--bg-surface)', gap: 8,
-      }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: 14 }}>{ok ? '🟢' : '🔴'}</span>
-            <span style={{ color: ok ? 'var(--text-primary)' : 'var(--danger)', fontSize: 12, fontWeight: 600 }}>{name}</span>
+      <div className="status-row" style={{ borderBottom: '1px solid var(--bg-surface)' }}>
+        <div className="status-row-left">
+          <span className="status-row-icon">{ok ? '🟢' : '🔴'}</span>
+          <div className="status-row-info">
+            <span className="status-row-name" style={{ color: ok ? 'var(--text-primary)' : 'var(--danger)' }}>
+              {name}
+            </span>
             {category && <span style={{ color: 'var(--text-muted)', fontSize: 10 }}>{category}</span>}
           </div>
           {detail && (
-            <div style={{ color: 'var(--text-muted)', fontSize: 10, marginTop: 2, marginLeft: 21, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 320 }}>
+            <div className="status-row-detail">
               {detail}
             </div>
           )}
@@ -733,7 +732,7 @@ function StatusMonitorPanel({ data }: { data: HealthData | null }) {
             </div>
           )}
         </div>
-        <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <div className="status-row-fix">
           {!ok && fix && (
             <button
               onClick={() => runFix(fix)}
@@ -752,12 +751,11 @@ function StatusMonitorPanel({ data }: { data: HealthData | null }) {
         </div>
       </div>
     )
-  }
+  })
 
   return (
     <div>
-      {/* Summary bar */}
-      <div style={{ display: 'flex', gap: 12, marginBottom: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+      <div className="health-summary">
         <span className={`badge ${allHealthy ? 'badge-green' : 'badge-red'}`}>
           {allHealthy ? '✓ All healthy' : `${summary.unhealthy} issue${summary.unhealthy > 1 ? 's' : ''}`}
         </span>
@@ -767,12 +765,9 @@ function StatusMonitorPanel({ data }: { data: HealthData | null }) {
         {summary.git_dirty > 0 && <span className="badge badge-yellow">~ {summary.git_dirty} uncommitted</span>}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-        {/* HTTP Services */}
-        <div>
-          <div style={{ color: 'var(--text-muted)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
-            HTTP Access Points
-          </div>
+      <div className="health-grid">
+        <div className="health-section">
+          <div className="health-section-header">HTTP Access Points</div>
           {http.map(s => (
             <StatusRow key={s.name} name={s.label || s.name}
               detail={s.ok ? `${s.code} · ${s.latency}ms · ${s.url}` : (s.detail || `${s.code} timeout`)}
@@ -780,37 +775,30 @@ function StatusMonitorPanel({ data }: { data: HealthData | null }) {
           ))}
         </div>
 
-        {/* Runtimes + Watchdog + tmux */}
-        <div>
-          <div style={{ color: 'var(--text-muted)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 8 }}>
-            Runtime Tools
-          </div>
+        <div className="health-section">
+          <div className="health-section-header">Runtime Tools</div>
           {runtimes.map(r => (
             <StatusRow key={r.name} name={r.name} detail={r.detail} ok={r.ok} fix={r.fix} category="tool" />
           ))}
 
-          <div style={{ color: 'var(--text-muted)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '12px 0 8px' }}>
-            Watchdog
-          </div>
+          <div className="health-section-header-alt">Watchdog</div>
           {watchdog.map((w, i) => (
             <StatusRow key={i} name={w.name} detail={w.pid ? `PID ${w.pid}` : ''} ok={w.ok} fix={w.fix} category="watchdog" />
           ))}
 
-          <div style={{ color: 'var(--text-muted)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em', margin: '12px 0 8px' }}>
-            tmux Sessions
-          </div>
+          <div className="health-section-header-alt">tmux Sessions</div>
           {tmux.map((t, i) => (
             <StatusRow key={i} name={t.name} detail={t.detail} ok={t.ok} fix={t.fix} category="tmux" />
           ))}
         </div>
       </div>
 
-      <div style={{ marginTop: 8, color: 'var(--text-muted)', fontSize: 10 }}>
+      <div className="health-footer">
         probed {new Date(data.checked_at).toLocaleTimeString('th-TH')} · ⚡ Fix triggers AI agent diagnostic
       </div>
     </div>
   )
-}
+})
 
 function CommandRunnerPanel() {
   const [selectedCommandId, setSelectedCommandId] = useState<CommandId>(COMMAND_OPTIONS[0]?.id ?? 'git-status')
@@ -1023,65 +1011,48 @@ const COLUMN_CONFIG = [
   { key: 'archive', label: 'Archive', color: 'var(--text-muted)', icon: '📦' },
 ]
 
-function TaskBoardPanel({ data }: { data: TasksData | null }) {
-  if (!data) return <div style={{ color: 'var(--text-muted)' }}>loading tasks…</div>
+const TaskBoardPanel = memo(function TaskBoardPanel({ data }: { data: TasksData | null }) {
+  if (!data) return <div className="panel-content">loading tasks…</div>
   return (
     <div>
-      <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+      <div className="task-board-stats">
         <span className="badge badge-blue">{data.total} total tasks</span>
         <span className="badge badge-yellow">{data.columns.active.length} in progress</span>
         <span className="badge badge-green">{data.columns.proofs.length} proven</span>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10 }}>
+      <div className="task-board-grid">
         {COLUMN_CONFIG.map(col => {
           const tasks = (data.columns as Record<string, Task[]>)[col.key] ?? []
           return (
-            <div key={col.key} style={{
-              background: 'var(--bg-card)',
-              border: '1px solid var(--border)',
-              borderRadius: 10,
-              overflow: 'hidden',
-            }}>
-              {/* Column header */}
-              <div style={{
-                padding: '10px 12px',
-                borderBottom: `2px solid ${col.color}`,
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              }}>
-                <span style={{ fontSize: 11, fontWeight: 600, color: col.color }}>
+            <div key={col.key} className="task-column">
+              <div className="task-column-header" style={{ borderBottom: `2px solid ${col.color}` }}>
+                <span className="task-column-title" style={{ color: col.color }}>
                   {col.icon} {col.label}
                 </span>
-                <span style={{
+                <span className="task-column-count" style={{
                   background: `color-mix(in srgb, ${col.color} 13%, transparent)`,
                   color: col.color,
-                  borderRadius: 999, padding: '1px 7px', fontSize: 10, fontWeight: 700,
                 }}>
                   {tasks.length}
                 </span>
               </div>
-              {/* Task cards */}
-              <div style={{ padding: 8, display: 'flex', flexDirection: 'column', gap: 6, minHeight: 60 }}>
+              <div className="task-column-body">
                 {tasks.slice(0, 8).map(t => (
-                  <div key={t.id} style={{
-                    background: 'var(--bg-surface)',
-                    border: '1px solid var(--border-sub)',
-                    borderRadius: 7,
-                    padding: '7px 10px',
-                  }}>
-                    <div style={{ color: 'var(--text-primary)', fontSize: 11, fontWeight: 500, marginBottom: 3, wordBreak: 'break-word' }}>
+                  <div key={t.id} className="task-card">
+                    <div className="task-card-name">
                       {t.name.slice(0, 30)}{t.name.length > 30 ? '…' : ''}
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)', fontSize: 10 }}>
+                    <div className="task-card-meta">
                       <span>{t.type}</span>
                       <span>{fmtTime(t.mtime)}</span>
                     </div>
                   </div>
                 ))}
                 {tasks.length === 0 && (
-                  <div style={{ color: 'var(--text-muted)', fontSize: 10, padding: '8px 2px' }}>empty</div>
+                  <div className="task-column-empty">empty</div>
                 )}
                 {tasks.length > 8 && (
-                  <div style={{ color: 'var(--text-muted)', fontSize: 10, textAlign: 'center', padding: '4px 0' }}>
+                  <div className="task-column-more">
                     +{tasks.length - 8} more
                   </div>
                 )}
@@ -1092,7 +1063,7 @@ function TaskBoardPanel({ data }: { data: TasksData | null }) {
       </div>
     </div>
   )
-}
+})
 
 // ── Quota Tracker Panel ────────────────────────────────────────────────────
 function ProviderStatusBadge({ status }: { status: string }) {
@@ -1902,8 +1873,6 @@ function TmuxChatPanel() {
   )
 }
 
-const MemoTaskBoardPanel = memo(TaskBoardPanel)
-const MemoStatusMonitorPanel = memo(StatusMonitorPanel)
 const MemoCommandRunnerPanel = memo(CommandRunnerPanel)
 const MemoTmuxChatPanel = memo(TmuxChatPanel)
 const MemoInboxPanel = memo(InboxPanel)
@@ -2152,7 +2121,7 @@ export default function Dashboard() {
                   <span className="dot" style={{ background: 'var(--warning)' }} />
                   Task Board (ψ Vault)
                 </div>
-                <MemoTaskBoardPanel data={tasks} />
+                <TaskBoardPanel data={tasks} />
               </div>
             )}
 
@@ -2162,7 +2131,7 @@ export default function Dashboard() {
                   <span className="dot" style={{ background: 'var(--success)' }} />
                   Status Monitor — Health Probe + Fix
                 </div>
-                <MemoStatusMonitorPanel data={health} />
+                <StatusMonitorPanel data={health} />
               </div>
             )}
 
