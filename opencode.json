@@ -1,4 +1,4 @@
 {
   "$schema": "https://opencode.ai/config.json",
-  "model": "openrouter/openai/codex-mini-latest"
+  "model": "anthropic/claude-sonnet-4-5"
 }
