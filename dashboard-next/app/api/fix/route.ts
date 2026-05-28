@@ -4,19 +4,21 @@ import { REPO_ROOT } from '@/lib/repo'
 
 export const dynamic = 'force-dynamic'
 
+const R = `"${REPO_ROOT}"`  // quoted for shell — REPO_ROOT contains spaces
+
 const FIX_COMMANDS: Record<string, { cmd: string; safe: boolean; description: string }> = {
   'oracle-v2': {
-    cmd: `bash ${REPO_ROOT}/scripts/start-oracle-v2-http.sh`,
+    cmd: `bash ${R}/scripts/start-oracle-v2-http.sh`,
     safe: true,
     description: 'Restart oracle-v2 HTTP server on port 47778',
   },
   'dashboard': {
-    cmd: `bash ${REPO_ROOT}/scripts/start-tham-dashboard.sh 3005 &`,
+    cmd: `bash ${R}/scripts/start-tham-dashboard.sh 3005 &`,
     safe: true,
     description: 'Restart Tham dashboard on port 3005',
   },
   'watchdog': {
-    cmd: `bash ${REPO_ROOT}/scripts/housekeeper-run.sh 2>/dev/null || echo "housekeeper script not found"`,
+    cmd: `bash ${R}/scripts/housekeeper-run.sh 2>/dev/null || echo "housekeeper script not found"`,
     safe: true,
     description: 'Run housekeeper to restore watchdog',
   },

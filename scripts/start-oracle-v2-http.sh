@@ -1,25 +1,48 @@
 #!/usr/bin/env bash
-# Start oracle-v2 HTTP server (port 47778) in background.
-# Required before running Oracle Studio.
+# Start oracle-v2 HTTP servers (tham: 47778, omega: 47779) in background.
+# Usage: start-oracle-v2-http.sh [port]
+#   no args  → start BOTH 47778 and 47779
+#   47778    → start tham only
+#   47779    → start omega only
 
-PORT="${ORACLE_PORT:-47778}"
-LOG="/route/mission-control/tham-oracle/.oracle-setup/logs/oracle-v2-http.log"
+LOG_DIR="/route/mission-control/tham-oracle/.oracle-setup/logs"
+mkdir -p "$LOG_DIR"
 
-mkdir -p "$(dirname "$LOG")"
+start_instance() {
+  local PORT="$1"
+  local LABEL="$2"
+  local LOG="$LOG_DIR/oracle-v2-${PORT}.log"
 
-echo "Starting oracle-v2 HTTP server on port $PORT..."
-nohup bunx --bun arra-oracle@github:Soul-Brews-Studio/arra-oracle#main \
-  --http --port "$PORT" \
-  > "$LOG" 2>&1 &
+  # Skip if already running
+  if curl -s --max-time 1 "http://localhost:${PORT}/" > /dev/null 2>&1; then
+    echo "✓ oracle-v2 ${LABEL} already running at http://localhost:${PORT}"
+    return 0
+  fi
 
-PID=$!
-echo "$PID" > /tmp/oracle-v2-http.pid
-echo "PID: $PID — log: $LOG"
-sleep 2
+  echo "Starting oracle-v2 ${LABEL} on port ${PORT}..."
+  ORACLE_PORT="$PORT" nohup bunx --bun arra-oracle@github:Soul-Brews-Studio/arra-oracle#main \
+    --http --port "$PORT" \
+    > "$LOG" 2>&1 &
 
-# Probe
-if curl -s "http://localhost:${PORT}/health" > /dev/null 2>&1; then
-  echo "✓ oracle-v2 HTTP running at http://localhost:${PORT}"
+  local PID=$!
+  echo "$PID" > "/tmp/oracle-v2-${PORT}.pid"
+  echo "  PID: $PID — log: $LOG"
+  sleep 2
+
+  if curl -s --max-time 2 "http://localhost:${PORT}/" > /dev/null 2>&1; then
+    echo "✓ oracle-v2 ${LABEL} running at http://localhost:${PORT}"
+  else
+    echo "CHECK — server may still be starting. Check: $LOG"
+  fi
+}
+
+REQUESTED="${1:-all}"
+
+if [ "$REQUESTED" = "47778" ]; then
+  start_instance 47778 "tham"
+elif [ "$REQUESTED" = "47779" ]; then
+  start_instance 47779 "omega"
 else
-  echo "CHECK — server may still be starting. Check log: $LOG"
+  start_instance 47778 "tham"
+  start_instance 47779 "omega"
 fi

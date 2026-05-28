@@ -1,6 +1,6 @@
 'use client'
 
-import { memo, useEffect, useState, useCallback, useRef, useTransition } from 'react'
+import React, { memo, useEffect, useState, useCallback, useRef, useTransition } from 'react'
 import { COMMAND_OPTIONS, type CommandId } from '@/lib/command-catalog'
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -1485,11 +1485,462 @@ function ERPReferencePanel({ refreshTick }: { refreshTick: number }) {
   )
 }
 
+// ── TmuxChatPanel ──────────────────────────────────────────────────────────
+interface TmuxPane {
+  target: string
+  session: string
+  window: string
+  paneIndex: string
+  cmd: string
+  title: string
+  active: boolean
+}
+interface ChatMessage {
+  id: number
+  type: 'cmd' | 'out' | 'err' | 'sys'
+  text: string
+  target?: string
+  ts: number
+}
+
+function TmuxChatPanel() {
+  const [panes, setPanes]         = useState<TmuxPane[]>([])
+  const [target, setTarget]       = useState('')
+  const [selectedSession, setSelectedSession] = useState('all')
+  const [outputMode, setOutputMode] = useState<'delta' | 'full'>('delta')
+  const [messages, setMessages]   = useState<ChatMessage[]>([])
+  const [input, setInput]         = useState('')
+  const [sending, setSending]     = useState(false)
+  const [liveCapture, setLiveCapture] = useState(false)
+  const [liveOutput, setLiveOutput]   = useState('')
+  const [lastCaptureAt, setLastCaptureAt] = useState('')
+  const chatEndRef = useRef<HTMLDivElement>(null)
+  const inputRef   = useRef<HTMLInputElement>(null)
+  const msgId      = useRef(0)
+  const liveInterval = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  useEffect(() => {
+    try {
+      const savedTarget = window.localStorage.getItem('tmux-chat-target')
+      const savedSession = window.localStorage.getItem('tmux-chat-session')
+      const savedMode = window.localStorage.getItem('tmux-chat-output-mode')
+      if (savedTarget) setTarget(savedTarget)
+      if (savedSession) setSelectedSession(savedSession)
+      if (savedMode === 'delta' || savedMode === 'full') setOutputMode(savedMode)
+    } catch { /* ignore */ }
+  }, [])
+
+  useEffect(() => {
+    try { window.localStorage.setItem('tmux-chat-target', target) } catch { /* ignore */ }
+  }, [target])
+
+  useEffect(() => {
+    try { window.localStorage.setItem('tmux-chat-session', selectedSession) } catch { /* ignore */ }
+  }, [selectedSession])
+
+  useEffect(() => {
+    try { window.localStorage.setItem('tmux-chat-output-mode', outputMode) } catch { /* ignore */ }
+  }, [outputMode])
+
+  function addMsg(type: ChatMessage['type'], text: string, tgt?: string) {
+    const msg: ChatMessage = { id: ++msgId.current, type, text, target: tgt, ts: Date.now() }
+    setMessages(m => [...m, msg])
+    return msg
+  }
+
+  async function loadPanes() {
+    try {
+      const r = await fetch('/api/tmux', { cache: 'no-store' })
+      const d = await r.json()
+      const list: TmuxPane[] = d.panes ?? []
+      setPanes(list)
+      if (selectedSession !== 'all' && list.every(p => p.session !== selectedSession)) {
+        setSelectedSession('all')
+      }
+      if (list.length > 0) {
+        const current = target ? list.find(p => p.target === target) : null
+        const active = current ?? list.find(p => p.active) ?? list[0]
+        if (!current) setTarget(active.target)
+        if (selectedSession === 'all' || !list.some(p => p.session === selectedSession)) {
+          setSelectedSession(active.session)
+        }
+      }
+    } catch {
+      addMsg('err', 'tmux not available or no sessions running')
+    }
+  }
+
+  async function captureNow(tgt: string) {
+    if (!tgt) return
+    try {
+      const r = await fetch(`/api/tmux?target=${encodeURIComponent(tgt)}&action=capture&lines=80`, { cache: 'no-store' })
+      const d = await r.json()
+      setLiveOutput(d.output ?? '')
+      setLastCaptureAt(d.captured_at ?? '')
+    } catch { /* ignore */ }
+  }
+
+  useEffect(() => { void loadPanes() }, [])
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [messages])
+
+  useEffect(() => {
+    if (liveInterval.current) clearInterval(liveInterval.current)
+    if (liveCapture && target) {
+      void captureNow(target)
+      liveInterval.current = setInterval(() => void captureNow(target), 1200)
+    } else {
+      setLiveOutput('')
+    }
+    return () => { if (liveInterval.current) clearInterval(liveInterval.current) }
+  }, [liveCapture, target])
+
+  useEffect(() => {
+    if (target && !liveCapture) {
+      void captureNow(target)
+    }
+  }, [target])
+
+  async function sendCmd() {
+    const cmd = input.trim()
+    if (!cmd || !target || sending) return
+    setInput('')
+    setSending(true)
+    addMsg('cmd', cmd, target)
+
+    try {
+      const r = await fetch('/api/tmux', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        cache: 'no-store',
+        body: JSON.stringify({ target, cmd, delayMs: 700 }),
+      })
+      const d = await r.json()
+      if (d.error) {
+        addMsg('err', d.error, target)
+      } else {
+        const out = (outputMode === 'full' ? (d.full_output ?? d.output ?? '') : (d.delta ?? d.output ?? '')).trim()
+        addMsg('out', out || '(no output)', target)
+        if (liveCapture) setLiveOutput(d.full_output ?? d.output ?? '')
+        if (d.sent_at) setLastCaptureAt(d.sent_at)
+      }
+    } catch (e) {
+      addMsg('err', String(e), target)
+    } finally {
+      setSending(false)
+      inputRef.current?.focus()
+    }
+  }
+
+  const termBg   = '#0d1117'
+  const termText = '#c9d1d9'
+  const accentGreen = '#3fb950'
+  const accentBlue  = '#58a6ff'
+  const accentRed   = '#f85149'
+  const accentYellow = '#d29922'
+  const sessionNames = Array.from(new Set(panes.map(p => p.session))).sort()
+  const visiblePanes = selectedSession === 'all' ? panes : panes.filter(p => p.session === selectedSession)
+  const selectedPane = panes.find(p => p.target === target)
+  const quickPanes = panes.filter(p => p.active || p.session === selectedPane?.session).slice(0, 6)
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {/* Top bar */}
+      <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+        <span className="badge badge-blue">{panes.length} panes</span>
+        <span className="badge" style={{ background: liveCapture ? 'rgba(63,185,80,0.15)' : 'rgba(99,102,241,0.1)', color: liveCapture ? accentGreen : 'var(--text-muted)', border: `1px solid ${liveCapture ? accentGreen : 'var(--border)'}` }}>
+          {liveCapture ? '⬤ live' : '○ live off'}
+        </span>
+        <span className="badge" style={{ background: outputMode === 'delta' ? 'rgba(63,185,80,0.1)' : 'rgba(88,166,255,0.1)', color: outputMode === 'delta' ? accentGreen : accentBlue, border: `1px solid ${outputMode === 'delta' ? accentGreen : accentBlue}44` }}>
+          reply mode: {outputMode}
+        </span>
+        {selectedPane && (
+          <span className="badge" style={{ background: 'rgba(88,166,255,0.1)', color: accentBlue, border: `1px solid ${accentBlue}44` }}>
+            {selectedPane.session} / {selectedPane.window}.{selectedPane.paneIndex}
+          </span>
+        )}
+        {lastCaptureAt && (
+          <span className="badge" style={{ background: 'rgba(210,153,34,0.1)', color: accentYellow, border: `1px solid ${accentYellow}44` }}>
+            captured {new Date(lastCaptureAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+          </span>
+        )}
+        <button
+          onClick={() => void loadPanes()}
+          style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-muted)', fontSize: 11, cursor: 'pointer', fontFamily: 'inherit' }}
+        >⟳ refresh</button>
+        <button
+          onClick={() => setLiveCapture(l => !l)}
+          style={{ padding: '4px 10px', borderRadius: 6, border: `1px solid ${liveCapture ? accentGreen : 'var(--border)'}`, background: liveCapture ? 'rgba(63,185,80,0.1)' : 'transparent', color: liveCapture ? accentGreen : 'var(--text-muted)', fontSize: 11, cursor: 'pointer', fontFamily: 'inherit' }}
+        >{liveCapture ? '⬛ stop live' : '▶ live capture'}</button>
+        <button
+          onClick={() => setMessages([])}
+          style={{ padding: '4px 10px', borderRadius: 6, border: '1px solid var(--border)', background: 'transparent', color: 'var(--text-muted)', fontSize: 11, cursor: 'pointer', fontFamily: 'inherit' }}
+        >✕ clear chat</button>
+        <button
+          onClick={() => setOutputMode(m => m === 'delta' ? 'full' : 'delta')}
+          style={{ padding: '4px 10px', borderRadius: 6, border: `1px solid ${outputMode === 'delta' ? accentGreen : accentBlue}`, background: 'transparent', color: outputMode === 'delta' ? accentGreen : accentBlue, fontSize: 11, cursor: 'pointer', fontFamily: 'inherit' }}
+        >⇆ {outputMode === 'delta' ? 'switch to full reply' : 'switch to delta reply'}</button>
+      </div>
+
+      {quickPanes.length > 0 && (
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+          {quickPanes.map(p => (
+            <button
+              key={`quick-${p.target}`}
+              onClick={() => {
+                setTarget(p.target)
+                setSelectedSession(p.session)
+                void captureNow(p.target)
+                inputRef.current?.focus()
+              }}
+              style={{
+                padding: '4px 10px',
+                borderRadius: 999,
+                border: `1px solid ${p.target === target ? accentBlue : 'var(--border)'}`,
+                background: p.target === target ? 'rgba(88,166,255,0.1)' : 'transparent',
+                color: p.target === target ? accentBlue : 'var(--text-muted)',
+                fontSize: 11,
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+              }}
+            >
+              {p.session}:{p.window}.{p.paneIndex}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 220px', gap: 12, alignItems: 'start' }}>
+        {/* Left: chat + live view */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+
+          {/* Live pane view */}
+          {liveCapture && (
+            <div style={{ borderRadius: 10, overflow: 'hidden', border: `1px solid ${accentGreen}44` }}>
+              <div style={{ background: '#161b22', padding: '6px 12px', fontSize: 10, color: accentGreen, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ display: 'inline-block', width: 7, height: 7, borderRadius: '50%', background: accentGreen, boxShadow: `0 0 6px ${accentGreen}` }} />
+                live — {target}
+              </div>
+              <pre style={{
+                margin: 0,
+                padding: 12,
+                background: termBg,
+                color: termText,
+                fontSize: 11,
+                lineHeight: 1.55,
+                fontFamily: '"JetBrains Mono", "Fira Code", "Cascadia Code", Consolas, monospace',
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word',
+                maxHeight: 320,
+                overflowY: 'auto',
+              }}>{liveOutput || 'waiting for output…'}</pre>
+            </div>
+          )}
+
+          {/* Chat history */}
+          <div style={{
+            background: termBg,
+            border: '1px solid var(--border)',
+            borderRadius: 10,
+            padding: 14,
+            minHeight: 320,
+            maxHeight: 420,
+            overflowY: 'auto',
+            fontFamily: '"JetBrains Mono", "Fira Code", Consolas, monospace',
+            fontSize: 12,
+            lineHeight: 1.6,
+          }}>
+            {messages.length === 0 ? (
+              <div style={{ color: '#484f58', userSelect: 'none' }}>
+                <div style={{ marginBottom: 8 }}>Select a pane on the right. The reply area shows only the new output delta instead of the full pane history.</div>
+                <div>$ _</div>
+              </div>
+            ) : (
+              messages.map(m => (
+                <div key={m.id} style={{ marginBottom: 10 }}>
+                  {m.type === 'cmd' && (
+                    <div style={{ color: accentGreen, display: 'flex', gap: 8, alignItems: 'baseline' }}>
+                      <span style={{ color: '#484f58', fontSize: 10, flexShrink: 0 }}>
+                        [{new Date(m.ts).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}]
+                      </span>
+                      <span style={{ color: '#58a6ff', flexShrink: 0 }}>{m.target}</span>
+                      <span style={{ color: accentGreen }}>$ {m.text}</span>
+                    </div>
+                  )}
+                  {m.type === 'out' && (
+                    <pre style={{
+                      margin: '2px 0 0 0',
+                      padding: '8px 10px',
+                      background: '#161b22',
+                      borderLeft: `2px solid #30363d`,
+                      borderRadius: '0 6px 6px 0',
+                      color: termText,
+                      fontSize: 11,
+                      lineHeight: 1.55,
+                      whiteSpace: 'pre-wrap',
+                      wordBreak: 'break-word',
+                      maxHeight: 300,
+                      overflowY: 'auto',
+                    }}>{m.text}</pre>
+                  )}
+                  {m.type === 'err' && (
+                    <div style={{ color: accentRed, fontSize: 11, paddingLeft: 10 }}>⚠ {m.text}</div>
+                  )}
+                  {m.type === 'sys' && (
+                    <div style={{ color: accentYellow, fontSize: 11, paddingLeft: 10 }}>ℹ {m.text}</div>
+                  )}
+                </div>
+              ))
+            )}
+            <div ref={chatEndRef} />
+          </div>
+
+          {/* Input */}
+          <div style={{
+            display: 'flex',
+            gap: 8,
+            background: termBg,
+            border: `1px solid ${sending ? accentGreen + '66' : 'var(--border)'}`,
+            borderRadius: 10,
+            padding: '8px 12px',
+            alignItems: 'center',
+            transition: 'border-color 0.15s',
+          }}>
+            <span style={{ color: accentGreen, fontSize: 13, fontFamily: 'monospace', flexShrink: 0 }}>
+              {target ? `${target} $` : '$'}
+            </span>
+            <input
+              ref={inputRef}
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void sendCmd() } }}
+              placeholder={target ? 'type command and press Enter…' : 'select a pane first'}
+              disabled={!target || sending}
+              style={{
+                flex: 1,
+                background: 'transparent',
+                border: 'none',
+                outline: 'none',
+                color: termText,
+                fontSize: 13,
+                fontFamily: '"JetBrains Mono", "Fira Code", Consolas, monospace',
+                lineHeight: 1.4,
+              }}
+            />
+            <button
+              onClick={() => void sendCmd()}
+              disabled={!target || !input.trim() || sending}
+              style={{
+                padding: '4px 12px',
+                borderRadius: 6,
+                border: `1px solid ${target && input.trim() && !sending ? accentGreen : '#30363d'}`,
+                background: target && input.trim() && !sending ? 'rgba(63,185,80,0.12)' : 'transparent',
+                color: target && input.trim() && !sending ? accentGreen : '#484f58',
+                fontSize: 12,
+                cursor: target && input.trim() && !sending ? 'pointer' : 'not-allowed',
+                fontFamily: 'monospace',
+                transition: 'all 0.15s',
+                flexShrink: 0,
+              }}
+            >{sending ? '⟳' : '↵ Send'}</button>
+          </div>
+        </div>
+
+        {/* Right: pane list */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <div style={{ color: 'var(--text-muted)', fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 4 }}>
+            tmux panes
+          </div>
+          {sessionNames.length > 0 && (
+            <select
+              value={selectedSession}
+              onChange={e => setSelectedSession(e.target.value)}
+              style={{
+                padding: '8px 10px',
+                borderRadius: 8,
+                border: '1px solid var(--border)',
+                background: 'var(--bg-card)',
+                color: 'var(--text-secondary)',
+                fontSize: 11,
+                fontFamily: '"JetBrains Mono", Consolas, monospace',
+              }}
+            >
+              <option value="all">all sessions ({panes.length})</option>
+              {sessionNames.map(name => {
+                const count = panes.filter(p => p.session === name).length
+                return <option key={name} value={name}>{name} ({count})</option>
+              })}
+            </select>
+          )}
+          {visiblePanes.length === 0 ? (
+            <div style={{ color: 'var(--text-muted)', fontSize: 11 }}>
+              No tmux sessions.<br />Start one with: tmux new -s tham
+            </div>
+          ) : (
+            visiblePanes.map(p => (
+              <button
+                key={p.target}
+                onClick={() => {
+                  setTarget(p.target)
+                  void captureNow(p.target)
+                  inputRef.current?.focus()
+                }}
+                style={{
+                  padding: '8px 10px',
+                  borderRadius: 8,
+                  border: `1px solid ${p.target === target ? accentBlue : 'var(--border)'}`,
+                  background: p.target === target ? 'rgba(88,166,255,0.1)' : 'var(--bg-card)',
+                  color: p.target === target ? accentBlue : 'var(--text-secondary)',
+                  textAlign: 'left',
+                  cursor: 'pointer',
+                  fontSize: 11,
+                  lineHeight: 1.5,
+                  fontFamily: '"JetBrains Mono", Consolas, monospace',
+                  transition: 'all 0.12s',
+                }}
+              >
+                <div style={{ fontWeight: 700, fontSize: 11, marginBottom: 2 }}>
+                  {p.active && <span style={{ color: accentGreen, marginRight: 4 }}>⬤</span>}
+                  {p.session}
+                </div>
+                <div style={{ color: 'var(--text-muted)', fontSize: 10 }}>
+                  {p.window}.{p.paneIndex} — {p.cmd}
+                </div>
+                {p.title && <div style={{ color: 'var(--text-muted)', fontSize: 9, marginTop: 2, opacity: 0.7 }}>{p.title.slice(0, 28)}</div>}
+              </button>
+            ))
+          )}
+          {panes.length > 0 && (
+            <button
+              onClick={() => target && void captureNow(target).then(() => addMsg('sys', `captured pane: ${target}`))}
+              disabled={!target}
+              style={{
+                marginTop: 6,
+                padding: '6px 10px',
+                borderRadius: 8,
+                border: '1px solid var(--border)',
+                background: 'transparent',
+                color: 'var(--text-muted)',
+                fontSize: 11,
+                cursor: target ? 'pointer' : 'not-allowed',
+                fontFamily: 'inherit',
+              }}
+            >📷 snapshot pane</button>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
 const MemoStatCardsRow = memo(StatCardsRow)
 const MemoFleetPanel = memo(FleetPanel)
 const MemoTaskBoardPanel = memo(TaskBoardPanel)
 const MemoStatusMonitorPanel = memo(StatusMonitorPanel)
 const MemoCommandRunnerPanel = memo(CommandRunnerPanel)
+const MemoTmuxChatPanel = memo(TmuxChatPanel)
 const MemoGitPanel = memo(GitPanel)
 const MemoMemoryPanel = memo(MemoryPanel)
 const MemoInboxPanel = memo(InboxPanel)
@@ -1498,6 +1949,35 @@ const MemoConstitutionPanel = memo(ConstitutionPanel)
 const MemoMetricsPanel = memo(MetricsPanel)
 const MemoQuotaTrackerPanel = memo(QuotaTrackerPanel)
 const MemoProviderActivityPanel = memo(ProviderActivityPanel)
+
+// ── Command Control Section (tab wrapper) ──────────────────────────────────
+function CommandControlSection() {
+  const [tab, setTab] = useState<'runner' | 'tmux'>('runner')
+  const tabStyle = (active: boolean): React.CSSProperties => ({
+    padding: '6px 16px',
+    borderRadius: '8px 8px 0 0',
+    border: `1px solid ${active ? 'var(--border)' : 'transparent'}`,
+    borderBottom: active ? '1px solid var(--bg-card)' : '1px solid var(--border)',
+    background: active ? 'var(--bg-card)' : 'transparent',
+    color: active ? 'var(--text-primary)' : 'var(--text-muted)',
+    cursor: 'pointer',
+    fontSize: 12,
+    fontWeight: active ? 700 : 400,
+    fontFamily: 'inherit',
+    marginBottom: -1,
+    transition: 'all 0.12s',
+  })
+  return (
+    <div className="card" style={{ paddingTop: 0 }}>
+      <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid var(--border)', marginBottom: 16, paddingTop: 16 }}>
+        <button style={tabStyle(tab === 'runner')} onClick={() => setTab('runner')}>⌘ Command Runner</button>
+        <button style={tabStyle(tab === 'tmux')}   onClick={() => setTab('tmux')}>⬛ tmux Terminal</button>
+      </div>
+      {tab === 'runner' && <MemoCommandRunnerPanel />}
+      {tab === 'tmux'   && <MemoTmuxChatPanel />}
+    </div>
+  )
+}
 
 // ── Main Page ──────────────────────────────────────────────────────────────
 export default function Dashboard() {
@@ -1724,13 +2204,7 @@ export default function Dashboard() {
             )}
 
             {activeSection === 'commands' && (
-              <div className="card">
-                <div className="card-header">
-                  <span className="dot" style={{ background: 'var(--accent)' }} />
-                  Command Runner — Allowlisted Server Commands
-                </div>
-                <MemoCommandRunnerPanel />
-              </div>
+              <CommandControlSection />
             )}
 
             {activeSection === 'git' && (

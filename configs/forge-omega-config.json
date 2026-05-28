@@ -15,6 +15,21 @@
     "qa":   { "port": 47780, "status": "template/inactive" }
   },
 
+  "engine_fallback": {
+    "trigger": "claude_token_exhaustion_or_threshold",
+    "state_file": "/tmp/tham-fallback-active.json",
+    "primary": {
+      "runtime": "claude-code",
+      "provider": "anthropic"
+    },
+    "fallback": {
+      "runtime": "codex",
+      "provider": "9router",
+      "model": "cx/gpt-5.5"
+    },
+    "oracle_wrapper": "scripts/oracle-engine.sh"
+  },
+
   "studio": {
     "port": 3000,
     "api_target": "http://localhost:47778"

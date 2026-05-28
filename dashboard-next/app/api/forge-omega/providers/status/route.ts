@@ -124,11 +124,14 @@ async function probeProvider(provider: ProviderConfig): Promise<{
     headers['Authorization'] = `Bearer ${key}`
   }
 
+  // http-api providers (oracle-v2) need manual start — use short timeout
+  const timeoutMs = provider.type === 'http-api' ? 1200 : 3000
+
   try {
     const ctrl = new AbortController()
-    const timer = setTimeout(() => ctrl.abort(), 3000)
-    // Use /v1/models for openai-compat; / for others
-    const probeUrl = provider.type === 'anthropic'
+    const timer = setTimeout(() => ctrl.abort(), timeoutMs)
+    // Use /v1/models for openai-compat and anthropic (avoids redirect timeouts on root /)
+    const probeUrl = (provider.type === 'anthropic' || provider.type === 'openai-compat')
       ? `${provider.base_url.replace(/\/$/, '')}/v1/models`
       : url
     const res = await fetch(probeUrl, {
@@ -203,7 +206,7 @@ function deriveQuota(provider: ProviderConfig, probeCode: number, now: string): 
 }
 
 // ── Main ──────────────────────────────────────────────────────────────────────
-export async function GET() {
+async function runProbes() {
   const now = new Date().toISOString()
   const configs = loadProviderConfig()
 
@@ -295,7 +298,7 @@ export async function GET() {
     return diff < 3600000  // last hour
   }).length
 
-  return NextResponse.json({
+  return {
     providers,
     quotas,
     activity,
@@ -308,5 +311,22 @@ export async function GET() {
       activityErrorsLastHour: activityErrors,
       lastCheckedAt: now,
     },
-  })
+  }
+}
+
+export async function GET() {
+  const ROUTE_TIMEOUT_MS = 7000
+  const timeoutResult = new Promise<null>((resolve) =>
+    setTimeout(() => resolve(null), ROUTE_TIMEOUT_MS)
+  )
+  const data = await Promise.race([runProbes(), timeoutResult])
+  if (data === null) {
+    return NextResponse.json({
+      providers: [], quotas: [], activity: [],
+      summary: { providerTotal: 0, providerAvailable: 0, providerWarning: 0,
+                 providerExhausted: 0, providerUnknown: 0, activityErrorsLastHour: 0,
+                 lastCheckedAt: new Date().toISOString(), error: 'probe timeout' },
+    })
+  }
+  return NextResponse.json(data)
 }

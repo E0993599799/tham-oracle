@@ -37,13 +37,15 @@ const REGISTRY: Omit<ServiceHealth, 'status' | 'latencyMs' | 'checkedAt' | 'deta
 ]
 
 // ── URL map for HTTP-probed services ─────────────────────────────────────────
+// 9router lives on Windows host — WSL must use host IP, not localhost
+const ROUTER_HOST = process.env.ROUTER_HOST ?? '172.21.112.1'
 const HTTP_URLS: Record<string, string> = {
   'oracle-v2':         'http://localhost:47778/',
   'oracle-v2-swagger': 'http://localhost:47778/swagger',
   'oracle-v2-omega':   'http://localhost:47779/',
   'forge-supervisor':  'http://localhost:8769/',
   'dashboard':         'http://localhost:3005/api/git',
-  '9router':           'http://localhost:20128/',
+  '9router':           `http://${ROUTER_HOST}:20128/v1/models`,
 }
 
 // ── Exec commands for tool-probed services ────────────────────────────────────
