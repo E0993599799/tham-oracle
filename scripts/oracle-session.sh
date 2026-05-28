@@ -43,9 +43,9 @@ if ! pgrep -x cron > /dev/null 2>&1; then
   sudo /usr/sbin/service cron start > /dev/null 2>&1 || true
 fi
 
-# Window 0: oracle chat (claude)
+# Window 0: oracle chat (Claude primary, Codex fallback)
 tmux new-session -d -s "$SESSION" -n "chat" -c "$REPO"
-tmux send-keys -t "$SESSION:chat" "claude" Enter
+tmux send-keys -t "$SESSION:chat" "bash '$REPO/scripts/oracle-engine.sh' --role tham-oracle --workdir '$REPO'" Enter
 
 # Window 1: memory gate — auto-read on open
 tmux new-window -t "$SESSION" -n "memory" -c "$REPO"

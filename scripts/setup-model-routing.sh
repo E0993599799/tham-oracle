@@ -34,9 +34,9 @@ echo "3️⃣  Tham-oracle Exception Setup..."
 if [ -f .env.tham ]; then
   echo "   ✓ .env.tham found"
   echo ""
-  echo "   To use Tham-oracle with Claude API:"
+  echo "   To use Tham-oracle with Claude primary + automatic Codex fallback:"
   echo "   $ source .env.tham"
-  echo "   $ claude ..."
+  echo "   $ bash scripts/oracle-engine.sh --role tham-oracle --workdir $(pwd)"
 else
   echo "   ❌ .env.tham not found"
 fi
@@ -57,4 +57,4 @@ echo ""
 echo "📌 Next steps:"
 echo "   1. Reload shell: source ~/.bashrc"
 echo "   2. Check 9router: curl -s ${ROUTER_BASE_URL}/health"
-echo "   3. For Tham-oracle: source .env.tham && claude ..."
+echo "   3. For Tham-oracle: source .env.tham && bash scripts/oracle-engine.sh --role tham-oracle --workdir $(pwd)"

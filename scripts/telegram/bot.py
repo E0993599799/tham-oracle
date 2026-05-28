@@ -31,7 +31,8 @@ def get_fallback_note() -> str:
             state = json.load(f)
         if state.get("active"):
             remaining = state.get("tokens_remaining", "?")
-            return f"\n\n[หมายเหตุ: Claude tokens เหลือน้อย ({remaining}) กำลังใช้ Codex+Ollama fallback แทน ตอบจาก knowledge ที่มี อย่า hallucinate]"
+            provider = state.get("fallback_provider", "codex_gpt55_9router")
+            return f"\n\n[หมายเหตุ: Claude tokens เหลือน้อย ({remaining}) กำลังใช้ Codex GPT-5.5 fallback ผ่าน 9router ({provider}) แทน ตอบจาก knowledge ที่มี อย่า hallucinate]"
     except Exception:
         pass
     return ""

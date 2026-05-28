@@ -27,7 +27,7 @@ if __name__ == "__main__":
         print(f"⚠️  FALLBACK ACTIVE — {state.get('reason','?')}")
         print(f"   Tokens remaining: {state.get('tokens_remaining','?')}")
         print(f"   Activated: {state.get('activated_at','?')}")
-        print(f"   Provider: {state.get('fallback_provider','codex_ollama')}")
+        print(f"   Provider: {state.get('fallback_provider','codex_gpt55_9router')}")
     else:
         print("✅ Fallback inactive — Claude active")
         if state.get("recovered_at"):

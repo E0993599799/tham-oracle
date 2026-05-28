@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Tham Oracle — Token Limit Trigger Awake
 # Run: every 10 min via cron, or manually
-# Detects Claude token limit approaching → activates Codex/Ollama fallback
+# Detects Claude token limit approaching → activates Codex GPT-5.5 fallback via 9router
 
 set -euo pipefail
 
@@ -54,7 +54,7 @@ if [ -z "$REMAINING" ]; then
 fi
 
 if [ "$REMAINING" -lt "$THRESHOLD" ] 2>/dev/null; then
-  log "⚠️ THRESHOLD HIT: $REMAINING < $THRESHOLD — activating fallback"
+  log "⚠️ THRESHOLD HIT: $REMAINING < $THRESHOLD — activating Codex GPT-5.5 fallback"
 
   # Write fallback state file
   python3 -c "
@@ -67,7 +67,7 @@ state = {
     'threshold': $THRESHOLD,
     'reset_at': '${RESET_AT:-unknown}',
     'activated_at': datetime.now().isoformat(),
-    'fallback_provider': 'codex_ollama',
+    'fallback_provider': 'codex_gpt55_9router',
 }
 with open('$FALLBACK_STATE', 'w') as f:
     json.dump(state, f, indent=2)
@@ -79,7 +79,7 @@ with open('$FALLBACK_STATE', 'w') as f:
     bash "$NOTIFY" custom "⚠️ <b>Token Limit Warning</b>
 Tokens remaining: <code>$REMAINING</code> (threshold: $THRESHOLD)
 Reset at: <code>${RESET_AT:-unknown}</code>
-Fallback → Codex + Ollama activated.
+Fallback → Codex GPT-5.5 via 9router activated.
 Send /status to check provider health."
   fi
 

@@ -19,7 +19,7 @@ else
 fi
 
 # Check if already installed
-if grep -q "# oracle-aliases-v1.0" "$SHELL_RC" 2>/dev/null; then
+if grep -q "# oracle-aliases-v1.1" "$SHELL_RC" 2>/dev/null; then
   echo "✓ Oracle aliases already installed in $SHELL_RC"
   exit 0
 fi
@@ -27,12 +27,12 @@ fi
 # Create alias block
 ALIAS_BLOCK=$(cat << 'EOF'
 
-# ===== oracle-aliases-v1.0 =====
+# ===== oracle-aliases-v1.1 =====
 # Oracle Toolkit shortcuts
 export ORACLE_ROOT="/root/ghq/github.com/E0993599799/tham-oracle"
 alias oracle="bash \$ORACLE_ROOT/bin/oracle"
-alias cc="claude"
-alias ccd="claude --dangerously-skip-permissions"
+alias cc="bash \$ORACLE_ROOT/scripts/oracle-engine.sh --role tham-oracle --workdir \$PWD"
+alias ccd="bash \$ORACLE_ROOT/scripts/oracle-engine.sh --role tham-oracle --workdir \$PWD --dangerously-skip-permissions"
 alias gs="git status"
 alias gl="git log --oneline -15"
 alias gd="git diff"
@@ -42,7 +42,7 @@ alias lanes="oracle tmux:lanes"
 alias fleet="oracle tmux:fleet"
 alias inbox="oracle queue:check"
 alias proof="oracle proof:last"
-# ===== end oracle-aliases =====
+# ===== end oracle-aliases-v1.1 =====
 EOF
 )
 

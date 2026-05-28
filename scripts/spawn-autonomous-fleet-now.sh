@@ -163,7 +163,7 @@ EOF_CMD
   else
     cat <<EOF_CMD
 set +e
-claude --name tham-orchestrator --model '$CLAUDE_MODEL' --permission-mode auto "\$(cat '$prompt')" 2>&1 | tee -a '$log'
+bash '$REPO_DIR/scripts/oracle-engine.sh' --role tham-orchestrator --workdir '$REPO_DIR' --name tham-orchestrator --model '$CLAUDE_MODEL' --permission-mode auto "\$(cat '$prompt')" 2>&1 | tee -a '$log'
 STATUS=\$?
 echo "tham exit status: \$STATUS" | tee -a '$progress'
 exec bash

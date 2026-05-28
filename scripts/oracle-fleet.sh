@@ -48,7 +48,7 @@ tmux new-window -t "$SESSION" -n "exec"
 # Left pane: core/Omega
 if [ -d "$OMEGA_PATH" ]; then
   tmux send-keys -t "$SESSION:exec" \
-    "cd $OMEGA_PATH && printf '\033[1;32m=== CORE — Bridge/Gate (Omega) ===\033[0m\n' && claude" Enter
+    "cd $OMEGA_PATH && printf '\033[1;32m=== CORE — Bridge/Gate (Omega) ===\033[0m\n' && bash '$REPO_ROOT/scripts/oracle-engine.sh' --role core --workdir '$OMEGA_PATH'" Enter
 else
   tmux send-keys -t "$SESSION:exec" \
     "printf '\033[1;32m=== CORE — Bridge/Gate (Omega) ===\033[0m\n' && echo '⚠ Omega not cloned — run: ghq get E0993599799/Omega'" Enter

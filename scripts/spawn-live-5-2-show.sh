@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # Live tmux show layout for Tham Oracle
 # Layout goal:
-#   - Main page: 5 left panes + 2 right panes
-#   - Top-left pane: THAM ORACLE
+#   - Main page: 5 panes total
+#   - Left column: 2 panes (top-left = THAM ORACLE)
+#   - Right column: 3 panes
 #   - Extra page(s): remaining active agents
 #
 # Usage:
@@ -21,50 +22,76 @@ ROUTER_HOST="${ROUTER_HOST:-$(windows_host_ip)}"
 ROUTER_HOST="${ROUTER_HOST:-127.0.0.1}"
 ROUTER_BASE_URL="${ROUTER_BASE_URL:-http://${ROUTER_HOST}:20128/v1}"
 
-start_tham() {
+THAM_RUNTIME="${THAM_RUNTIME:-free}"
+THAM_MODEL="${THAM_MODEL:-gemini-2.5-flash}"
+CODEX_MODEL="${CODEX_MODEL:-cx/gpt-5.5}"
+GEMINI_MODEL="${GEMINI_MODEL:-gemini-2.5-flash}"
+
+main_left_roles=("THAM ORACLE" "CORE")
+main_right_roles=("CODEX" "BOB" "WATCHDOG")
+extra_roles=("HERMES" "HOUSEKEEPER" "LUXI" "LENS")
+
+gemini_lane_script() {
+  local label="$1"
+  local model="$2"
   cat <<EOF
 cd '$REPO_DIR'
-[ -f .env.tham ] && source .env.tham || true
-printf '%s\n' '=== THAM ORACLE ==='
-printf '%s\n' 'top-left / governor / RTK context engine'
-if command -v claude >/dev/null 2>&1; then
-  exec claude --model sonnet
+export OPENAI_BASE_URL='$ROUTER_BASE_URL'
+export GEMINI_MODEL='$model'
+printf '%s\n' '=== $label ==='
+printf '%s\n' 'Gemini live terminal surface'
+printf '%s\n' 'Model: $model'
+if command -v gemini >/dev/null 2>&1; then
+  exec gemini --model "$model" --approval-mode auto_edit --prompt-interactive "You are $label in the Tham Oracle live tmux surface. Keep working inside this repository and stay concise."
 fi
-printf '%s\n' 'Claude command missing; staying in shell.'
+printf '%s\n' 'Gemini command missing; staying in shell.'
 exec bash
 EOF
 }
 
-start_codex() {
+codex_lane_script() {
   local label="$1"
+  local model="$2"
   cat <<EOF
-cd "$REPO_DIR"
+cd '$REPO_DIR'
 export OPENAI_BASE_URL='$ROUTER_BASE_URL'
-export CODEX_MODEL='${CODEX_MODEL:-cx/gpt-5.5}'
+export CODEX_MODEL='$model'
 printf '%s\n' '=== $label ==='
-printf '%s\n' 'Codex lane: live terminal surface'
+printf '%s\n' 'Codex live terminal surface'
+printf '%s\n' 'Model: $model'
 if command -v codex >/dev/null 2>&1; then
-  exec codex
+  exec codex -c model=\"$model\" "You are $label in the Tham Oracle live tmux surface. Keep working inside this repository and stay concise."
 fi
 printf '%s\n' 'Codex command missing; staying in shell.'
 exec bash
 EOF
 }
 
-start_gemini() {
+tham_script() {
+  case "$THAM_RUNTIME" in
+    codex)
+      codex_lane_script "THAM ORACLE" "$CODEX_MODEL"
+      ;;
+    gemini|free)
+      gemini_lane_script "THAM ORACLE" "$THAM_MODEL"
+      ;;
+    *)
+      printf '%s\n' "Unsupported THAM_RUNTIME=$THAM_RUNTIME; defaulting to Gemini." >&2
+      gemini_lane_script "THAM ORACLE" "$THAM_MODEL"
+      ;;
+  esac
+}
+
+lane_script() {
   local label="$1"
-  cat <<EOF
-cd '$REPO_DIR'
-export OPENAI_BASE_URL='$ROUTER_BASE_URL'
-export GEMINI_MODEL='${GEMINI_MODEL:-gemini/gemini-3.1-pro-preview}'
-printf '%s\n' '=== $label ==='
-printf '%s\n' 'Gemini lane: live terminal surface'
-if command -v gemini >/dev/null 2>&1; then
-  gemini -p "You are $label. Respond exactly with RESULT / PROOF / RISKS / MEMORY_DELTA. Mention that 9router is reachable via ${ROUTER_HOST}:20128 and whether you can proceed." --output-format text
-fi
-printf '%s\n' 'Gemini status run complete; staying in shell.'
-exec bash
-EOF
+  case "$label" in
+    WATCHDOG|LUXI|LENS)
+      gemini_lane_script "$label" "$GEMINI_MODEL"
+      ;;
+    *)
+      codex_lane_script "$label" "$CODEX_MODEL"
+      ;;
+  esac
 }
 
 spawn_pane() {
@@ -79,69 +106,60 @@ fi
 
 tmux new-session -d -s "$SESSION" -n main -x 220 -y 60
 
-# Pane layout:
-# left column (5 panes): THAM, CORE, CODEX, BOB, HERMES
-# right column (2 panes): HOUSEKEEPER, WATCHDOG
-
-# Start top-left THAM, create the right column root first, then build the left stack
-spawn_pane "$SESSION:main.0" "$(start_tham)"
-right_root="$(tmux split-window -h -t "$SESSION:main.0" -P -F '#{pane_id}')"
-left_targets=()
-current_target="$SESSION:main.0"
-for _ in 1 2 3 4; do
-  new_target="$(tmux split-window -v -t "$current_target" -P -F '#{pane_id}')"
-  left_targets+=("$new_target")
-  current_target="$new_target"
-done
-right_child="$(tmux split-window -v -t "$right_root" -P -F '#{pane_id}')"
-
-# Populate left column panes
-spawn_pane "${left_targets[0]}" "$(start_codex 'CORE')"
-spawn_pane "${left_targets[1]}" "$(start_codex 'CODEX')"
-spawn_pane "${left_targets[2]}" "$(start_codex 'BOB')"
-spawn_pane "${left_targets[3]}" "$(start_codex 'HERMES')"
-
-# Populate right column panes
-spawn_pane "$right_root" "$(start_codex 'HOUSEKEEPER')"
-spawn_pane "$right_child" "$(start_gemini 'WATCHDOG')"
-
-# Normalize main page layout as two vertical stacks
-# (left has 5 panes, right has 2 panes)
-tmux select-pane -t "$SESSION:main.0" >/dev/null
+tmux setw -t "$SESSION:main" allow-rename off >/dev/null
+tmux setw -t "$SESSION:main" automatic-rename off >/dev/null
 tmux setw -t "$SESSION:main" pane-border-status top >/dev/null
 
-tmux new-window -d -t "$SESSION" -n extra
-spawn_pane "$SESSION:extra.0" "$(start_gemini 'LUXI')"
-tmux split-window -h -t "$SESSION:extra.0" >/dev/null
-spawn_pane "$SESSION:extra.1" "$(start_gemini 'LENS')"
-tmux select-layout -t "$SESSION:extra" even-horizontal >/dev/null
+# Main page: 2 left panes + 3 right panes
+spawn_pane "$SESSION:main.0" "$(tham_script)"
+left_bottom="$(tmux split-window -v -t "$SESSION:main.0" -P -F '#{pane_id}')"
+right_top="$(tmux split-window -h -t "$SESSION:main.0" -P -F '#{pane_id}')"
+right_mid="$(tmux split-window -v -t "$right_top" -P -F '#{pane_id}')"
+right_bottom="$(tmux split-window -v -t "$right_mid" -P -F '#{pane_id}')"
 
-# Pane titles for easier live reading
+spawn_pane "$left_bottom" "$(lane_script 'CORE')"
+spawn_pane "$right_top" "$(lane_script 'CODEX')"
+spawn_pane "$right_mid" "$(lane_script 'BOB')"
+spawn_pane "$right_bottom" "$(lane_script 'WATCHDOG')"
 
 tmux select-pane -t "$SESSION:main.0" -T "THAM ORACLE"
-tmux select-pane -t "$SESSION:main.1" -T "CORE"
-tmux select-pane -t "$SESSION:main.2" -T "CODEX"
-tmux select-pane -t "$SESSION:main.3" -T "BOB"
-tmux select-pane -t "$SESSION:main.4" -T "HERMES"
-tmux select-pane -t "$SESSION:main.5" -T "HOUSEKEEPER"
-tmux select-pane -t "$SESSION:main.6" -T "WATCHDOG"
-tmux select-pane -t "$SESSION:extra.0" -T "LUXI"
-tmux select-pane -t "$SESSION:extra.1" -T "LENS"
+tmux select-pane -t "$left_bottom" -T "CORE"
+tmux select-pane -t "$right_top" -T "CODEX"
+tmux select-pane -t "$right_mid" -T "BOB"
+tmux select-pane -t "$right_bottom" -T "WATCHDOG"
 
-tmux rename-window -t "$SESSION:main" "main"
-tmux rename-window -t "$SESSION:extra" "extra"
-# Keep our manual labels visible instead of letting apps rename panes/windows.
-tmux setw -t "$SESSION:main" allow-rename off >/dev/null
+tmux new-window -d -t "$SESSION" -n extra
 tmux setw -t "$SESSION:extra" allow-rename off >/dev/null
-tmux setw -t "$SESSION:main" automatic-rename off >/dev/null
 tmux setw -t "$SESSION:extra" automatic-rename off >/dev/null
+tmux setw -t "$SESSION:extra" pane-border-status top >/dev/null
+
+spawn_pane "$SESSION:extra.0" "$(lane_script 'HERMES')"
+extra_p1="$(tmux split-window -h -t "$SESSION:extra.0" -P -F '#{pane_id}')"
+extra_p2="$(tmux split-window -v -t "$SESSION:extra.0" -P -F '#{pane_id}')"
+extra_p3="$(tmux split-window -v -t "$extra_p1" -P -F '#{pane_id}')"
+
+spawn_pane "$extra_p1" "$(lane_script 'HOUSEKEEPER')"
+spawn_pane "$extra_p2" "$(lane_script 'LUXI')"
+spawn_pane "$extra_p3" "$(lane_script 'LENS')"
+
+tmux select-pane -t "$SESSION:extra.0" -T "HERMES"
+tmux select-pane -t "$extra_p1" -T "HOUSEKEEPER"
+tmux select-pane -t "$extra_p2" -T "LUXI"
+tmux select-pane -t "$extra_p3" -T "LENS"
+
 tmux select-window -t "$SESSION:main"
 tmux select-pane -t "$SESSION:main.0"
 
 echo "SESSION=$SESSION"
-echo "Main page: 5 left panes + 2 right panes (top-left = THAM ORACLE)"
-echo "Extra page: LUXI | LENS"
+echo "Main page: 5 panes total = 2 left + 3 right (top-left = THAM ORACLE)"
+echo "Main roles: ${main_left_roles[*]} | ${main_right_roles[*]}"
+echo "Extra page roles: ${extra_roles[*]}"
+echo "THAM runtime: $THAM_RUNTIME"
+echo "THAM model: $THAM_MODEL"
+echo "Codex model: $CODEX_MODEL"
+echo "Gemini model: $GEMINI_MODEL"
 echo "Attach: tmux attach -t $SESSION"
 echo "Switch pages: Ctrl+b n / Ctrl+b p"
 echo ""
 tmux list-windows -t "$SESSION" -F '#{window_index}:#{window_name} panes=#{window_panes} layout=#{window_layout}'
+tmux list-panes -a -t "$SESSION" -F '#{session_name}:#{window_index}.#{pane_index} title=#{pane_title} cmd=#{pane_current_command} size=#{pane_width}x#{pane_height}'
