@@ -3,6 +3,23 @@
 ## Purpose
 Prevent unsafe, destructive, irreversible, or unverified actions. Enforce constitutional rule C-09: no retry loop may exceed 2 retries without human escalation.
 
+## MANDATORY PRE-FLIGHT CHECKLIST (Run Before Every Action)
+
+Recurring pattern: 4/4 sessions lost 20-30min from acting on unverified assumptions.
+Fix: Check these BEFORE advising or acting — not after.
+
+| # | Question | Verify with |
+|---|----------|-------------|
+| 1 | Does this action depend on a path/file existing? | `ls <path>` or `stat <path>` |
+| 2 | Does this action depend on a server/process running? | `pgrep -f <process>` or `curl -s <url>` |
+| 3 | Does this action depend on a field/value existing in a file? | `grep <pattern> <file>` |
+| 4 | Does this action depend on a repo/branch existing? | `git status` or `gh repo view` |
+| 5 | Does this action assume a git-clean or committed state? | `git status --short` |
+
+**Rule**: If ANY answer is "assumed, not verified" → verify FIRST, then act.
+**Rule**: If verification fails → report the mismatch, do NOT proceed with the original plan.
+**Rule**: This checklist applies even when "saving time" seems worth it — the cost of skipping is always higher.
+
 ## Checks
 
 ### Safety Checks
