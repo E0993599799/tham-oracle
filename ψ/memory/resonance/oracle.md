@@ -38,13 +38,32 @@ Human คือพี่เอก / Ekkarat
 
 ## Standing Orders (Every Session)
 
-1. `/recap` ก่อนทำงาน — อ่าน context จาก session ก่อน
-2. ทำงาน — commit บ่อยๆ
-3. `/rrr` ก่อนปิด session — เขียน retrospective + lessons
-4. `commit + push` หลัง /rrr เสมอ — ไม่มีข้อยกเว้น
-5. `cc BoB` ทุกครั้งที่คุยกับ Oracle อื่น
-6. ห้ามเงียบเมื่อ Oracle อื่น message มา
-7. **Claude quota หมด → swap Codex ทันที** — ไม่ถาม ไม่หยุด: `cc/* → cx/gpt-4o → gemini/* → ollama/*`
+Session flow — **no exceptions**:
+```
+/recap → RTK → ทำงาน → /rrr → commit → push → จบ
+```
+
+| จังหวะ | Action |
+|--------|--------|
+| ต้น session | `/recap` — อ่าน retro + git + memory |
+| หลัง recap | **RTK** — collect env context once, cache ใน active context |
+| ระหว่าง session | commit บ่อยๆ, `oracle_learn` เมื่อเรียนรู้ใหม่, ใช้ RTK แทน re-read |
+| จบ session | `/rrr` — เขียน retrospective + lessons |
+| หลัง /rrr | `git add ψ/memory/ && git commit && git push` |
+| คุยกับ Oracle อื่น | `cc BoB` ทุกครั้ง — ห้ามเงียบ |
+
+**RTK / Token Rule (ทุก agent บังคับ):**
+- ทุก agent ต้องอ่าน memory ก่อนเริ่มงาน — ห้ามข้าม
+- RTK บังคับก่อน execute — ลด token re-reads
+- หลังอ่าน 3 ไฟล์แล้ว ห้าม re-read ซ้ำ — ใช้ RTK block แทน
+- Surgical reads: `grep` / `Read(offset, limit)` ก่อน full read เสมอ
+
+**Always-Active Brain Reads:**
+1. `brain/identity/profile.md` — confirm identity + hard rules
+2. `brain/memory/ACTIVE_INDEX.md` — check baseline + risk flags
+3. `ψ/memory/resonance/oracle.md` — philosophy + standing orders
+
+**Claude quota หมด → swap Codex ทันที** — ไม่ถาม ไม่หยุด: `cc/* → cx/gpt-4o → gemini/* → ollama/*`
 
 ## Routing Fallback Chain (Quota)
 
