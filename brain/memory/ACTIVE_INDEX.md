@@ -1,6 +1,6 @@
 # Active Memory Index
 
-Last updated: 2026-05-17
+Last updated: 2026-05-21
 
 ## Baselines
 
@@ -44,7 +44,7 @@ Last updated: 2026-05-17
 | Provider | Endpoint | Model | Status |
 |----------|----------|-------|--------|
 | 9router (OpenClaw) | port 20128 | — | ✅ active |
-| Hermes (via 9router) | port 20128 | `ollama/minimax-m2.5` | ✅ verified |
+| Hermes (via 9router) | port 20128 | `gemini/gemini-3.1-pro-preview` | ✅ updated 2026-05-21 |
 | Tham oracle-v2 | port 47778 | — | manual start |
 | Omega oracle-v2 | port 47779 | — | manual start |
 

@@ -4,7 +4,7 @@
 # Does NOT auto-start any server. Does NOT commit any secret.
 
 set -e
-LOG="/root/repos/tham-oracle/.oracle-setup/logs/install-maw-js.log"
+LOG="/route/mission-control/tham-oracle/.oracle-setup/logs/install-maw-js.log"
 mkdir -p "$(dirname "$LOG")"
 exec > >(tee -a "$LOG") 2>&1
 

@@ -43,8 +43,9 @@ git commit \
 STATUS=$?
 if [ $STATUS -eq 0 ]; then
   # Push in background — non-blocking, no window
-  git push origin main >> "$LOG" 2>&1 &
-  echo "[${TIMESTAMP}] SAVED + pushing (bg)" >> "$LOG"
+  BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "main")
+  git push origin "$BRANCH" >> "$LOG" 2>&1 &
+  echo "[${TIMESTAMP}] SAVED + pushing ${BRANCH} (bg)" >> "$LOG"
 else
   echo "[${TIMESTAMP}] WARN: commit exit ${STATUS}" >> "$LOG"
 fi

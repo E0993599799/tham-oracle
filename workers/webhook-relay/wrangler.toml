@@ -1,0 +1,16 @@
+name = "tham-oracle-webhook-relay"
+main = "src/index.ts"
+compatibility_date = "2024-11-01"
+
+[vars]
+# ORACLE_URL, ORACLE_SECRET, GITHUB_SECRET, TELEGRAM_TOKEN are secrets —
+# do NOT put them here. Set via: npx wrangler secret put <NAME>
+
+[[routes]]
+# Set your zone / custom domain once deployed, e.g.:
+# pattern = "hooks.yourdomain.com/*"
+# zone_name = "yourdomain.com"
+# For now, deploy to workers.dev subdomain (default)
+
+[build]
+command = "npx tsc --noEmit"
