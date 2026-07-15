@@ -24,9 +24,14 @@ tmp/
 temp/
 .cache/
 
-# Oracle vault symlinks
-ψ/learn/**/origin
-ψ/**/data/
+# Oracle vault — persistent (tracked) vs. ephemeral (excluded)
+ψ/inbox/          # Ephemeral: handoffs, escalations, inbox notes (14d expiry)
+ψ/active/         # Sprint-scoped: active goals, blockers, temporary focus
+ψ/**/data/        # Transient session data (logs, caches, temp)
+ψ/learn/**/origin # Symlink origin markers (session-local)
+!/ψ/memory/       # INCLUDE: persistent learnings, patterns, decisions (tracked)
+!/ψ/fleet/        # INCLUDE: fleet-wide strategy, config (tracked)
+!/ψ/resonance/    # INCLUDE: joy moments, connection logs (tracked)
 
 # maw config (contains federationToken — never commit)
 ~/.config/maw/maw.config.json
@@ -53,9 +58,6 @@ tools/logs/
 .claude/commands/maw.*
 .claude/commands/maw-*
 .codex/prompts/maw*.md
-
-# ψ vault — transient session data (inboxes, generated files)
-ψ/inbox/
 dashboard/data.json
 .telegram-config
 scripts/__pycache__/
