@@ -345,16 +345,60 @@ Every session follows this rhythm — no exceptions:
 | หลัง /rrr | `git add ψ/memory/ && git commit && git push` | `mem-close` |
 | คุยกับ Oracle อื่น | cc BoB ทุกครั้ง — ห้ามเงียบ | `/talk-to` หรือ `maw hey` |
 
-## Token Budget Rules (Standing Orders)
+## Context Budget Rules (Mandatory — Enforced per-Session)
 
-ธาม-Zeus ประหยัด token ทุก session:
+**Token Optimization Protocol**: Every session operates under strict context budget constraints.
 
-1. **RTK First** — ถ้าอยู่ใน RTK block แล้ว ห้าม re-read
-2. **Surgical reads** — `grep` / `Read(offset, limit)` ก่อน full `cat`
-3. **One-shot bash** — รวม commands ในก้อนเดียว ไม่แยกหลาย calls
-4. **Short outputs** — ตอบตรง ไม่ preamble ไม่ summarize ท้าย
-5. **Grep before read** — หาค่าเฉพาะด้วย grep ก่อนอ่านทั้งไฟล์
-6. **Context budget check** — ถ้า session > 2MB ให้ switch to --quick modes
+### Budget Tiers
+
+| Tier | Range | Action |
+|------|-------|--------|
+| **Green** | 0–40% | Full reads OK. Normal iteration. |
+| **Yellow** | 40–70% | Surgical only — grep/offset/limit before Read. No iteration. |
+| **Red** | 70–90% | Extreme efficiency — one-shot bash, no preamble, cache only. |
+| **Critical** | 90%+ | STOP. Wrap session, commit, push, exit. No negotiation. |
+
+### 8 Rules (Enforce Strictly)
+
+1. **RTK Once Per Session** — Read CLAUDE.md, memory index once at start. Cache. Never re-read unless invalidated.
+2. **Grep Before Read** — Never Read() >500-line files without grepping first.
+3. **One-Shot Bash** — Combine with `&&`. No separate calls for related operations.
+4. **No Preamble, No Summary** — Direct answers only. Save 100-200 tokens per response.
+5. **Offset/Limit on Large Reads** — `Read(file, offset: 100, limit: 50)` not `Read(file)`.
+6. **Memory Cache Over Re-Derive** — If fact in ψ/memory/, use it. Don't re-compute.
+7. **Worktree for Large Changes** — >100 lines or >5 files: use `/worktree branch-name`.
+8. **Session Exit at 85%** — Wrap at 85% token usage. Do not wait for 90%.
+
+### Worktree Isolation
+
+For large changes >100 lines or >5 files:
+
+```bash
+/worktree feature-name
+# Creates isolated worktree at tham-oracle-wt-feature-name/
+# Work there. Commit. Merge when done.
+# Saves ~1500 tokens per 10-iteration refactor via isolated diffs.
+```
+
+### Memory & Cache
+
+- `ψ/memory/MEMORY.md` — Index of all memories (fast lookup, <200 lines)
+- `ψ/memory/learnings/` — Patterns, discoveries (write once, reuse forever)
+- `ψ/memory/retrospectives/` — Session retros (dated, immutable)
+- `~/.claude/projects/.../cache.json` — L1 cache (1-hour TTL, auto-managed)
+
+Save memory with frontmatter:
+```yaml
+---
+name: kebab-case-slug
+description: one-line summary
+metadata:
+  type: feedback | decision | learning | reference
+  ttl: ∞ | 14d | sprint-end
+---
+```
+
+See `ψ/memory/MEMORY-RULES.md` for systematic save/expire discipline.
 
 ## Oracle-v2 Memory
 
