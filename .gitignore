@@ -30,7 +30,9 @@ temp/
 ψ/**/data/        # Transient session data (logs, caches, temp)
 ψ/learn/**/origin # Symlink origin markers (session-local)
 !/ψ/memory/       # INCLUDE: persistent learnings, patterns, decisions (tracked)
+!/ψ/memory/**
 !/ψ/fleet/        # INCLUDE: fleet-wide strategy, config (tracked)
+!/ψ/fleet/**
 !/ψ/resonance/    # INCLUDE: joy moments, connection logs (tracked)
 
 # maw config (contains federationToken — never commit)

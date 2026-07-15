@@ -1,0 +1,124 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Fleet Status Event",
+  "description": "Broadcast event for oracle family coordination — high-signal project updates and fleet status",
+  "type": "object",
+  "required": ["timestamp", "oracle", "event_type", "message", "severity"],
+  "properties": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 UTC timestamp (YYYY-MM-DDTHH:MM:SSZ)"
+    },
+    "oracle": {
+      "type": "string",
+      "enum": ["Zeus", "ธาม", "Luxi", "Agis", "Dheva", "Teleos", "Aris", "Omega", "Lens", "Stratum", "Verity", "Warden", "All"],
+      "description": "Originating oracle identity"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "oracle:session_start",
+        "oracle:session_end",
+        "commit:pushed",
+        "project:deployed",
+        "project:blocker",
+        "oracle:token_tier_change",
+        "fleet:oracle_awakened"
+      ],
+      "description": "Hierarchical event namespace (oracle:*, commit:*, project:*, fleet:*)"
+    },
+    "project": {
+      "type": ["string", "null"],
+      "description": "Affected project name (e.g., zeus-oracle, luxi-oracle); null if not project-specific"
+    },
+    "message": {
+      "type": "string",
+      "description": "Human-readable summary of the event"
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["info", "warn", "error", "critical"],
+      "description": "Event severity (info = routine, warn = attention, error = problem, critical = blocker)"
+    },
+    "tags": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Freeform tags for filtering (e.g., ['session', 'startup'], ['frontend', 'refactor'])"
+    },
+    "details": {
+      "type": "object",
+      "description": "Event-specific context (varies by event_type)"
+    }
+  },
+  "examples": [
+    {
+      "timestamp": "2026-07-16T06:39:46Z",
+      "oracle": "Luxi",
+      "event_type": "oracle:session_start",
+      "project": "luxi-oracle",
+      "message": "Session: UI component library refactor",
+      "severity": "info",
+      "tags": ["session", "frontend"],
+      "details": {
+        "session_id": "3f71253",
+        "focus": "Button variants + theme inheritance"
+      }
+    },
+    {
+      "timestamp": "2026-07-16T10:15:23Z",
+      "oracle": "Zeus",
+      "event_type": "commit:pushed",
+      "project": "zeus-oracle",
+      "message": "3 commits: gitignore standardization, fleet status schema, QUERY-GUIDE",
+      "severity": "info",
+      "tags": ["infrastructure", "fleet-system"],
+      "details": {
+        "commits": 3,
+        "summary": "fleet broadcast system Phase 1"
+      }
+    },
+    {
+      "timestamp": "2026-07-16T12:30:00Z",
+      "oracle": "Teleos",
+      "event_type": "project:deployed",
+      "project": "captain-maid",
+      "message": "Deployed: v2.3.0 live on Vercel",
+      "severity": "info",
+      "tags": ["deployment", "production"],
+      "details": {
+        "version": "v2.3.0",
+        "environment": "production",
+        "link": "https://captain-maid.vercel.app"
+      }
+    },
+    {
+      "timestamp": "2026-07-16T14:45:00Z",
+      "oracle": "Agis",
+      "event_type": "project:blocker",
+      "project": "khun-ram-oracle",
+      "message": "Blocker: Database access pending — 12h SLA",
+      "severity": "critical",
+      "tags": ["blocker", "database"],
+      "details": {
+        "issue": "DrvFs mount permission issue on Windows path",
+        "contact": "Ekkarat",
+        "eta": "2h"
+      }
+    },
+    {
+      "timestamp": "2026-07-16T15:00:00Z",
+      "oracle": "Zeus",
+      "event_type": "oracle:token_tier_change",
+      "project": null,
+      "message": "Token budget tier: yellow (70% used) — switching to surgical mode",
+      "severity": "warn",
+      "tags": ["token-budget", "system"],
+      "details": {
+        "previous_tier": "green",
+        "current_tier": "yellow",
+        "token_percent": 70
+      }
+    }
+  ]
+}
