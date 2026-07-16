@@ -1,26 +1,13 @@
 {
-  "model": "codex",
-  "permissions": {
-    "allow": [
-      "Bash",
-      "Any Bash command",
-      "Edit",
-      "Write",
-      "Read",
-      "Glob",
-      "Grep",
-      "Use skill",
-      "Any use of skill tools"
-    ]
-  },
   "hooks": {
-    "Stop": [
+    "SessionStart": [
       {
         "matcher": "",
         "hooks": [
           {
             "type": "command",
-            "command": "bash /route/mission-control/tham-oracle/scripts/mem-auto-save.sh"
+            "command": "bash -c '. \"${CLAUDE_PROJECT_DIR}/scripts/fleet-emit.sh\" 2>/dev/null && oracle_emit \"ธาม\" \"oracle:session_start\" \"Session started\" \"info\" \"tham-oracle\" && echo \"📡 Fleet: session broadcast enabled\"'",
+            "statusMessage": "Broadcasting session to fleet..."
           }
         ]
       }

@@ -66,3 +66,6 @@ scripts/__pycache__/
 
 # Auto-save transient lock file
 brain/memory/.auto-save.lock
+
+# Fleet status broadcast utilities (tracked)
+!/scripts/fleet-*.sh
